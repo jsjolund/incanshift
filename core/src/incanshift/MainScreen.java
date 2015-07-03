@@ -2,8 +2,11 @@ package incanshift;
 
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
+import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.assets.AssetManager;
+import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
@@ -15,10 +18,52 @@ import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.graphics.g3d.environment.PointLight;
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
+import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.math.collision.BoundingBox;
+import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.viewport.FitViewport;
+import com.badlogic.gdx.utils.viewport.Viewport;
+import com.sun.java.swing.plaf.windows.resources.windows;
 
 public class MainScreen implements Screen {
+
+	private class MyInputProcessor extends CameraInputController
+			implements
+				InputProcessor {
+
+		Viewport viewport;
+		Array<ModelInstance> instances;
+		Ray ray;
+		BoundingBox box = new BoundingBox();
+
+		public MyInputProcessor(Viewport viewport,
+				Array<ModelInstance> instances) {
+
+			super(viewport.getCamera());
+			this.instances = instances;
+			this.viewport = viewport;
+			// autoUpdate = false;
+		}
+
+		@Override
+		public boolean touchDown(float x, float y, int pointer, int button) {
+			super.touchDown(x, y, pointer, button);
+
+			ray = viewport.getPickRay(x, y);
+
+			for (ModelInstance instance : instances) {
+				instance.calculateBoundingBox(box).mul(instance.transform);
+				if (Intersector.intersectRayBoundsFast(ray, box)) {
+					System.out.println("Click");
+				}
+			}
+			return true;
+		}
+	}
+
+	Viewport viewport;
 
 	private Environment environment;
 
@@ -35,8 +80,9 @@ public class MainScreen implements Screen {
 
 		environment.set(new ColorAttribute(ColorAttribute.AmbientLight, 0.3f,
 				0.3f, 0.3f, 1f));
-		environment.add(new DirectionalLight().set(0.8f, 0.8f, 0.8f, -1f, -0.8f, -0.2f));
-		
+		environment.add(new DirectionalLight().set(0.8f, 0.8f, 0.8f, -1f,
+				-0.8f, -0.2f));
+
 		modelBatch = new ModelBatch();
 
 		camera = new PerspectiveCamera(30, Gdx.graphics.getWidth(),
@@ -50,15 +96,20 @@ public class MainScreen implements Screen {
 
 		assets = new AssetManager();
 		assets.load("./temple.g3db", Model.class);
+		assets.load("./ground.g3db", Model.class);
 		assets.finishLoading();
 
 		Model temple = assets.get("./temple.g3db", Model.class);
+		Model ground = assets.get("./ground.g3db", Model.class);
 
 		instances.add(new ModelInstance(temple, new Vector3()));
+		instances.add(new ModelInstance(ground, new Vector3()));
 
-		camController = new CameraInputController(camera);
+		viewport = new FitViewport(1280, 720, camera);
+		viewport.apply();
+
+		camController = new MyInputProcessor(viewport, instances);
 		Gdx.input.setInputProcessor(camController);
-
 	}
 
 	@Override
@@ -75,15 +126,18 @@ public class MainScreen implements Screen {
 
 	@Override
 	public void pause() {
-		// TODO Auto-generated method stub
+		// TODO Auto-generated method stubz
 	}
 
 	@Override
 	public void render(float dt) {
 		camController.update();
 
-		Gdx.gl.glViewport(0, 0, Gdx.graphics.getWidth(),
-				Gdx.graphics.getHeight());
+		Gdx.graphics.getGL20().glClearColor(0, 0, 0, 1);
+		int x = (Gdx.graphics.getWidth() - viewport.getScreenWidth()) / 2;
+		int y = (Gdx.graphics.getHeight() - viewport.getScreenHeight()) / 2;
+		Gdx.gl.glViewport(x, y, viewport.getScreenWidth(),
+				viewport.getScreenHeight());
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
 
 		modelBatch.begin(camera);
@@ -91,10 +145,11 @@ public class MainScreen implements Screen {
 		modelBatch.end();
 
 	}
-
 	@Override
 	public void resize(int width, int height) {
-		// TODO Auto-generated method stub
+		viewport.update(width, height);
+		camera.update(true);
+
 	}
 
 	@Override
