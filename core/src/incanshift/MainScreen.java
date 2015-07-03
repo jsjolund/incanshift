@@ -2,12 +2,8 @@ package incanshift;
 
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
-import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.assets.AssetManager;
-import com.badlogic.gdx.graphics.Camera;
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
 import com.badlogic.gdx.graphics.g3d.Environment;
@@ -16,59 +12,19 @@ import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
-import com.badlogic.gdx.graphics.g3d.environment.PointLight;
-import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
-import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.math.collision.BoundingBox;
-import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
-import com.sun.java.swing.plaf.windows.resources.windows;
 
 public class MainScreen implements Screen {
-
-	private class MyInputProcessor extends CameraInputController
-			implements
-				InputProcessor {
-
-		Viewport viewport;
-		Array<ModelInstance> instances;
-		Ray ray;
-		BoundingBox box = new BoundingBox();
-
-		public MyInputProcessor(Viewport viewport,
-				Array<ModelInstance> instances) {
-
-			super(viewport.getCamera());
-			this.instances = instances;
-			this.viewport = viewport;
-			// autoUpdate = false;
-		}
-
-		@Override
-		public boolean touchDown(float x, float y, int pointer, int button) {
-			super.touchDown(x, y, pointer, button);
-
-			ray = viewport.getPickRay(x, y);
-
-			for (ModelInstance instance : instances) {
-				instance.calculateBoundingBox(box).mul(instance.transform);
-				if (Intersector.intersectRayBoundsFast(ray, box)) {
-					System.out.println("Click");
-				}
-			}
-			return true;
-		}
-	}
 
 	Viewport viewport;
 
 	private Environment environment;
 
 	private PerspectiveCamera camera;
-	private CameraInputController camController;
+	private FPSInputProcessor camController;
 
 	private ModelBatch modelBatch;
 	private AssetManager assets;
@@ -108,7 +64,7 @@ public class MainScreen implements Screen {
 		viewport = new FitViewport(1280, 720, camera);
 		viewport.apply();
 
-		camController = new MyInputProcessor(viewport, instances);
+		camController = new FPSInputProcessor(viewport, instances);
 		Gdx.input.setInputProcessor(camController);
 	}
 
@@ -149,6 +105,8 @@ public class MainScreen implements Screen {
 	public void resize(int width, int height) {
 		viewport.update(width, height);
 		camera.update(true);
+		camController.screenCenterX = width / 2;
+		camController.screenCenterY = height / 2;
 
 	}
 
