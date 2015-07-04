@@ -38,11 +38,11 @@ class FPSInputProcessor implements InputProcessor {
 	private int BACKWARD = Keys.S;
 	private int UP = Keys.Q;
 	private int DOWN = Keys.E;
+	private int SPACE = Keys.SPACE;
 	private float velocity = 5;
 	private final Vector3 tmp = new Vector3();
 
 	public FPSInputProcessor(Viewport viewport, GameObject player, Array<GameObject> instances) {
-		// super(viewport.getCamera());
 		this.instances = instances;
 		this.viewport = viewport;
 		this.player = player;
@@ -70,8 +70,6 @@ class FPSInputProcessor implements InputProcessor {
 		camera.rotate(camera.direction.cpy().crs(Vector3.Y), -sens * mouseDy);
 
 		player.transform.rotate(Vector3.Y, -sens * mouseDx);
-		// player.transform.rotate(camera.direction.cpy().crs(Vector3.Y), -sens
-		// * mouseDy);
 
 		camera.up.set(Vector3.Y);
 		camera.update();
@@ -85,35 +83,37 @@ class FPSInputProcessor implements InputProcessor {
 		update(Gdx.graphics.getDeltaTime());
 	}
 
-	public void update(float deltaTime) {
+	public void update(float dt) {
 		if (keys.containsKey(FORWARD)) {
-			tmp.set(camera.direction).nor().scl(deltaTime * velocity);
+			tmp.set(camera.direction).nor().scl(dt * velocity);
 			player.position(tmp);
-
-			// player.transform.translate(Vector3.Z);
 		}
 		if (keys.containsKey(BACKWARD)) {
-			tmp.set(camera.direction).nor().scl(-deltaTime * velocity);
+			tmp.set(camera.direction).nor().scl(-dt * velocity);
 			player.position(tmp);
 		}
 		if (keys.containsKey(STRAFE_LEFT)) {
-			tmp.set(camera.direction).crs(camera.up).nor().scl(-deltaTime * velocity);
+			tmp.set(camera.direction).crs(camera.up).nor().scl(-dt * velocity);
 			player.position(tmp);
 		}
 		if (keys.containsKey(STRAFE_RIGHT)) {
-			tmp.set(camera.direction).crs(camera.up).nor().scl(deltaTime * velocity);
+			tmp.set(camera.direction).crs(camera.up).nor().scl(dt * velocity);
 			player.position(tmp);
 		}
 		if (keys.containsKey(UP)) {
-			tmp.set(camera.up).nor().scl(deltaTime * velocity);
+			tmp.set(camera.up).nor().scl(dt * velocity);
 			player.position(tmp);
 		}
 		if (keys.containsKey(DOWN)) {
-			tmp.set(camera.up).nor().scl(-deltaTime * velocity);
+			tmp.set(camera.up).nor().scl(-dt * velocity);
 			player.position(tmp);
 		}
+		if (keys.containsKey(SPACE) && player.onGround) {
+			player.velocity.y = 5;
+			player.onGround = false;
+		}
 		player.transform.getTranslation(camera.position);
-		camera.position.add(0, 0.25f, 0);
+		camera.position.add(0, MainScreen.PLAYER_EYE_HEIGHT/2, 0);
 
 		camera.update(true);
 	}

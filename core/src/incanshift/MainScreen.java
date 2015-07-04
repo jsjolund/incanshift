@@ -1,50 +1,32 @@
 package incanshift;
 
-import sun.security.acl.WorldGroupImpl;
-
 import com.badlogic.gdx.Application;
-import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.assets.AssetManager;
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.Mesh;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
-import com.badlogic.gdx.graphics.VertexAttributes.Usage;
 import com.badlogic.gdx.graphics.g3d.Environment;
-import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
-import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.Bullet;
 import com.badlogic.gdx.physics.bullet.DebugDrawer;
-import com.badlogic.gdx.physics.bullet.collision.CollisionObjectWrapper;
 import com.badlogic.gdx.physics.bullet.collision.ContactListener;
-import com.badlogic.gdx.physics.bullet.collision.btBoxShape;
 import com.badlogic.gdx.physics.bullet.collision.btCapsuleShape;
-import com.badlogic.gdx.physics.bullet.collision.btCollisionAlgorithm;
-import com.badlogic.gdx.physics.bullet.collision.btCollisionAlgorithmConstructionInfo;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionConfiguration;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionDispatcher;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionWorld;
-import com.badlogic.gdx.physics.bullet.collision.btConvexHullShape;
 import com.badlogic.gdx.physics.bullet.collision.btDbvtBroadphase;
 import com.badlogic.gdx.physics.bullet.collision.btDefaultCollisionConfiguration;
 import com.badlogic.gdx.physics.bullet.collision.btDispatcher;
-import com.badlogic.gdx.physics.bullet.collision.btDispatcherInfo;
-import com.badlogic.gdx.physics.bullet.collision.btManifoldResult;
-import com.badlogic.gdx.physics.bullet.collision.btPositionAndRadius;
-import com.badlogic.gdx.physics.bullet.collision.btShapeHull;
-import com.badlogic.gdx.physics.bullet.collision.btSphereBoxCollisionAlgorithm;
-import com.badlogic.gdx.physics.bullet.linearmath.btIDebugDraw;
+import com.badlogic.gdx.physics.bullet.collision.btManifoldPoint;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ArrayMap;
 import com.badlogic.gdx.utils.Disposable;
@@ -80,12 +62,26 @@ public class MainScreen implements Screen {
 	final static short OBJECT_FLAG = 1 << 9;
 	final static short ALL_FLAG = -1;
 
+	public final static float PLAYER_HEIGHT = 1.8f;
+	public final static float PLAYER_RADIUS = 0.25f;
+	public final static float PLAYER_EYE_HEIGHT = 1.5f;
+
+	GameObject player;
+
+	Vector3 gravAcc = new Vector3(0, -9.82f, 0);
+	Vector3 playerStartPos = new Vector3(20, 2, 20);
+
 	class MyContactListener extends ContactListener {
+
 		@Override
-		public boolean onContactAdded(int userValue0, int partId0, int index0, int userValue1, int partId1, int index1) {
-			System.out.println("coll");
-			instances.get(userValue0).moving = false;
-			instances.get(userValue1).moving = false;
+		public boolean onContactAdded(btManifoldPoint cp, int userValue0, int partId0, int index0, int userValue1, int partId1, int index1) {
+			Vector3 normal = new Vector3(0, 0, 0);
+			cp.getNormalWorldOnB(normal);
+			player.position(normal.scl(-cp.getDistance1()));
+			
+			player.onGround = true;
+			player.velocity.setZero();
+			
 			return true;
 		}
 
@@ -94,7 +90,9 @@ public class MainScreen implements Screen {
 	static class GameObject extends ModelInstance implements Disposable {
 
 		public final btCollisionObject body;
-		public boolean moving = true;
+		public boolean onGround = true;
+
+		public Vector3 velocity = new Vector3();
 
 		public GameObject(Model model, btCollisionShape shape) {
 			super(model);
@@ -147,13 +145,12 @@ public class MainScreen implements Screen {
 		modelBatch = new ModelBatch();
 
 		camera = new PerspectiveCamera(60, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-		camera.lookAt(Vector3.Z);
+		camera.lookAt(Vector3.Zero);
 
 		camera.near = 1E-2f;
 		camera.far = 1.5E3f;
 		camera.update();
 
-		Gdx.app.log(null, "created camera");
 
 		assets = new AssetManager();
 		assets.load("./temple.g3db", Model.class);
@@ -161,7 +158,6 @@ public class MainScreen implements Screen {
 		assets.load("./player.g3db", Model.class);
 		assets.finishLoading();
 
-		Gdx.app.log(null, "loaded assets");
 
 		Model modelTemple = assets.get("./temple.g3db", Model.class);
 		Model modelGround = assets.get("./ground.g3db", Model.class);
@@ -172,26 +168,23 @@ public class MainScreen implements Screen {
 		constructors.put("temple", new GameObject.Constructor(modelTemple, Bullet.obtainStaticNodeShape(modelTemple.nodes)));
 		constructors.put("ground", new GameObject.Constructor(modelGround, Bullet.obtainStaticNodeShape(modelGround.nodes)));
 
-		constructors.put("player", new GameObject.Constructor(modelPlayer, new btCapsuleShape(0.25f, 1.8f)));
+		constructors.put("player", new GameObject.Constructor(modelPlayer, new btCapsuleShape(PLAYER_RADIUS, PLAYER_HEIGHT)));
 
-		Gdx.app.log(null, "constructed objects");
 
 		instances = new Array<GameObject>();
 		instances.add(constructors.get("ground").construct());
 		instances.add(constructors.get("temple").construct());
 
-		Gdx.app.log(null, "added instances");
 
 		viewport = new FitViewport(1280, 720, camera);
 		viewport.apply();
 
-		GameObject player = constructors.get("player").construct();
-		player.position(new Vector3(5, 2, 5));
+		player = constructors.get("player").construct();
+		player.position(playerStartPos);
 
 		camController = new FPSInputProcessor(viewport, player, instances);
 		Gdx.input.setInputProcessor(camController);
 
-		Gdx.app.log(null, "created input processor");
 
 		collisionConfig = new btDefaultCollisionConfiguration();
 		dispatcher = new btCollisionDispatcher(collisionConfig);
@@ -201,7 +194,7 @@ public class MainScreen implements Screen {
 
 		debugDrawer = new DebugDrawer();
 		collisionWorld.setDebugDrawer(debugDrawer);
-		// debugDrawer.setDebugMode(btIDebugDraw.DebugDrawModes.DBG_DrawWireframe);
+//		debugDrawer.setDebugMode(btIDebugDraw.DebugDrawModes.DBG_DrawWireframe);
 
 		contactListener = new MyContactListener();
 		contactListener.enable();
@@ -213,7 +206,6 @@ public class MainScreen implements Screen {
 			collisionWorld.addCollisionObject(obj.body, GROUND_FLAG, ALL_FLAG);
 		}
 
-		Gdx.app.log(null, "created collision world");
 	}
 
 	@Override
@@ -248,11 +240,12 @@ public class MainScreen implements Screen {
 		// TODO Auto-generated method stub
 	}
 
-	Vector3 playerVelocity = new Vector3();
-
 	@Override
 	public void render(float dt) {
 		camController.update();
+		
+		player.velocity.add(gravAcc.cpy().scl(dt));
+		player.position(player.velocity.cpy().scl(dt));
 
 		collisionWorld.performDiscreteCollisionDetection();
 
