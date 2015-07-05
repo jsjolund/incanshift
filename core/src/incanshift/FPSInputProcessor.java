@@ -7,22 +7,22 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.graphics.Camera;
-import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.math.collision.Ray;
-import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
+import com.badlogic.gdx.physics.bullet.collision.btCollisionWorld;
 import com.badlogic.gdx.utils.IntIntMap;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
 class FPSInputProcessor implements InputProcessor {
 
 	GameObject player;
+	btCollisionWorld world;
 
 	Viewport viewport;
 	Camera camera;
 
-	Array<GameObject> instances;
 	Ray ray;
 	BoundingBox box = new BoundingBox();
 
@@ -42,8 +42,8 @@ class FPSInputProcessor implements InputProcessor {
 	private float velocity = 5;
 	private final Vector3 tmp = new Vector3();
 
-	public FPSInputProcessor(Viewport viewport, GameObject player, Array<GameObject> instances) {
-		this.instances = instances;
+	public FPSInputProcessor(Viewport viewport, GameObject player, btCollisionWorld world) {
+		this.world = world;
 		this.viewport = viewport;
 		this.player = player;
 		centerMouseCursor();
@@ -148,17 +148,11 @@ class FPSInputProcessor implements InputProcessor {
 		if (button == Input.Buttons.LEFT) {
 
 			ray = viewport.getPickRay(screenX, screenY);
-
-			for (GameObject instance : instances) {
-
-				instance.calculateBoundingBox(box).mul(instance.transform);
-
-				if (Intersector.intersectRayBoundsFast(ray, box)) {
-					System.out.println("Click " + instance.toString());
-					break;
-				}
-
+			btCollisionObject hitObject = MainScreen.rayTest(world, ray, 100);
+			if (hitObject != null) {
+				System.out.println("Hit " + hitObject);
 			}
+
 		}
 		return true;
 	}

@@ -18,8 +18,10 @@ import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.physics.bullet.Bullet;
 import com.badlogic.gdx.physics.bullet.DebugDrawer;
+import com.badlogic.gdx.physics.bullet.collision.ClosestRayResultCallback;
 import com.badlogic.gdx.physics.bullet.collision.ContactListener;
 import com.badlogic.gdx.physics.bullet.collision.btCapsuleShape;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionConfiguration;
@@ -142,6 +144,21 @@ public class MainScreen implements Screen {
 		}
 	}
 
+	public static btCollisionObject rayTest(btCollisionWorld collisionWorld, Ray ray, float maxDistance) {
+		Vector3 rayFrom = new Vector3(ray.origin);
+		Vector3 rayTo = new Vector3(ray.direction).scl(maxDistance).add(rayFrom);
+
+		ClosestRayResultCallback callback = new ClosestRayResultCallback(rayFrom, rayTo);
+		collisionWorld.rayTest(rayFrom, rayTo, callback);
+
+		btCollisionObject co = callback.getCollisionObject();
+		boolean hasHit = callback.hasHit();
+
+		callback.dispose();
+
+		return (hasHit) ? co : null;
+	}
+
 	public MainScreen(Game game) {
 
 		Gdx.app.setLogLevel(Application.LOG_DEBUG);
@@ -150,10 +167,10 @@ public class MainScreen implements Screen {
 		FreeTypeFontParameter parameter = new FreeTypeFontParameter();
 		parameter.size = 12;
 		font12 = generator.generateFont(parameter);
-		generator.dispose(); 
-		
+		generator.dispose();
+
 		Gdx.input.setCursorCatched(true);
-		
+
 		Bullet.init();
 
 		environment = new Environment();
@@ -166,7 +183,6 @@ public class MainScreen implements Screen {
 
 		camera = new PerspectiveCamera(60, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 
-		
 		camera.near = 1E-2f;
 		camera.far = 1.5E3f;
 		camera.update();
@@ -198,11 +214,6 @@ public class MainScreen implements Screen {
 		player = constructors.get("player").construct();
 		player.position(playerStartPos);
 
-		camController = new FPSInputProcessor(viewport, player, instances);
-		Gdx.input.setInputProcessor(camController);
-		camController.centerMouseCursor();
-		camera.lookAt(Vector3.Zero);
-
 		collisionConfig = new btDefaultCollisionConfiguration();
 		dispatcher = new btCollisionDispatcher(collisionConfig);
 		broadphase = new btDbvtBroadphase();
@@ -222,6 +233,11 @@ public class MainScreen implements Screen {
 		for (GameObject obj : instances) {
 			collisionWorld.addCollisionObject(obj.body, GROUND_FLAG, ALL_FLAG);
 		}
+
+		camController = new FPSInputProcessor(viewport, player, collisionWorld);
+		Gdx.input.setInputProcessor(camController);
+		camController.centerMouseCursor();
+		camera.lookAt(Vector3.Zero);
 
 	}
 
@@ -287,9 +303,9 @@ public class MainScreen implements Screen {
 					showStartMsg = false;
 				}
 			}, 5);
-			 spriteBatch.begin();
-			 font12.draw(spriteBatch, "Press ESC to pause...", 10, 15);
-			 spriteBatch.end();
+			spriteBatch.begin();
+			font12.draw(spriteBatch, "Press ESC to pause...", 10, 15);
+			spriteBatch.end();
 
 		}
 
