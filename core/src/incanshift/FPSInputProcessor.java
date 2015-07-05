@@ -36,9 +36,8 @@ class FPSInputProcessor implements InputProcessor {
 	private int BACKWARD = Keys.S;
 	private int UP = Keys.Q;
 	private int DOWN = Keys.E;
-	private int SPACE = Keys.SPACE;
-	private float velocity = 5;
-	private final Vector3 tmp = new Vector3();
+	private int JUMP = Keys.SPACE;
+	private int WALK = Keys.SHIFT_LEFT;
 
 	public FPSInputProcessor(Viewport viewport, GameObject player, CollisionHandler collisionHandler) {
 		this.collisionHandler = collisionHandler;
@@ -81,38 +80,61 @@ class FPSInputProcessor implements InputProcessor {
 		update(Gdx.graphics.getDeltaTime());
 	}
 
+	private final Vector3 moveDirection = new Vector3();
+	private final Vector3 tmp = new Vector3();
+
+	private float walkMoveSpeed = 3f;
+	private float runMoveSpeed = 6f;
+
 	public void update(float dt) {
-		if (keys.containsKey(FORWARD)) {
-			tmp.set(camera.direction).nor().scl(dt * velocity);
-			player.position(tmp);
+		moveDirection.setZero();
+
+		if (keys.containsKey(FORWARD) && player.onGround) {
+			moveDirection.add(camera.direction);
 		}
-		if (keys.containsKey(BACKWARD)) {
-			tmp.set(camera.direction).nor().scl(-dt * velocity);
-			player.position(tmp);
+		if (keys.containsKey(BACKWARD) && player.onGround) {
+			moveDirection.sub(camera.direction);
 		}
-		if (keys.containsKey(STRAFE_LEFT)) {
-			tmp.set(camera.direction).crs(camera.up).nor().scl(-dt * velocity);
-			player.position(tmp);
+		if (keys.containsKey(STRAFE_LEFT) && player.onGround) {
+			tmp.setZero().sub(camera.direction).crs(camera.up);
+			moveDirection.add(tmp);
 		}
-		if (keys.containsKey(STRAFE_RIGHT)) {
-			tmp.set(camera.direction).crs(camera.up).nor().scl(dt * velocity);
-			player.position(tmp);
+		if (keys.containsKey(STRAFE_RIGHT) && player.onGround) {
+			tmp.setZero().add(camera.direction).crs(camera.up);
+			moveDirection.add(tmp);
 		}
 		if (keys.containsKey(UP)) {
-			tmp.set(camera.up).nor().scl(dt * velocity);
-			player.position(tmp);
+			moveDirection.add(camera.up);
 		}
 		if (keys.containsKey(DOWN)) {
-			tmp.set(camera.up).nor().scl(-dt * velocity);
-			player.position(tmp);
+			moveDirection.sub(camera.up);
 		}
-		if (keys.containsKey(SPACE) && player.onGround) {
-			player.velocity.y = 5;
-			player.onGround = false;
+		moveDirection.y = 0;
+		if (keys.containsKey(JUMP) && player.onGround) {
+			player.velocity.y += 6;
 		}
+
+		Vector3 moveVelocity = tmp.set(moveDirection).nor();
+		float moveSpeed = moveVelocity.dst(Vector3.Zero);
+
+		if (moveSpeed > 0) {
+			if (keys.containsKey(WALK)) {
+				moveVelocity.scl(walkMoveSpeed / moveSpeed);
+			} else {
+				moveVelocity.scl(runMoveSpeed / moveSpeed);
+			}
+		}
+
+		player.velocity.add(moveVelocity);
+		if (!player.onGround) {
+			player.velocity.y -= 9.82 * dt;
+		}
+
+		player.trn(player.velocity.cpy().scl(dt));
+
+		// Update camera position
 		player.transform.getTranslation(camera.position);
 		camera.position.add(0, MainScreen.PLAYER_EYE_HEIGHT / 2, 0);
-
 		camera.update(true);
 	}
 

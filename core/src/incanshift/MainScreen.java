@@ -58,8 +58,7 @@ public class MainScreen implements Screen {
 
 	GameObject player;
 
-	Vector3 gravAcc = new Vector3(0, -9.82f, 0);
-	Vector3 playerStartPos = new Vector3(20, 2, 20);
+	Vector3 playerStartPos = new Vector3(20, 5, 20);
 
 	SpriteBatch spriteBatch;
 	BitmapFont font12;
@@ -70,14 +69,22 @@ public class MainScreen implements Screen {
 
 		@Override
 		public boolean onContactAdded(btManifoldPoint cp, int userValue0, int partId0, int index0, int userValue1, int partId1, int index1) {
+
+			// Translate player back along normal
 			Vector3 normal = new Vector3(0, 0, 0);
 			cp.getNormalWorldOnB(normal);
-			player.position(normal.scl(-cp.getDistance1()));
+			player.trn(normal.cpy().scl(-cp.getDistance1()));
 
+			// Set player velocity to zero
 			player.onGround = true;
 			player.velocity.setZero();
 
 			return true;
+		}
+
+		@Override
+		public void onContactEnded(btCollisionObject colObj0, btCollisionObject colObj1) {
+			player.onGround = false;
 		}
 
 	}
@@ -85,7 +92,7 @@ public class MainScreen implements Screen {
 	static class GameObject extends ModelInstance implements Disposable {
 
 		public final btCollisionObject body;
-		public boolean onGround = true;
+		public boolean onGround = false;
 
 		public Vector3 velocity = new Vector3();
 
@@ -95,8 +102,8 @@ public class MainScreen implements Screen {
 			body.setCollisionShape(shape);
 		}
 
-		public void position(Vector3 position) {
-			transform.trn(position);
+		public void trn(Vector3 translation) {
+			transform.trn(translation);
 			body.setWorldTransform(transform);
 		}
 
@@ -166,14 +173,14 @@ public class MainScreen implements Screen {
 		constructors = new ArrayMap<String, MainScreen.GameObject.Constructor>();
 		constructors.put("temple", new GameObject.Constructor(modelTemple, Bullet.obtainStaticNodeShape(modelTemple.nodes)));
 		constructors.put("ground", new GameObject.Constructor(modelGround, Bullet.obtainStaticNodeShape(modelGround.nodes)));
-		constructors.put("player", new GameObject.Constructor(modelPlayer, new btCapsuleShape(PLAYER_RADIUS, PLAYER_HEIGHT)));
+		constructors.put("player", new GameObject.Constructor(modelPlayer, new btCapsuleShape(PLAYER_RADIUS, PLAYER_HEIGHT / 2)));
 
 		instances = new Array<GameObject>();
 		instances.add(constructors.get("ground").construct());
 		instances.add(constructors.get("temple").construct());
 
 		player = constructors.get("player").construct();
-		player.position(playerStartPos);
+		player.trn(playerStartPos);
 
 		contactListener = new MyContactListener();
 		contactListener.enable();
@@ -219,12 +226,9 @@ public class MainScreen implements Screen {
 
 	@Override
 	public void render(float dt) {
-		camController.update();
-
-		player.velocity.add(gravAcc.cpy().scl(dt));
-		player.position(player.velocity.cpy().scl(dt));
 
 		collisionHandler.performDiscreteCollisionDetection();
+		camController.update(dt);
 
 		Gdx.graphics.getGL20().glClearColor(0, 0, 0, 1);
 		int x = (Gdx.graphics.getWidth() - viewport.getScreenWidth()) / 2;
@@ -238,6 +242,7 @@ public class MainScreen implements Screen {
 
 		collisionHandler.debugDrawWorld(camera);
 
+		// Show a message which disappears after 5 sec
 		if (showStartMsg) {
 			Timer.schedule(new Task() {
 				@Override
