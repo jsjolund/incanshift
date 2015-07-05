@@ -11,7 +11,7 @@ public class GameSettings {
 	public static final float PLAYER_HEIGHT = 1.8f;
 	public static final float PLAYER_RADIUS = 0.5f;
 	public static final float PLAYER_EYE_HEIGHT = 1.5f;
-	public static final Vector3 PLAYER_START_POS = new Vector3(20, 5, 20);
+	public static final Vector3 PLAYER_START_POS = new Vector3(50, 5, 20);
 
 	public static final int STRAFE_LEFT = Keys.A;
 	public static final int STRAFE_RIGHT = Keys.D;

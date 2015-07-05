@@ -22,11 +22,9 @@ import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.Bullet;
-import com.badlogic.gdx.physics.bullet.collision.ContactListener;
 import com.badlogic.gdx.physics.bullet.collision.btCapsuleShape;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
-import com.badlogic.gdx.physics.bullet.collision.btManifoldPoint;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ArrayMap;
 import com.badlogic.gdx.utils.Disposable;
@@ -39,7 +37,7 @@ public class MainScreen implements Screen {
 
 	Viewport viewport;
 	private PerspectiveCamera camera;
-	private FPSInputProcessor camController;
+	private FPSInputProcessor playerController;
 
 	private ModelBatch modelBatch;
 	private AssetManager assets;
@@ -52,41 +50,17 @@ public class MainScreen implements Screen {
 	ArrayMap<String, GameObject.Constructor> gameObjectFactory;
 
 	// Collision
-	private MyContactListener contactListener;
+
 	private CollisionHandler collisionHandler;
 
 	GameObject player;
-	
+
 	ModelInstance skybox;
 
 	SpriteBatch spriteBatch;
 	BitmapFont font12;
 	boolean showStartMsg = true;
 	String startMsg = "Press ESC to exit";
-
-	class MyContactListener extends ContactListener {
-
-		@Override
-		public boolean onContactAdded(btManifoldPoint cp, int userValue0, int partId0, int index0, int userValue1, int partId1, int index1) {
-
-			// Translate player back along normal
-			Vector3 normal = new Vector3(0, 0, 0);
-			cp.getNormalWorldOnB(normal);
-			player.trn(normal.cpy().scl(-cp.getDistance1()));
-
-			// Set player velocity to zero
-			player.onGround = true;
-			player.velocity.setZero();
-
-			return true;
-		}
-
-		@Override
-		public void onContactEnded(btCollisionObject colObj0, btCollisionObject colObj1) {
-			player.onGround = false;
-		}
-
-	}
 
 	/**
 	 * A game object consisting of a model, collision body and some additional
@@ -153,7 +127,6 @@ public class MainScreen implements Screen {
 		Model modelTemple = assets.get("./temple.g3db", Model.class);
 		Model modelGround = assets.get("./ground.g3db", Model.class);
 
-
 		gameObjectFactory = new ArrayMap<String, MainScreen.GameObject.Constructor>();
 		gameObjectFactory.put("temple", new GameObject.Constructor(modelTemple, Bullet.obtainStaticNodeShape(modelTemple.nodes)));
 		gameObjectFactory.put("ground", new GameObject.Constructor(modelGround, Bullet.obtainStaticNodeShape(modelGround.nodes)));
@@ -167,7 +140,7 @@ public class MainScreen implements Screen {
 		player.position(GameSettings.PLAYER_START_POS);
 
 		collisionHandler = new CollisionHandler(player, instances);
-		
+
 		Model modelSkybox = assets.get("./skybox.g3db", Model.class);
 		skybox = new ModelInstance(modelSkybox);
 	}
@@ -183,7 +156,7 @@ public class MainScreen implements Screen {
 
 		FreeTypeFontGenerator generator = new FreeTypeFontGenerator(Gdx.files.internal("font.ttf"));
 		FreeTypeFontParameter parameter = new FreeTypeFontParameter();
-		parameter.size = 12;
+		parameter.size = 14;
 		font12 = generator.generateFont(parameter);
 		generator.dispose();
 
@@ -204,14 +177,12 @@ public class MainScreen implements Screen {
 		viewport = new FitViewport(1280, 720, camera);
 		viewport.apply();
 
-		contactListener = new MyContactListener();
-		contactListener.enable();
-
 		createGameObjects();
 
-		camController = new FPSInputProcessor(viewport, player, collisionHandler);
-		Gdx.input.setInputProcessor(camController);
-		camController.centerMouseCursor();
+		playerController = new FPSInputProcessor(viewport, player, collisionHandler);
+		Gdx.input.setInputProcessor(playerController);
+		playerController.centerMouseCursor();
+
 
 		Gdx.input.setCursorCatched(true);
 		camera.update();
@@ -229,7 +200,7 @@ public class MainScreen implements Screen {
 		gameObjectFactory.clear();
 
 		collisionHandler.dispose();
-		contactListener.dispose();
+		playerController.dispose();
 
 		modelBatch.dispose();
 		spriteBatch.dispose();
@@ -250,7 +221,7 @@ public class MainScreen implements Screen {
 	public void render(float dt) {
 
 		collisionHandler.performDiscreteCollisionDetection();
-		camController.update(dt);
+		playerController.update(dt);
 
 		Gdx.graphics.getGL20().glClearColor(0, 0, 0, 1);
 		int x = (Gdx.graphics.getWidth() - viewport.getScreenWidth()) / 2;
@@ -285,8 +256,8 @@ public class MainScreen implements Screen {
 	public void resize(int width, int height) {
 		viewport.update(width, height);
 		camera.update(true);
-		camController.screenCenterX = width / 2;
-		camController.screenCenterY = height / 2;
+		playerController.screenCenterX = width / 2;
+		playerController.screenCenterY = height / 2;
 	}
 
 	@Override

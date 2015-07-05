@@ -9,13 +9,52 @@ import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.math.collision.Ray;
+import com.badlogic.gdx.physics.bullet.collision.ContactListener;
+import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
+import com.badlogic.gdx.physics.bullet.collision.btManifoldPoint;
+import com.badlogic.gdx.utils.Disposable;
 import com.badlogic.gdx.utils.IntIntMap;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
-class FPSInputProcessor implements InputProcessor {
+class FPSInputProcessor implements InputProcessor, Disposable {
+
+	class MyContactListener extends ContactListener {
+
+		@Override
+		public boolean onContactAdded(btManifoldPoint cp, int userValue0, int partId0, int index0, int userValue1, int partId1, int index1) {
+
+			// Translate player back along normal
+			Vector3 normal = new Vector3(0, 0, 0);
+			cp.getNormalWorldOnB(normal);
+			player.trn(normal.cpy().scl(-cp.getDistance1()));
+
+			player.onGround = true;
+			
+			// Decrease player velocity. If walking stop immediately, 
+			// if running decrease until stopped. 
+			if (keys.containsKey(GameSettings.WALK)) {
+				player.velocity.setZero();
+			} else {
+				player.velocity.add(normal.scl(0.1f)).scl(0.9f);
+				if (player.velocity.dst(Vector3.Zero) < 1f) {
+					player.velocity.setZero();
+				}
+			}
+			return true;
+		}
+
+		@Override
+		public void onContactEnded(btCollisionObject colObj0, btCollisionObject colObj1) {
+			player.onGround = false;
+		}
+
+	}
 
 	GameObject player;
 	CollisionHandler collisionHandler;
+	MyContactListener contactListener;
+
+	boolean jumpKeyReleased = true;
 
 	Viewport viewport;
 	Camera camera;
@@ -38,6 +77,9 @@ class FPSInputProcessor implements InputProcessor {
 		this.player = player;
 		centerMouseCursor();
 		camera = viewport.getCamera();
+		contactListener = new MyContactListener();
+		contactListener.enable();
+
 	}
 
 	public void centerMouseCursor() {
@@ -98,23 +140,24 @@ class FPSInputProcessor implements InputProcessor {
 		moveDirection.y = 0;
 
 		// Check if we should jump
-		if (keys.containsKey(GameSettings.JUMP) && player.onGround) {
+		if (keys.containsKey(GameSettings.JUMP) && player.onGround && jumpKeyReleased) {
+			jumpKeyReleased = false;
 			player.velocity.y += GameSettings.PLAYER_JUMP_SPEED;
 		}
 
 		// Calculate movement velocity vector
 		Vector3 moveVelocity = tmp.set(moveDirection).nor();
-		if (keys.containsKey(GameSettings.WALK)) {
-			moveVelocity.scl(GameSettings.PLAYER_WALK_SPEED);
-		} else {
-			moveVelocity.scl(GameSettings.PLAYER_RUN_SPEED);
-		}
+		float moveSpeed = keys.containsKey(GameSettings.WALK) ? GameSettings.PLAYER_WALK_SPEED : GameSettings.PLAYER_RUN_SPEED;
 
-		// Increase player velocity from movement and gravity
-		player.velocity.add(moveVelocity);
-		if (!player.onGround) {
-			player.velocity.y -= 9.82 * dt;
+		// Increase player velocity from movement and gravity unless already at
+		// max movement speed
+		float currentSpeed = player.velocity.dst(Vector3.Zero);
+		if (currentSpeed < moveSpeed) {
+			player.velocity.add(moveVelocity.scl(moveSpeed));
 		}
+//		if (!player.onGround) {
+			player.velocity.y -= 9.82 * dt;
+//		}
 
 		// Translate player
 		player.trn(player.velocity.cpy().scl(dt));
@@ -170,6 +213,9 @@ class FPSInputProcessor implements InputProcessor {
 	@Override
 	public boolean keyUp(int keycode) {
 		keys.remove(keycode, 0);
+		if (keycode == GameSettings.JUMP) {
+			jumpKeyReleased = true;
+		}
 		return false;
 	}
 
@@ -189,6 +235,11 @@ class FPSInputProcessor implements InputProcessor {
 	public boolean scrolled(int amount) {
 		// TODO Auto-generated method stub
 		return false;
+	}
+
+	@Override
+	public void dispose() {
+		contactListener.dispose();
 	}
 
 }
