@@ -18,20 +18,11 @@ import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.physics.bullet.Bullet;
-import com.badlogic.gdx.physics.bullet.DebugDrawer;
-import com.badlogic.gdx.physics.bullet.collision.ClosestRayResultCallback;
 import com.badlogic.gdx.physics.bullet.collision.ContactListener;
 import com.badlogic.gdx.physics.bullet.collision.btCapsuleShape;
-import com.badlogic.gdx.physics.bullet.collision.btCollisionConfiguration;
-import com.badlogic.gdx.physics.bullet.collision.btCollisionDispatcher;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
-import com.badlogic.gdx.physics.bullet.collision.btCollisionWorld;
-import com.badlogic.gdx.physics.bullet.collision.btDbvtBroadphase;
-import com.badlogic.gdx.physics.bullet.collision.btDefaultCollisionConfiguration;
-import com.badlogic.gdx.physics.bullet.collision.btDispatcher;
 import com.badlogic.gdx.physics.bullet.collision.btManifoldPoint;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ArrayMap;
@@ -58,17 +49,8 @@ public class MainScreen implements Screen {
 	ArrayMap<String, GameObject.Constructor> constructors;
 
 	// Collision
-	btCollisionConfiguration collisionConfig;
-	btDispatcher dispatcher;
-	private btDbvtBroadphase broadphase;
-	private btCollisionWorld collisionWorld;
-	private DebugDrawer debugDrawer;
 	private MyContactListener contactListener;
-
-	// Collision flags
-	final static short GROUND_FLAG = 1 << 8;
-	final static short OBJECT_FLAG = 1 << 9;
-	final static short ALL_FLAG = -1;
+	private CollisionHandler collisionHandler;
 
 	public final static float PLAYER_HEIGHT = 1.8f;
 	public final static float PLAYER_RADIUS = 0.25f;
@@ -144,21 +126,6 @@ public class MainScreen implements Screen {
 		}
 	}
 
-	public static btCollisionObject rayTest(btCollisionWorld collisionWorld, Ray ray, float maxDistance) {
-		Vector3 rayFrom = new Vector3(ray.origin);
-		Vector3 rayTo = new Vector3(ray.direction).scl(maxDistance).add(rayFrom);
-
-		ClosestRayResultCallback callback = new ClosestRayResultCallback(rayFrom, rayTo);
-		collisionWorld.rayTest(rayFrom, rayTo, callback);
-
-		btCollisionObject co = callback.getCollisionObject();
-		boolean hasHit = callback.hasHit();
-
-		callback.dispose();
-
-		return (hasHit) ? co : null;
-	}
-
 	public MainScreen(Game game) {
 
 		Gdx.app.setLogLevel(Application.LOG_DEBUG);
@@ -168,8 +135,6 @@ public class MainScreen implements Screen {
 		parameter.size = 12;
 		font12 = generator.generateFont(parameter);
 		generator.dispose();
-
-		Gdx.input.setCursorCatched(true);
 
 		Bullet.init();
 
@@ -182,10 +147,11 @@ public class MainScreen implements Screen {
 		spriteBatch = new SpriteBatch();
 
 		camera = new PerspectiveCamera(60, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-
 		camera.near = 1E-2f;
 		camera.far = 1.5E3f;
-		camera.update();
+
+		viewport = new FitViewport(1280, 720, camera);
+		viewport.apply();
 
 		assets = new AssetManager();
 		assets.load("./temple.g3db", Model.class);
@@ -198,47 +164,28 @@ public class MainScreen implements Screen {
 		Model modelPlayer = assets.get("./player.g3db", Model.class);
 
 		constructors = new ArrayMap<String, MainScreen.GameObject.Constructor>();
-
 		constructors.put("temple", new GameObject.Constructor(modelTemple, Bullet.obtainStaticNodeShape(modelTemple.nodes)));
 		constructors.put("ground", new GameObject.Constructor(modelGround, Bullet.obtainStaticNodeShape(modelGround.nodes)));
-
 		constructors.put("player", new GameObject.Constructor(modelPlayer, new btCapsuleShape(PLAYER_RADIUS, PLAYER_HEIGHT)));
 
 		instances = new Array<GameObject>();
 		instances.add(constructors.get("ground").construct());
 		instances.add(constructors.get("temple").construct());
 
-		viewport = new FitViewport(1280, 720, camera);
-		viewport.apply();
-
 		player = constructors.get("player").construct();
 		player.position(playerStartPos);
-
-		collisionConfig = new btDefaultCollisionConfiguration();
-		dispatcher = new btCollisionDispatcher(collisionConfig);
-		broadphase = new btDbvtBroadphase();
-
-		collisionWorld = new btCollisionWorld(dispatcher, broadphase, collisionConfig);
-
-		debugDrawer = new DebugDrawer();
-		collisionWorld.setDebugDrawer(debugDrawer);
-		// debugDrawer.setDebugMode(btIDebugDraw.DebugDrawModes.DBG_DrawWireframe);
 
 		contactListener = new MyContactListener();
 		contactListener.enable();
 
-		player.body.setCollisionFlags(player.body.getCollisionFlags() | btCollisionObject.CollisionFlags.CF_CUSTOM_MATERIAL_CALLBACK);
-		collisionWorld.addCollisionObject(player.body, OBJECT_FLAG, GROUND_FLAG);
+		collisionHandler = new CollisionHandler(player, instances);
 
-		for (GameObject obj : instances) {
-			collisionWorld.addCollisionObject(obj.body, GROUND_FLAG, ALL_FLAG);
-		}
-
-		camController = new FPSInputProcessor(viewport, player, collisionWorld);
+		camController = new FPSInputProcessor(viewport, player, collisionHandler);
 		Gdx.input.setInputProcessor(camController);
 		camController.centerMouseCursor();
 		camera.lookAt(Vector3.Zero);
-
+		Gdx.input.setCursorCatched(true);
+		camera.update();
 	}
 
 	@Override
@@ -252,11 +199,8 @@ public class MainScreen implements Screen {
 			ctor.dispose();
 		constructors.clear();
 
-		collisionConfig.dispose();
+		collisionHandler.dispose();
 		contactListener.dispose();
-		dispatcher.dispose();
-		collisionWorld.dispose();
-		broadphase.dispose();
 
 		modelBatch.dispose();
 		spriteBatch.dispose();
@@ -280,7 +224,7 @@ public class MainScreen implements Screen {
 		player.velocity.add(gravAcc.cpy().scl(dt));
 		player.position(player.velocity.cpy().scl(dt));
 
-		collisionWorld.performDiscreteCollisionDetection();
+		collisionHandler.performDiscreteCollisionDetection();
 
 		Gdx.graphics.getGL20().glClearColor(0, 0, 0, 1);
 		int x = (Gdx.graphics.getWidth() - viewport.getScreenWidth()) / 2;
@@ -292,9 +236,7 @@ public class MainScreen implements Screen {
 		modelBatch.render(instances, environment);
 		modelBatch.end();
 
-		debugDrawer.begin(viewport.getCamera());
-		collisionWorld.debugDrawWorld();
-		debugDrawer.end();
+		collisionHandler.debugDrawWorld(camera);
 
 		if (showStartMsg) {
 			Timer.schedule(new Task() {

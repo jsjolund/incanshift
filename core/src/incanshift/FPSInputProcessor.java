@@ -10,15 +10,13 @@ import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.math.collision.Ray;
-import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
-import com.badlogic.gdx.physics.bullet.collision.btCollisionWorld;
 import com.badlogic.gdx.utils.IntIntMap;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
 class FPSInputProcessor implements InputProcessor {
 
 	GameObject player;
-	btCollisionWorld world;
+	CollisionHandler collisionHandler;
 
 	Viewport viewport;
 	Camera camera;
@@ -42,8 +40,8 @@ class FPSInputProcessor implements InputProcessor {
 	private float velocity = 5;
 	private final Vector3 tmp = new Vector3();
 
-	public FPSInputProcessor(Viewport viewport, GameObject player, btCollisionWorld world) {
-		this.world = world;
+	public FPSInputProcessor(Viewport viewport, GameObject player, CollisionHandler collisionHandler) {
+		this.collisionHandler = collisionHandler;
 		this.viewport = viewport;
 		this.player = player;
 		centerMouseCursor();
@@ -148,7 +146,7 @@ class FPSInputProcessor implements InputProcessor {
 		if (button == Input.Buttons.LEFT) {
 
 			ray = viewport.getPickRay(screenX, screenY);
-			btCollisionObject hitObject = MainScreen.rayTest(world, ray, 100);
+			GameObject hitObject = collisionHandler.rayTest(ray, 100);
 			if (hitObject != null) {
 				System.out.println("Hit " + hitObject);
 			}
