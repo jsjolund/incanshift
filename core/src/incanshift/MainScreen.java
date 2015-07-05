@@ -7,6 +7,10 @@ import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
+import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator.FreeTypeFontParameter;
 import com.badlogic.gdx.graphics.g3d.Environment;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
@@ -30,6 +34,8 @@ import com.badlogic.gdx.physics.bullet.collision.btManifoldPoint;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ArrayMap;
 import com.badlogic.gdx.utils.Disposable;
+import com.badlogic.gdx.utils.Timer;
+import com.badlogic.gdx.utils.Timer.Task;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
@@ -71,6 +77,11 @@ public class MainScreen implements Screen {
 	Vector3 gravAcc = new Vector3(0, -9.82f, 0);
 	Vector3 playerStartPos = new Vector3(20, 2, 20);
 
+	SpriteBatch spriteBatch;
+	BitmapFont font12;
+	boolean showStartMsg = true;
+	String startMsg = "Press ESC to exit";
+
 	class MyContactListener extends ContactListener {
 
 		@Override
@@ -78,10 +89,10 @@ public class MainScreen implements Screen {
 			Vector3 normal = new Vector3(0, 0, 0);
 			cp.getNormalWorldOnB(normal);
 			player.position(normal.scl(-cp.getDistance1()));
-			
+
 			player.onGround = true;
 			player.velocity.setZero();
-			
+
 			return true;
 		}
 
@@ -135,6 +146,14 @@ public class MainScreen implements Screen {
 
 		Gdx.app.setLogLevel(Application.LOG_DEBUG);
 
+		FreeTypeFontGenerator generator = new FreeTypeFontGenerator(Gdx.files.internal("font.ttf"));
+		FreeTypeFontParameter parameter = new FreeTypeFontParameter();
+		parameter.size = 12;
+		font12 = generator.generateFont(parameter);
+		generator.dispose(); 
+		
+		Gdx.input.setCursorCatched(true);
+		
 		Bullet.init();
 
 		environment = new Environment();
@@ -143,21 +162,20 @@ public class MainScreen implements Screen {
 		environment.add(new DirectionalLight().set(0.8f, 0.8f, 0.8f, -1f, -0.8f, -0.2f));
 
 		modelBatch = new ModelBatch();
+		spriteBatch = new SpriteBatch();
 
 		camera = new PerspectiveCamera(60, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-		camera.lookAt(Vector3.Zero);
 
+		
 		camera.near = 1E-2f;
 		camera.far = 1.5E3f;
 		camera.update();
-
 
 		assets = new AssetManager();
 		assets.load("./temple.g3db", Model.class);
 		assets.load("./ground.g3db", Model.class);
 		assets.load("./player.g3db", Model.class);
 		assets.finishLoading();
-
 
 		Model modelTemple = assets.get("./temple.g3db", Model.class);
 		Model modelGround = assets.get("./ground.g3db", Model.class);
@@ -170,11 +188,9 @@ public class MainScreen implements Screen {
 
 		constructors.put("player", new GameObject.Constructor(modelPlayer, new btCapsuleShape(PLAYER_RADIUS, PLAYER_HEIGHT)));
 
-
 		instances = new Array<GameObject>();
 		instances.add(constructors.get("ground").construct());
 		instances.add(constructors.get("temple").construct());
-
 
 		viewport = new FitViewport(1280, 720, camera);
 		viewport.apply();
@@ -184,7 +200,8 @@ public class MainScreen implements Screen {
 
 		camController = new FPSInputProcessor(viewport, player, instances);
 		Gdx.input.setInputProcessor(camController);
-
+		camController.centerMouseCursor();
+		camera.lookAt(Vector3.Zero);
 
 		collisionConfig = new btDefaultCollisionConfiguration();
 		dispatcher = new btCollisionDispatcher(collisionConfig);
@@ -194,7 +211,7 @@ public class MainScreen implements Screen {
 
 		debugDrawer = new DebugDrawer();
 		collisionWorld.setDebugDrawer(debugDrawer);
-//		debugDrawer.setDebugMode(btIDebugDraw.DebugDrawModes.DBG_DrawWireframe);
+		// debugDrawer.setDebugMode(btIDebugDraw.DebugDrawModes.DBG_DrawWireframe);
 
 		contactListener = new MyContactListener();
 		contactListener.enable();
@@ -217,16 +234,16 @@ public class MainScreen implements Screen {
 
 		for (GameObject.Constructor ctor : constructors.values())
 			ctor.dispose();
-
 		constructors.clear();
+
 		collisionConfig.dispose();
 		contactListener.dispose();
 		dispatcher.dispose();
-
 		collisionWorld.dispose();
 		broadphase.dispose();
 
 		modelBatch.dispose();
+		spriteBatch.dispose();
 		assets.dispose();
 	}
 
@@ -243,7 +260,7 @@ public class MainScreen implements Screen {
 	@Override
 	public void render(float dt) {
 		camController.update();
-		
+
 		player.velocity.add(gravAcc.cpy().scl(dt));
 		player.position(player.velocity.cpy().scl(dt));
 
@@ -262,6 +279,19 @@ public class MainScreen implements Screen {
 		debugDrawer.begin(viewport.getCamera());
 		collisionWorld.debugDrawWorld();
 		debugDrawer.end();
+
+		if (showStartMsg) {
+			Timer.schedule(new Task() {
+				@Override
+				public void run() {
+					showStartMsg = false;
+				}
+			}, 5);
+			 spriteBatch.begin();
+			 font12.draw(spriteBatch, "Press ESC to pause...", 10, 15);
+			 spriteBatch.end();
+
+		}
 
 	}
 

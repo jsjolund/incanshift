@@ -113,7 +113,7 @@ class FPSInputProcessor implements InputProcessor {
 			player.onGround = false;
 		}
 		player.transform.getTranslation(camera.position);
-		camera.position.add(0, MainScreen.PLAYER_EYE_HEIGHT/2, 0);
+		camera.position.add(0, MainScreen.PLAYER_EYE_HEIGHT / 2, 0);
 
 		camera.update(true);
 	}
@@ -122,7 +122,14 @@ class FPSInputProcessor implements InputProcessor {
 	public boolean keyDown(int keycode) {
 		if (keycode == Input.Keys.ESCAPE) {
 			captureMouse = !captureMouse;
-			centerMouseCursor();
+
+			if (captureMouse) {
+				Gdx.input.setCursorCatched(true);
+				centerMouseCursor();
+			} else {
+				Gdx.input.setCursorCatched(false);
+			}
+
 		} else {
 			keys.put(keycode, keycode);
 		}
