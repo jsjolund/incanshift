@@ -3,8 +3,6 @@ package incanshift;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputProcessor;
-import com.badlogic.gdx.assets.AssetManager;
-import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
@@ -67,7 +65,6 @@ class FPSInputProcessor implements InputProcessor, Disposable {
 	CollisionHandler collisionHandler;
 	MyContactListener contactListener;
 	Array<GameObject> instances;
-	AssetManager assets;
 
 	boolean jumpKeyReleased = true;
 	volatile boolean keepJumping = true;
@@ -89,42 +86,21 @@ class FPSInputProcessor implements InputProcessor, Disposable {
 
 	boolean moving = false;
 
-	Sound soundJump;
-	Sound soundBump;
-	Sound soundShoot;
-	Sound soundRun;
-	Sound soundWalk;
-	Sound soundWind;
-	Sound soundMove;
-
-	long soundMoveId;
-	long soundWindId;
+	PlayerSound sound;
 
 	public FPSInputProcessor(Viewport viewport, GameObject player,
 			CollisionHandler collisionHandler, Array<GameObject> instances,
-			AssetManager assets) {
+			PlayerSound sound) {
 		this.collisionHandler = collisionHandler;
 		this.viewport = viewport;
 		this.player = player;
 		this.instances = instances;
-		this.assets = assets;
+		this.sound = sound;
 
 		centerMouseCursor();
 		camera = viewport.getCamera();
 		contactListener = new MyContactListener();
 		contactListener.enable();
-
-		assets.finishLoading();
-		soundJump = assets.get("sound/jump.wav", Sound.class);
-		soundBump = assets.get("sound/bump.wav", Sound.class);
-		soundShoot = assets.get("sound/shoot.wav", Sound.class);
-		soundRun = assets.get("sound/run.wav", Sound.class);
-		soundWalk = assets.get("sound/walk.wav", Sound.class);
-		soundWind = assets.get("sound/wind.wav", Sound.class);
-		soundMove = soundWalk;
-
-		soundWindId = soundWind.play(0.1f);
-		soundWind.setLooping(soundWindId, true);
 
 	}
 
@@ -197,7 +173,7 @@ class FPSInputProcessor implements InputProcessor, Disposable {
 			keepJumping = true;
 			moveDirection.y = 0;
 
-			soundJump.play(1.0f);
+			sound.jump();
 
 			player.trn(Vector3.Y.cpy().scl(0.1f));
 
@@ -228,19 +204,18 @@ class FPSInputProcessor implements InputProcessor, Disposable {
 		if (currentSpeed == 0 || !player.onGround) {
 			moving = false;
 			if (prevMoving) {
-				soundRun.stop(soundMoveId);
+				sound.halt();
 			}
 		} else {
 			moving = true;
 			if (!prevMoving) {
 
-				soundMove.stop(soundMoveId);
 				if (keys.containsKey(GameSettings.RUN)) {
-					soundMoveId = soundRun.play(4.0f);
+					sound.move(true);
 				} else {
-					soundMoveId = soundWalk.play(4.0f);
+					sound.move(false);
 				}
-				soundMove.setLooping(soundMoveId, true);
+
 			}
 		}
 
@@ -277,10 +252,8 @@ class FPSInputProcessor implements InputProcessor, Disposable {
 			keys.put(keycode, keycode);
 		}
 		if (keycode == GameSettings.RUN) {
-			if (player.onGround) {
-				soundMove.stop(soundMoveId);
-				soundMoveId = soundRun.play(4.0f);
-				soundMove.setLooping(soundMoveId, true);
+			if (player.onGround && player.velocity.len() > 0) {
+				sound.move(true);
 			}
 		}
 
@@ -302,11 +275,11 @@ class FPSInputProcessor implements InputProcessor, Disposable {
 			// Handle player click act
 			ray = viewport.getPickRay(screenX, screenY);
 			GameObject hitObject = collisionHandler.rayTest(ray, 100);
-			soundShoot.play(0.5f);
+			sound.shoot();
 
 			if (hitObject != null && hitObject.removable && hitObject.visible) {
 				hitObject.visible = false;
-				soundBump.play(1.0f);
+				sound.bump();
 			}
 
 		}
@@ -326,10 +299,8 @@ class FPSInputProcessor implements InputProcessor, Disposable {
 			}
 		}
 		if (keycode == GameSettings.RUN) {
-			if (player.onGround) {
-				soundMove.stop(soundMoveId);
-				soundMoveId = soundWalk.play(4.0f);
-				soundMove.setLooping(soundMoveId, true);
+			if (player.onGround && player.velocity.len() > 0) {
+				sound.move(false);
 			}
 		}
 		return false;

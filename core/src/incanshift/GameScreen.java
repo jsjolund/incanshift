@@ -5,6 +5,7 @@ import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.assets.AssetManager;
+import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
@@ -33,7 +34,7 @@ import com.badlogic.gdx.utils.ArrayMap;
 import com.badlogic.gdx.utils.Timer;
 import com.badlogic.gdx.utils.Timer.Task;
 
-public class MainScreen extends AbstractScreen implements Screen {
+public class GameScreen extends AbstractScreen implements Screen {
 
 	private PerspectiveCamera camera;
 	private FPSInputProcessor playerController;
@@ -68,7 +69,7 @@ public class MainScreen extends AbstractScreen implements Screen {
 	boolean showStartMsg = true;
 	String startMsg = "Press ESC to exit";
 
-	public MainScreen(Game game, int reqWidth, int reqHeight) {
+	public GameScreen(Game game, int reqWidth, int reqHeight) {
 		super(game, reqWidth, reqHeight);
 
 		Gdx.app.setLogLevel(Application.LOG_DEBUG);
@@ -85,7 +86,7 @@ public class MainScreen extends AbstractScreen implements Screen {
 		assets.load("sound/shoot.wav", Sound.class);
 		assets.load("sound/run.wav", Sound.class);
 		assets.load("sound/walk.wav", Sound.class);
-		assets.load("sound/wind.wav", Sound.class);
+		assets.load("sound/wind.wav", Music.class);
 
 		shapeRenderer = new ShapeRenderer();
 
@@ -191,14 +192,21 @@ public class MainScreen extends AbstractScreen implements Screen {
 		Model modelSkybox = assets.get("model/skybox.g3db", Model.class);
 		skybox = new ModelInstance(modelSkybox);
 
+		PlayerSound sound = new PlayerSound(assets);
 		playerController = new FPSInputProcessor(viewport, player,
-				collisionHandler, instances, assets);
+				collisionHandler, instances, sound);
 		Gdx.input.setInputProcessor(playerController);
 		playerController.centerMouseCursor();
 
 		Gdx.input.setCursorCatched(true);
 		camera.update();
 
+		// Play some music
+		Music musicWind;
+		musicWind = assets.get("sound/wind.wav", Music.class);
+		musicWind.play();
+		musicWind.setVolume(0.3f);
+		musicWind.setLooping(true);
 	}
 
 	@Override
