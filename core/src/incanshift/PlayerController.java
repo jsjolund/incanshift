@@ -151,6 +151,7 @@ class FPSInputProcessor implements InputProcessor, Disposable {
 		camera.rotate(camera.direction.cpy().crs(Vector3.Y), -mouseSens
 				* mouseDy);
 		camera.up.set(Vector3.Y);
+
 		camera.update();
 
 		// Rotate player horizontally
@@ -164,6 +165,7 @@ class FPSInputProcessor implements InputProcessor, Disposable {
 
 		// Calculate combined moved direction
 		moveDirection.setZero();
+
 		if (keys.containsKey(GameSettings.FORWARD) && player.onGround) {
 			moveDirection.add(camera.direction);
 		}

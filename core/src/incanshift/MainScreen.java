@@ -6,6 +6,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.audio.Sound;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
 import com.badlogic.gdx.graphics.Texture;
@@ -316,16 +317,17 @@ public class MainScreen implements Screen {
 
 	@Override
 	public void render(float dt) {
+		int vWidth = viewport.getScreenWidth();
+		int vHeight = viewport.getScreenHeight();
 
 		collisionHandler.performDiscreteCollisionDetection();
 		camera.update(true);
 		playerController.update(dt);
 
 		Gdx.graphics.getGL20().glClearColor(0, 0, 0, 1);
-		int x = (Gdx.graphics.getWidth() - viewport.getScreenWidth()) / 2;
-		int y = (Gdx.graphics.getHeight() - viewport.getScreenHeight()) / 2;
-		Gdx.gl.glViewport(x, y, viewport.getScreenWidth(),
-				viewport.getScreenHeight());
+		int x = (Gdx.graphics.getWidth() - vWidth) / 2;
+		int y = (Gdx.graphics.getHeight() - vHeight) / 2;
+		Gdx.gl.glViewport(x, y, vWidth, vHeight);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
 
 		modelBatch.begin(camera);
@@ -360,26 +362,23 @@ public class MainScreen implements Screen {
 
 		}
 
-		// shapeRenderer.setProjectionMatrix(uiMatrix);
-		//
-		// shapeRenderer.begin(ShapeType.Line);
-		//
-		// shapeRenderer.rect(0, 0, viewport.getScreenWidth(),
-		// viewport.getScreenHeight());
-		//
-		// float xc = viewport.getScreenWidth() / 2;
-		// float yc = viewport.getScreenHeight() / 2;
-		// float x1 = xc;
-		// float y1 = yc - 10;
-		// float x2 = xc;
-		// float y2 = yc + 10;
-		// shapeRenderer.line(x1, y1, x2, y2);
-		// x1 = xc - 10;
-		// y1 = yc;
-		// x2 = xc + 10;
-		// y2 = yc;
-		// shapeRenderer.line(x1, y1, x2, y2);
-		// shapeRenderer.end();
+		shapeRenderer.setProjectionMatrix(uiMatrix);
+		shapeRenderer.begin(ShapeType.Line);
+		float xc = vWidth / 2;
+		float yc = vHeight / 2;
+
+		shapeRenderer.setColor(Color.GRAY);
+		shapeRenderer.line(xc + 1, yc - GameSettings.CROSSHAIR, xc + 1, yc
+				+ GameSettings.CROSSHAIR);
+		shapeRenderer.line(xc - GameSettings.CROSSHAIR, yc - 1, xc
+				+ GameSettings.CROSSHAIR, yc - 1);
+
+		shapeRenderer.setColor(Color.WHITE);
+		shapeRenderer.line(xc, yc - GameSettings.CROSSHAIR, xc, yc
+				+ GameSettings.CROSSHAIR);
+		shapeRenderer.line(xc - GameSettings.CROSSHAIR, yc, xc
+				+ GameSettings.CROSSHAIR, yc);
+		shapeRenderer.end();
 
 		// if (camera.frustum.boundsInFrustum(sunPosition, sunDimensions)) {
 		// spriteBatch.setProjectionMatrix(viewport.getCamera().combined.cpy().setToLookAt(new
@@ -458,9 +457,8 @@ public class MainScreen implements Screen {
 		// System.out.println(viewport.getWorldHeight());
 		// System.out.println(Gdx.graphics.getWidth());
 		// System.out.println(Gdx.graphics.getHeight());
-		float x = 0;
-		float y = -(Gdx.graphics.getHeight() * 2 - viewport.getScreenHeight());
-		uiMatrix.setToOrtho2D(x, y, viewport.getScreenWidth(),
+
+		uiMatrix.setToOrtho2D(0, 0, viewport.getScreenWidth(),
 				viewport.getScreenHeight());
 	}
 

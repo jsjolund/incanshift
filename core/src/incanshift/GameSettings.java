@@ -27,5 +27,7 @@ public class GameSettings {
 	public static final int RUN = Keys.SHIFT_LEFT;
 	public static final int RESET = Keys.F5;
 	
+	public static final int CROSSHAIR = 6;
+	
 	public static final float MOUSE_SENSITIVITY = 0.05f;
 }
