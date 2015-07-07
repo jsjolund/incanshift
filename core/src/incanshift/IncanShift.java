@@ -6,7 +6,7 @@ public class IncanShift extends Game {
 
 	@Override
 	public void create() {
-		this.setScreen(new MainScreen(this));
+		this.setScreen(new MainScreen(this, 1280, 720));
 	}
 
 }

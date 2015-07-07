@@ -4,9 +4,9 @@ import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.math.Vector3;
 
 public class GameSettings {
-	
+
 	public static final float GRAVITY = 15f;
-	
+
 	public static final float PLAYER_WALK_SPEED = 3f;
 	public static final float PLAYER_RUN_SPEED = 6f;
 	public static final float PLAYER_JUMP_ACCELERATION = 50f;
@@ -26,8 +26,8 @@ public class GameSettings {
 	public static final int JUMP = Keys.SPACE;
 	public static final int RUN = Keys.SHIFT_LEFT;
 	public static final int RESET = Keys.F5;
-	
+
 	public static final int CROSSHAIR = 6;
-	
+
 	public static final float MOUSE_SENSITIVITY = 0.05f;
 }

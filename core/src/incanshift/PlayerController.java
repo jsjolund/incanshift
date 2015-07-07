@@ -1,7 +1,5 @@
 package incanshift;
 
-import incanshift.MainScreen.GameObject;
-
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputProcessor;
