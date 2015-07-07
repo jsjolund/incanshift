@@ -5,6 +5,8 @@ import incanshift.MainScreen.GameObject;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputProcessor;
+import com.badlogic.gdx.assets.loaders.SoundLoader;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
@@ -12,13 +14,18 @@ import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.physics.bullet.collision.ContactListener;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
 import com.badlogic.gdx.physics.bullet.collision.btManifoldPoint;
+import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
 import com.badlogic.gdx.utils.IntIntMap;
+import com.badlogic.gdx.utils.Timer;
+import com.badlogic.gdx.utils.Timer.Task;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
 class FPSInputProcessor implements InputProcessor, Disposable {
 
 	class MyContactListener extends ContactListener {
+
+		Vector3 xzVelocity = new Vector3();
 
 		@Override
 		public boolean onContactAdded(btManifoldPoint cp, int userValue0, int partId0, int index0, int userValue1, int partId1, int index1) {
@@ -29,17 +36,23 @@ class FPSInputProcessor implements InputProcessor, Disposable {
 			player.trn(normal.cpy().scl(-cp.getDistance1()));
 
 			player.onGround = true;
-			
-			// Decrease player velocity. If walking stop immediately, 
-			// if running decrease until stopped. 
-			if (keys.containsKey(GameSettings.WALK)) {
-				player.velocity.setZero();
-			} else {
+
+			player.velocity.y = 0;
+
+			// Decrease player velocity. If walking stop immediately,
+			// if running decrease until stopped.
+			if (keys.containsKey(GameSettings.RUN)) {
 				player.velocity.add(normal.scl(0.1f)).scl(0.9f);
-				if (player.velocity.dst(Vector3.Zero) < 1f) {
+
+				xzVelocity.set(player.velocity);
+				xzVelocity.y = 0;
+				if (xzVelocity.dst(Vector3.Zero) < 1f) {
 					player.velocity.setZero();
 				}
+			} else {
+				player.velocity.scl(0.01f);
 			}
+
 			return true;
 		}
 
@@ -53,8 +66,10 @@ class FPSInputProcessor implements InputProcessor, Disposable {
 	GameObject player;
 	CollisionHandler collisionHandler;
 	MyContactListener contactListener;
+	Array<GameObject> instances;
 
 	boolean jumpKeyReleased = true;
+	volatile boolean keepJumping = true;
 
 	Viewport viewport;
 	Camera camera;
@@ -71,14 +86,32 @@ class FPSInputProcessor implements InputProcessor, Disposable {
 	private final Vector3 moveDirection = new Vector3();
 	private final Vector3 tmp = new Vector3();
 
-	public FPSInputProcessor(Viewport viewport, GameObject player, CollisionHandler collisionHandler) {
+	boolean moving = false;
+
+	Sound soundJump = Gdx.audio.newSound(Gdx.files.internal("jump.wav"));
+	Sound soundBump = Gdx.audio.newSound(Gdx.files.internal("bump.wav"));
+	Sound soundShoot = Gdx.audio.newSound(Gdx.files.internal("shoot.wav"));
+	Sound soundRun = Gdx.audio.newSound(Gdx.files.internal("run.wav"));
+	Sound soundWalk = Gdx.audio.newSound(Gdx.files.internal("walk.wav"));
+	Sound soundWind = Gdx.audio.newSound(Gdx.files.internal("wind.wav"));
+
+	long soundMoveId;
+	long soundWindId;
+	Sound soundMove = soundWalk;
+
+	public FPSInputProcessor(Viewport viewport, GameObject player, CollisionHandler collisionHandler, Array<GameObject> instances) {
 		this.collisionHandler = collisionHandler;
 		this.viewport = viewport;
 		this.player = player;
+		this.instances = instances;
 		centerMouseCursor();
 		camera = viewport.getCamera();
 		contactListener = new MyContactListener();
 		contactListener.enable();
+
+		
+		soundWindId = soundWind.play(0.1f);
+		soundWind.setLooping(soundWindId, true);
 
 	}
 
@@ -112,7 +145,6 @@ class FPSInputProcessor implements InputProcessor, Disposable {
 	}
 
 	public void update(float dt) {
-		camera.update(true);
 
 		// Calculate combined moved direction
 		moveDirection.setZero();
@@ -137,27 +169,68 @@ class FPSInputProcessor implements InputProcessor, Disposable {
 			moveDirection.sub(camera.up);
 		}
 		// Prevent jumping/fighting gravity when looking up
-		moveDirection.y = 0;
+		if (moveDirection.y > 0) {
+			moveDirection.y = 0;
+		}
 
 		// Check if we should jump
-		if (keys.containsKey(GameSettings.JUMP) && player.onGround && jumpKeyReleased) {
+		if ((keys.containsKey(GameSettings.JUMP) && player.onGround && jumpKeyReleased)) {
+
 			jumpKeyReleased = false;
-			player.velocity.y += GameSettings.PLAYER_JUMP_SPEED;
+			player.velocity.y = GameSettings.PLAYER_JUMP_ACCELERATION * dt;
+			keepJumping = true;
+			moveDirection.y = 0;
+
+			soundJump.play(1.0f);
+
+			player.trn(Vector3.Y.cpy().scl(0.1f));
+
+			Timer.schedule(new Task() {
+				@Override
+				public void run() {
+					keepJumping = false;
+				}
+			}, GameSettings.PLAYER_JUMP_TIME);
+
+		} else if (keys.containsKey(GameSettings.JUMP) && keepJumping) {
+			player.velocity.y += GameSettings.PLAYER_JUMP_ACCELERATION * dt;
+			moveDirection.y = 0;
 		}
 
 		// Calculate movement velocity vector
-		Vector3 moveVelocity = tmp.set(moveDirection).nor();
-		float moveSpeed = keys.containsKey(GameSettings.WALK) ? GameSettings.PLAYER_WALK_SPEED : GameSettings.PLAYER_RUN_SPEED;
+		float moveSpeed = keys.containsKey(GameSettings.RUN) ? GameSettings.PLAYER_RUN_SPEED : GameSettings.PLAYER_WALK_SPEED;
+		Vector3 moveVelocity = moveDirection.nor().scl(moveSpeed);
 
-		// Increase player velocity from movement and gravity unless already at
-		// max movement speed
-		float currentSpeed = player.velocity.dst(Vector3.Zero);
+		// Increase player velocity from movement unless already at max movement
+		// speed
+		tmp.set(player.velocity);
+		tmp.y = 0;
+		float currentSpeed = tmp.dst(Vector3.Zero);
+
+		boolean prevMoving = moving;
+		if (currentSpeed == 0 || !player.onGround) {
+			moving = false;
+			if (prevMoving) {
+				soundRun.stop(soundMoveId);
+			}
+		} else {
+			moving = true;
+			if (!prevMoving) {
+
+				if (keys.containsKey(GameSettings.RUN)) {
+					soundMoveId = soundRun.play(4.0f);
+				} else {
+					soundMoveId = soundWalk.play(4.0f);
+				}
+				soundMove.setLooping(soundMoveId, true);
+			}
+		}
+
 		if (currentSpeed < moveSpeed) {
 			player.velocity.add(moveVelocity.scl(moveSpeed));
 		}
-//		if (!player.onGround) {
-			player.velocity.y -= 9.82 * dt;
-//		}
+
+		player.velocity.y -= GameSettings.GRAVITY * dt;
 
 		// Translate player
 		player.trn(player.velocity.cpy().scl(dt));
@@ -185,6 +258,12 @@ class FPSInputProcessor implements InputProcessor, Disposable {
 			// Player pressed a key, handler movement on update
 			keys.put(keycode, keycode);
 		}
+		if (keycode == GameSettings.RUN) {
+			soundMove.stop(soundMoveId);
+			soundMoveId = soundRun.play(4.0f);
+			soundMove.setLooping(soundMoveId, true);
+		}
+
 		return true;
 	}
 
@@ -199,11 +278,15 @@ class FPSInputProcessor implements InputProcessor, Disposable {
 	public boolean touchDown(int screenX, int screenY, int pointer, int button) {
 
 		if (button == Input.Buttons.LEFT) {
+
 			// Handle player click act
 			ray = viewport.getPickRay(screenX, screenY);
 			GameObject hitObject = collisionHandler.rayTest(ray, 100);
-			if (hitObject != null) {
-				System.out.println("Hit " + hitObject);
+			soundShoot.play(0.5f);
+
+			if (hitObject != null && hitObject.removable && hitObject.visible) {
+				hitObject.visible = false;
+				soundBump.play(1.0f);
 			}
 
 		}
@@ -215,6 +298,17 @@ class FPSInputProcessor implements InputProcessor, Disposable {
 		keys.remove(keycode, 0);
 		if (keycode == GameSettings.JUMP) {
 			jumpKeyReleased = true;
+		}
+		if (keycode == GameSettings.RESET) {
+			player.position(GameSettings.PLAYER_START_POS);
+			for (GameObject obj : instances) {
+				obj.visible = true;
+			}
+		}
+		if (keycode == GameSettings.RUN) {
+			soundMove.stop(soundMoveId);
+			soundMoveId = soundWalk.play(4.0f);
+			soundMove.setLooping(soundMoveId, true);
 		}
 		return false;
 	}
@@ -240,6 +334,13 @@ class FPSInputProcessor implements InputProcessor, Disposable {
 	@Override
 	public void dispose() {
 		contactListener.dispose();
+		
+		soundJump.dispose();
+		soundBump.dispose();
+		soundShoot.dispose();
+		soundRun.dispose();
+		soundWalk.dispose();
+		soundWind.dispose();
 	}
 
 }
