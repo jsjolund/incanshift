@@ -234,6 +234,7 @@ class FPSInputProcessor implements InputProcessor, Disposable {
 			moving = true;
 			if (!prevMoving) {
 
+				soundMove.stop(soundMoveId);
 				if (keys.containsKey(GameSettings.RUN)) {
 					soundMoveId = soundRun.play(4.0f);
 				} else {
@@ -276,9 +277,11 @@ class FPSInputProcessor implements InputProcessor, Disposable {
 			keys.put(keycode, keycode);
 		}
 		if (keycode == GameSettings.RUN) {
-			soundMove.stop(soundMoveId);
-			soundMoveId = soundRun.play(4.0f);
-			soundMove.setLooping(soundMoveId, true);
+			if (player.onGround) {
+				soundMove.stop(soundMoveId);
+				soundMoveId = soundRun.play(4.0f);
+				soundMove.setLooping(soundMoveId, true);
+			}
 		}
 
 		return true;
@@ -323,9 +326,11 @@ class FPSInputProcessor implements InputProcessor, Disposable {
 			}
 		}
 		if (keycode == GameSettings.RUN) {
-			soundMove.stop(soundMoveId);
-			soundMoveId = soundWalk.play(4.0f);
-			soundMove.setLooping(soundMoveId, true);
+			if (player.onGround) {
+				soundMove.stop(soundMoveId);
+				soundMoveId = soundWalk.play(4.0f);
+				soundMove.setLooping(soundMoveId, true);
+			}
 		}
 		return false;
 	}
