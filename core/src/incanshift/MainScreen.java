@@ -5,6 +5,7 @@ import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.assets.AssetManager;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
 import com.badlogic.gdx.graphics.Texture;
@@ -126,7 +127,8 @@ public class MainScreen implements Screen {
 			public Constructor(Model model, btCollisionShape shape) {
 				this.shape = shape;
 				if (model == null) {
-					model = new ModelBuilder().createXYZCoordinates(1, new Material(), Usage.Position | Usage.Normal);
+					model = new ModelBuilder().createXYZCoordinates(1,
+							new Material(), Usage.Position | Usage.Normal);
 				}
 				this.model = model;
 			}
@@ -143,8 +145,8 @@ public class MainScreen implements Screen {
 	}
 
 	private void loadShaders() {
-		String vert = Gdx.files.local("shaders/sun.vert").readString();
-		String frag = Gdx.files.local("shaders/sun.frag").readString();
+		String vert = Gdx.files.local("shader/sun.vert").readString();
+		String frag = Gdx.files.local("shader/sun.frag").readString();
 		shaderSun = new ShaderProgram(vert, frag);
 		ShaderProgram.pedantic = false;
 		if (!shaderSun.isCompiled()) {
@@ -159,24 +161,33 @@ public class MainScreen implements Screen {
 	private void createGameObjects() {
 		assets.finishLoading();
 
-		Model modelTemple = assets.get("./temple.g3db", Model.class);
-		Model modelGround = assets.get("./ground.g3db", Model.class);
-		Model modelLevel = assets.get("./level.g3db", Model.class);
-		Model modelSphere = assets.get("./sphere.g3db", Model.class);
+		Model modelTemple = assets.get("model/temple.g3db", Model.class);
+		Model modelGround = assets.get("model/ground.g3db", Model.class);
+		Model modelLevel = assets.get("model/level.g3db", Model.class);
+		Model modelSphere = assets.get("model/sphere.g3db", Model.class);
 
 		gameObjectFactory = new ArrayMap<String, MainScreen.GameObject.Constructor>();
-		gameObjectFactory.put("temple", new GameObject.Constructor(modelTemple, Bullet.obtainStaticNodeShape(modelTemple.nodes)));
-		gameObjectFactory.put("ground", new GameObject.Constructor(modelGround, Bullet.obtainStaticNodeShape(modelGround.nodes)));
-		gameObjectFactory.put("level", new GameObject.Constructor(modelLevel, Bullet.obtainStaticNodeShape(modelLevel.nodes)));
-		gameObjectFactory.put("sphere", new GameObject.Constructor(modelSphere, Bullet.obtainStaticNodeShape(modelSphere.nodes)));
-		gameObjectFactory.put("player", new GameObject.Constructor(null, new btCapsuleShape(GameSettings.PLAYER_RADIUS, GameSettings.PLAYER_HEIGHT / 2)));
+		gameObjectFactory.put("temple", new GameObject.Constructor(modelTemple,
+				Bullet.obtainStaticNodeShape(modelTemple.nodes)));
+		gameObjectFactory.put("ground", new GameObject.Constructor(modelGround,
+				Bullet.obtainStaticNodeShape(modelGround.nodes)));
+		gameObjectFactory.put("level", new GameObject.Constructor(modelLevel,
+				Bullet.obtainStaticNodeShape(modelLevel.nodes)));
+		gameObjectFactory.put("sphere", new GameObject.Constructor(modelSphere,
+				Bullet.obtainStaticNodeShape(modelSphere.nodes)));
+		gameObjectFactory.put("player", new GameObject.Constructor(null,
+				new btCapsuleShape(GameSettings.PLAYER_RADIUS,
+						GameSettings.PLAYER_HEIGHT / 2)));
 
 		instances = new Array<GameObject>();
+
 		instances.add(gameObjectFactory.get("ground").construct());
 		// instances.add(gameObjectFactory.get("temple").construct());
 		instances.add(gameObjectFactory.get("level").construct());
 
-		Vector3[] spherePos = { new Vector3(10, 10, 10), new Vector3(10, 0, 20), new Vector3(20, 10, 10), new Vector3(10, 30, 20) };
+		Vector3[] spherePos = { new Vector3(10, 10, 10),
+				new Vector3(10, 0, 20), new Vector3(20, 10, 10),
+				new Vector3(10, 30, 20) };
 
 		for (Vector3 pos : spherePos) {
 			GameObject sphere = gameObjectFactory.get("sphere").construct();
@@ -190,7 +201,7 @@ public class MainScreen implements Screen {
 
 		collisionHandler = new CollisionHandler(player, instances);
 
-		Model modelSkybox = assets.get("./skybox.g3db", Model.class);
+		Model modelSkybox = assets.get("model/skybox.g3db", Model.class);
 		skybox = new ModelInstance(modelSkybox);
 	}
 
@@ -199,15 +210,23 @@ public class MainScreen implements Screen {
 		Gdx.app.setLogLevel(Application.LOG_DEBUG);
 
 		assets = new AssetManager();
-		assets.load("./temple.g3db", Model.class);
-		assets.load("./ground.g3db", Model.class);
-		assets.load("./skybox.g3db", Model.class);
-		assets.load("./level.g3db", Model.class);
-		assets.load("./sphere.g3db", Model.class);
+		assets.load("model/temple.g3db", Model.class);
+		assets.load("model/ground.g3db", Model.class);
+		assets.load("model/skybox.g3db", Model.class);
+		assets.load("model/level.g3db", Model.class);
+		assets.load("model/sphere.g3db", Model.class);
+
+		assets.load("sound/jump.wav", Sound.class);
+		assets.load("sound/bump.wav", Sound.class);
+		assets.load("sound/shoot.wav", Sound.class);
+		assets.load("sound/run.wav", Sound.class);
+		assets.load("sound/walk.wav", Sound.class);
+		assets.load("sound/wind.wav", Sound.class);
 
 		shapeRenderer = new ShapeRenderer();
 
-		FreeTypeFontGenerator generator = new FreeTypeFontGenerator(Gdx.files.internal("font.ttf"));
+		FreeTypeFontGenerator generator = new FreeTypeFontGenerator(
+				Gdx.files.internal("font/font.ttf"));
 		FreeTypeFontParameter parameter = new FreeTypeFontParameter();
 		parameter.size = 14;
 		font12 = generator.generateFont(parameter);
@@ -215,7 +234,8 @@ public class MainScreen implements Screen {
 
 		Bullet.init();
 
-		camera = new PerspectiveCamera(60, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+		camera = new PerspectiveCamera(60, Gdx.graphics.getWidth(),
+				Gdx.graphics.getHeight());
 		camera.near = 1E-2f;
 		camera.far = 1.5E3f;
 
@@ -223,12 +243,15 @@ public class MainScreen implements Screen {
 		viewport.apply();
 
 		uiMatrix = camera.combined.cpy();
-		uiMatrix.setToOrtho2D(0, 0, viewport.getScreenWidth(), viewport.getScreenHeight());
+		uiMatrix.setToOrtho2D(0, 0, viewport.getScreenWidth(),
+				viewport.getScreenHeight());
 
 		environment = new Environment();
 
-		environment.set(new ColorAttribute(ColorAttribute.AmbientLight, 0.3f, 0.3f, 0.3f, 1f));
-		environment.add(new DirectionalLight().set(0.8f, 0.8f, 0.8f, -1f, -0.8f, -0.2f));
+		environment.set(new ColorAttribute(ColorAttribute.AmbientLight, 0.3f,
+				0.3f, 0.3f, 1f));
+		environment.add(new DirectionalLight().set(0.8f, 0.8f, 0.8f, -1f,
+				-0.8f, -0.2f));
 
 		// sunTexture = new Texture(viewport.getScreenWidth(),
 		// viewport.getScreenHeight(), Format.RGBA8888);
@@ -245,12 +268,16 @@ public class MainScreen implements Screen {
 
 		createGameObjects();
 
-		playerController = new FPSInputProcessor(viewport, player, collisionHandler, instances);
+		playerController = new FPSInputProcessor(viewport, player,
+				collisionHandler, instances, assets);
 		Gdx.input.setInputProcessor(playerController);
 		playerController.centerMouseCursor();
 
 		Gdx.input.setCursorCatched(true);
 		camera.update();
+
+		// Sound s = assets.get("sound/jump.wav", Sound.class);
+
 	}
 
 	@Override
@@ -273,6 +300,8 @@ public class MainScreen implements Screen {
 
 		shaderSun.dispose();
 		sunTexture.dispose();
+
+		font12.dispose();
 	}
 
 	@Override
@@ -295,7 +324,8 @@ public class MainScreen implements Screen {
 		Gdx.graphics.getGL20().glClearColor(0, 0, 0, 1);
 		int x = (Gdx.graphics.getWidth() - viewport.getScreenWidth()) / 2;
 		int y = (Gdx.graphics.getHeight() - viewport.getScreenHeight()) / 2;
-		Gdx.gl.glViewport(x, y, viewport.getScreenWidth(), viewport.getScreenHeight());
+		Gdx.gl.glViewport(x, y, viewport.getScreenWidth(),
+				viewport.getScreenHeight());
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
 
 		modelBatch.begin(camera);
@@ -330,25 +360,26 @@ public class MainScreen implements Screen {
 
 		}
 
-//		shapeRenderer.setProjectionMatrix(uiMatrix);
-//
-//		shapeRenderer.begin(ShapeType.Line);
-//
-//		shapeRenderer.rect(0, 0, viewport.getScreenWidth(), viewport.getScreenHeight());
-//
-//		float xc = viewport.getScreenWidth() / 2;
-//		float yc = viewport.getScreenHeight() / 2;
-//		float x1 = xc;
-//		float y1 = yc - 10;
-//		float x2 = xc;
-//		float y2 = yc + 10;
-//		shapeRenderer.line(x1, y1, x2, y2);
-//		x1 = xc - 10;
-//		y1 = yc;
-//		x2 = xc + 10;
-//		y2 = yc;
-//		shapeRenderer.line(x1, y1, x2, y2);
-//		shapeRenderer.end();
+		// shapeRenderer.setProjectionMatrix(uiMatrix);
+		//
+		// shapeRenderer.begin(ShapeType.Line);
+		//
+		// shapeRenderer.rect(0, 0, viewport.getScreenWidth(),
+		// viewport.getScreenHeight());
+		//
+		// float xc = viewport.getScreenWidth() / 2;
+		// float yc = viewport.getScreenHeight() / 2;
+		// float x1 = xc;
+		// float y1 = yc - 10;
+		// float x2 = xc;
+		// float y2 = yc + 10;
+		// shapeRenderer.line(x1, y1, x2, y2);
+		// x1 = xc - 10;
+		// y1 = yc;
+		// x2 = xc + 10;
+		// y2 = yc;
+		// shapeRenderer.line(x1, y1, x2, y2);
+		// shapeRenderer.end();
 
 		// if (camera.frustum.boundsInFrustum(sunPosition, sunDimensions)) {
 		// spriteBatch.setProjectionMatrix(viewport.getCamera().combined.cpy().setToLookAt(new
@@ -418,18 +449,19 @@ public class MainScreen implements Screen {
 		// sunTexture = new Texture(width, height, Format.RGBA8888);
 		uiMatrix = camera.combined.cpy();
 
-//		System.out.println();
-//		System.out.println(width);
-//		System.out.println(height);
-//		System.out.println(viewport.getScreenWidth());
-//		System.out.println(viewport.getScreenHeight());
-//		System.out.println(viewport.getWorldWidth());
-//		System.out.println(viewport.getWorldHeight());
-//		System.out.println(Gdx.graphics.getWidth());
-//		System.out.println(Gdx.graphics.getHeight());
+		// System.out.println();
+		// System.out.println(width);
+		// System.out.println(height);
+		// System.out.println(viewport.getScreenWidth());
+		// System.out.println(viewport.getScreenHeight());
+		// System.out.println(viewport.getWorldWidth());
+		// System.out.println(viewport.getWorldHeight());
+		// System.out.println(Gdx.graphics.getWidth());
+		// System.out.println(Gdx.graphics.getHeight());
 		float x = 0;
-		float y = -(Gdx.graphics.getHeight()*2 - viewport.getScreenHeight());
-		uiMatrix.setToOrtho2D(x, y, viewport.getScreenWidth(), viewport.getScreenHeight());
+		float y = -(Gdx.graphics.getHeight() * 2 - viewport.getScreenHeight());
+		uiMatrix.setToOrtho2D(x, y, viewport.getScreenWidth(),
+				viewport.getScreenHeight());
 	}
 
 	@Override

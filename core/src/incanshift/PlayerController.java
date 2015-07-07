@@ -5,7 +5,7 @@ import incanshift.MainScreen.GameObject;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputProcessor;
-import com.badlogic.gdx.assets.loaders.SoundLoader;
+import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.math.Vector3;
@@ -28,7 +28,8 @@ class FPSInputProcessor implements InputProcessor, Disposable {
 		Vector3 xzVelocity = new Vector3();
 
 		@Override
-		public boolean onContactAdded(btManifoldPoint cp, int userValue0, int partId0, int index0, int userValue1, int partId1, int index1) {
+		public boolean onContactAdded(btManifoldPoint cp, int userValue0,
+				int partId0, int index0, int userValue1, int partId1, int index1) {
 
 			// Translate player back along normal
 			Vector3 normal = new Vector3(0, 0, 0);
@@ -57,7 +58,8 @@ class FPSInputProcessor implements InputProcessor, Disposable {
 		}
 
 		@Override
-		public void onContactEnded(btCollisionObject colObj0, btCollisionObject colObj1) {
+		public void onContactEnded(btCollisionObject colObj0,
+				btCollisionObject colObj1) {
 			player.onGround = false;
 		}
 
@@ -67,6 +69,7 @@ class FPSInputProcessor implements InputProcessor, Disposable {
 	CollisionHandler collisionHandler;
 	MyContactListener contactListener;
 	Array<GameObject> instances;
+	AssetManager assets;
 
 	boolean jumpKeyReleased = true;
 	volatile boolean keepJumping = true;
@@ -88,28 +91,40 @@ class FPSInputProcessor implements InputProcessor, Disposable {
 
 	boolean moving = false;
 
-	Sound soundJump = Gdx.audio.newSound(Gdx.files.internal("jump.wav"));
-	Sound soundBump = Gdx.audio.newSound(Gdx.files.internal("bump.wav"));
-	Sound soundShoot = Gdx.audio.newSound(Gdx.files.internal("shoot.wav"));
-	Sound soundRun = Gdx.audio.newSound(Gdx.files.internal("run.wav"));
-	Sound soundWalk = Gdx.audio.newSound(Gdx.files.internal("walk.wav"));
-	Sound soundWind = Gdx.audio.newSound(Gdx.files.internal("wind.wav"));
+	Sound soundJump;
+	Sound soundBump;
+	Sound soundShoot;
+	Sound soundRun;
+	Sound soundWalk;
+	Sound soundWind;
+	Sound soundMove;
 
 	long soundMoveId;
 	long soundWindId;
-	Sound soundMove = soundWalk;
 
-	public FPSInputProcessor(Viewport viewport, GameObject player, CollisionHandler collisionHandler, Array<GameObject> instances) {
+	public FPSInputProcessor(Viewport viewport, GameObject player,
+			CollisionHandler collisionHandler, Array<GameObject> instances,
+			AssetManager assets) {
 		this.collisionHandler = collisionHandler;
 		this.viewport = viewport;
 		this.player = player;
 		this.instances = instances;
+		this.assets = assets;
+
 		centerMouseCursor();
 		camera = viewport.getCamera();
 		contactListener = new MyContactListener();
 		contactListener.enable();
 
-		
+		assets.finishLoading();
+		soundJump = assets.get("sound/jump.wav", Sound.class);
+		soundBump = assets.get("sound/bump.wav", Sound.class);
+		soundShoot = assets.get("sound/shoot.wav", Sound.class);
+		soundRun = assets.get("sound/run.wav", Sound.class);
+		soundWalk = assets.get("sound/walk.wav", Sound.class);
+		soundWind = assets.get("sound/wind.wav", Sound.class);
+		soundMove = soundWalk;
+
 		soundWindId = soundWind.play(0.1f);
 		soundWind.setLooping(soundWindId, true);
 
@@ -133,7 +148,8 @@ class FPSInputProcessor implements InputProcessor, Disposable {
 
 		// Rotate camera horizontally and vertically
 		camera.rotate(Vector3.Y, -mouseSens * mouseDx);
-		camera.rotate(camera.direction.cpy().crs(Vector3.Y), -mouseSens * mouseDy);
+		camera.rotate(camera.direction.cpy().crs(Vector3.Y), -mouseSens
+				* mouseDy);
 		camera.up.set(Vector3.Y);
 		camera.update();
 
@@ -198,7 +214,8 @@ class FPSInputProcessor implements InputProcessor, Disposable {
 		}
 
 		// Calculate movement velocity vector
-		float moveSpeed = keys.containsKey(GameSettings.RUN) ? GameSettings.PLAYER_RUN_SPEED : GameSettings.PLAYER_WALK_SPEED;
+		float moveSpeed = keys.containsKey(GameSettings.RUN) ? GameSettings.PLAYER_RUN_SPEED
+				: GameSettings.PLAYER_WALK_SPEED;
 		Vector3 moveVelocity = moveDirection.nor().scl(moveSpeed);
 
 		// Increase player velocity from movement unless already at max movement
@@ -334,13 +351,6 @@ class FPSInputProcessor implements InputProcessor, Disposable {
 	@Override
 	public void dispose() {
 		contactListener.dispose();
-		
-		soundJump.dispose();
-		soundBump.dispose();
-		soundShoot.dispose();
-		soundRun.dispose();
-		soundWalk.dispose();
-		soundWind.dispose();
 	}
 
 }
