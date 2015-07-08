@@ -42,7 +42,7 @@ class FPSInputProcessor implements InputProcessor, Disposable {
 			} else {
 				climbCollisions++;
 			}
-			if (collisions > 20) {
+			if (collisions > 10) {
 				if (climbCollisions / collisions > 0.5) {
 					canClimb = true;
 				} else {
@@ -286,12 +286,15 @@ class FPSInputProcessor implements InputProcessor, Disposable {
 
 		// Check if we should jump or climb
 		if (keys.containsKey(GameSettings.JUMP) && player.onGround && canClimb) {
+			System.out.println("1");
 			moveDirection.y = 1f;
 			moveSpeed = GameSettings.PLAYER_CLIMB_SPEED;
+			jumpKeyReleased = false;
+			keepJumping = false;
 			sound.climb();
 
 		} else if ((keys.containsKey(GameSettings.JUMP) && player.onGround && jumpKeyReleased)) {
-
+System.out.println("2");
 			sound.halt();
 			sound.jump();
 
@@ -310,6 +313,7 @@ class FPSInputProcessor implements InputProcessor, Disposable {
 			}, GameSettings.PLAYER_JUMP_TIME);
 
 		} else if (keys.containsKey(GameSettings.JUMP) && keepJumping) {
+			System.out.println("3");
 			player.velocity.y += GameSettings.PLAYER_JUMP_ACCELERATION * dt;
 			moveDirection.y = 0;
 
