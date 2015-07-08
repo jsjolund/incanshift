@@ -198,8 +198,8 @@ public class CreditScreen extends AbstractScreen {
 		super(game, reqWidth, reqHeight);
 
 		assets = new AssetManager();
+		assets.load("sound/music_credits.ogg", Music.class);
 		assets.load("sound/click.wav", Sound.class);
-		assets.load("sound/music_credits.wav", Music.class);
 		assets.load("sound/enter.wav", Sound.class);
 
 		uiMatrix = camera.combined.cpy();
@@ -349,7 +349,7 @@ public class CreditScreen extends AbstractScreen {
 	@Override
 	public void show() {
 		Gdx.input.setInputProcessor(input);
-		music = assets.get("sound/music_credits.wav", Music.class);
+		music = assets.get("sound/music_credits.ogg", Music.class);
 		music.play();
 		music.setVolume(0.3f);
 		music.setLooping(true);

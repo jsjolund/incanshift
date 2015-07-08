@@ -80,7 +80,7 @@ public class GameScreen extends AbstractScreen implements Screen {
 		assets.load("sound/run.wav", Sound.class);
 		assets.load("sound/walk.wav", Sound.class);
 		assets.load("sound/climb.wav", Sound.class);
-		assets.load("sound/music_game.wav", Music.class);
+		assets.load("sound/music_game.ogg", Music.class);
 
 		shapeRenderer = new ShapeRenderer();
 
@@ -333,7 +333,7 @@ public class GameScreen extends AbstractScreen implements Screen {
 		playerController.centerMouseCursor();
 
 		// Play some music
-		music = assets.get("sound/music_game.wav", Music.class);
+		music = assets.get("sound/music_game.ogg", Music.class);
 		music.play();
 		music.setVolume(0.3f);
 		music.setLooping(true);
