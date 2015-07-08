@@ -27,6 +27,7 @@ import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.Bullet;
 import com.badlogic.gdx.physics.bullet.collision.btCapsuleShape;
+import com.badlogic.gdx.physics.bullet.collision.btTriangle;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ArrayMap;
 
@@ -57,6 +58,7 @@ public class GameScreen extends AbstractScreen implements Screen {
 	private CollisionHandler collisionHandler;
 
 	private GameObject player;
+	private GameObject gunInstance;
 	private ModelInstance skybox;
 	private Music music;
 
@@ -72,6 +74,7 @@ public class GameScreen extends AbstractScreen implements Screen {
 		assets.load("model/ground.g3db", Model.class);
 		assets.load("model/skybox.g3db", Model.class);
 		assets.load("model/level.g3db", Model.class);
+		assets.load("model/gun.g3db", Model.class);
 		assets.load("model/sphere.g3db", Model.class);
 
 		assets.load("sound/jump.wav", Sound.class);
@@ -114,6 +117,7 @@ public class GameScreen extends AbstractScreen implements Screen {
 		Model modelGround = assets.get("model/ground.g3db", Model.class);
 		Model modelLevel = assets.get("model/level.g3db", Model.class);
 		Model modelSphere = assets.get("model/sphere.g3db", Model.class);
+		Model modelGun = assets.get("model/gun.g3db", Model.class);
 
 		gameObjectFactory = new ArrayMap<String, GameObject.Constructor>();
 		gameObjectFactory.put("temple", new GameObject.Constructor(modelTemple,
@@ -124,7 +128,8 @@ public class GameScreen extends AbstractScreen implements Screen {
 				Bullet.obtainStaticNodeShape(modelLevel.nodes)));
 		gameObjectFactory.put("sphere", new GameObject.Constructor(modelSphere,
 				Bullet.obtainStaticNodeShape(modelSphere.nodes)));
-
+		gameObjectFactory.put("gun", new GameObject.Constructor(modelGun,
+				new btCapsuleShape(0, 0)));
 		gameObjectFactory.put("player", new GameObject.Constructor(modelPlayer,
 				new btCapsuleShape(GameSettings.PLAYER_RADIUS,
 						GameSettings.PLAYER_HEIGHT - 2
@@ -146,6 +151,9 @@ public class GameScreen extends AbstractScreen implements Screen {
 			instances.add(sphere);
 		}
 
+//		gunInstance = gameObjectFactory.get("gun").construct();
+//		instances.add(gunInstance);
+		
 		player = gameObjectFactory.get("player").construct();
 		player.position(GameSettings.PLAYER_START_POS);
 		player.visible = false;
@@ -225,6 +233,10 @@ public class GameScreen extends AbstractScreen implements Screen {
 				- GameSettings.PLAYER_HEIGHT / 2);
 
 		playerController.update(delta);
+		
+//		Vector3 tmp = new Vector3();
+//		gunInstance.transform.setToRotation(camera.direction, );
+//		gunInstance.transform.trn(camera.position);
 
 		// Render the models
 		modelBatch.begin(camera);
