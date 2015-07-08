@@ -184,8 +184,11 @@ public class GameScreen extends AbstractScreen implements Screen {
 
 	}
 
+	Vector3 lastCameraDirection = new Vector3();
+
 	@Override
 	public void hide() {
+		lastCameraDirection.set(camera.direction);
 		Gdx.input.setCursorCatched(false);
 		music.stop();
 	}
@@ -293,6 +296,7 @@ public class GameScreen extends AbstractScreen implements Screen {
 
 	@Override
 	public void resize(int width, int height) {
+
 		super.resize(width, height);
 
 		float vw = viewport.getScreenWidth();
@@ -308,6 +312,8 @@ public class GameScreen extends AbstractScreen implements Screen {
 				viewport.getScreenWidth(), viewport.getScreenHeight());
 		camera.near = 1E-2f;
 		camera.far = 1.5E3f;
+		camera.lookAt(lastCameraDirection);
+
 		camera.update(true);
 
 		viewport.setCamera(camera);
