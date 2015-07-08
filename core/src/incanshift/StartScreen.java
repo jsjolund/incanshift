@@ -5,6 +5,7 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.audio.Music;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Pixmap.Format;
@@ -20,28 +21,42 @@ public class StartScreen extends AbstractScreen {
 	class MenuInputProcessor implements InputProcessor {
 
 		Vector3 tmp = new Vector3();
+		int lastKeycode;
 
 		@Override
 		public boolean keyDown(int keycode) {
+			if (keycode == GameSettings.FORWARD || keycode == Input.Keys.UP
+					&& keycode != lastKeycode) {
+				selectedItem = selectedItem.getUp(selectedItem);
+				soundClick.play();
+			}
+			if (keycode == GameSettings.BACKWARD || keycode == Input.Keys.DOWN
+					&& keycode != lastKeycode) {
+				selectedItem = selectedItem.getDown(selectedItem);
+				soundClick.play();
+			}
 			if (keycode == Input.Keys.SPACE || keycode == Input.Keys.ENTER) {
+				soundEnter.play();
 				enterSelected();
 			}
-			return false;
+			if (keycode == Input.Keys.ESCAPE && canResume) {
+				selectedItem = MenuItem.START;
+				enterSelected();
+			}
+			lastKeycode = keycode;
+			return true;
 		}
 
 		@Override
 		public boolean keyTyped(char character) {
+			// TODO Auto-generated method stub
 			return false;
+
 		}
 
 		@Override
 		public boolean keyUp(int keycode) {
-			if (keycode == GameSettings.FORWARD || keycode == Input.Keys.UP) {
-				selectedItem = selectedItem.getUp(selectedItem);
-			}
-			if (keycode == GameSettings.BACKWARD || keycode == Input.Keys.DOWN) {
-				selectedItem = selectedItem.getDown(selectedItem);
-			}
+			// TODO Auto-generated method stub
 			return true;
 		}
 
@@ -54,6 +69,9 @@ public class StartScreen extends AbstractScreen {
 
 			for (MenuItem item : MenuItem.values()) {
 				if (item.getBounds().contains(vx, vy)) {
+					if (item != selectedItem) {
+						soundClick.play();
+					}
 					selectedItem = item;
 					break;
 				}
@@ -77,12 +95,13 @@ public class StartScreen extends AbstractScreen {
 
 			for (MenuItem item : MenuItem.values()) {
 				if (item.getBounds().contains(vx, vy)) {
+					soundEnter.play();
 					enterSelected();
 					break;
 				}
 			}
 
-			return false;
+			return true;
 		}
 
 		@Override
@@ -170,9 +189,10 @@ public class StartScreen extends AbstractScreen {
 
 	}
 
-	Matrix4 uiMatrix;
-
 	MenuItem selectedItem = MenuItem.START;
+	boolean canResume = false;
+
+	Matrix4 uiMatrix;
 	FrameBuffer fbo = null;
 
 	MenuInputProcessor input;
@@ -180,12 +200,16 @@ public class StartScreen extends AbstractScreen {
 	AssetManager assets;
 
 	Music music;
+	Sound soundClick;
+	Sound soundEnter;
 
 	public StartScreen(IncanShift game, int reqWidth, int reqHeight) {
 		super(game, reqWidth, reqHeight);
 
 		assets = new AssetManager();
+		assets.load("sound/click.wav", Sound.class);
 		assets.load("sound/music_menu.wav", Music.class);
+		assets.load("sound/enter.wav", Sound.class);
 
 		uiMatrix = camera.combined.cpy();
 		uiMatrix.setToOrtho2D(0, 0, viewport.getScreenWidth(),
@@ -195,6 +219,8 @@ public class StartScreen extends AbstractScreen {
 		input = new MenuInputProcessor();
 
 		assets.finishLoading();
+		soundClick = assets.get("sound/click.wav", Sound.class);
+		soundEnter = assets.get("sound/enter.wav", Sound.class);
 
 	}
 
@@ -268,6 +294,10 @@ public class StartScreen extends AbstractScreen {
 
 		switch (selectedItem) {
 		case START:
+			canResume = true;
+			MenuItem.dispose();
+			MenuItem.START.name = "Resume";
+			createMenuTextures();
 			game.showGameScreen();
 			break;
 
