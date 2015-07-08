@@ -172,8 +172,12 @@ public class StartScreen extends AbstractScreen {
 		switch (selectedItem) {
 		case START:
 			game.showGameScreen();
-
 			break;
+
+		case EXIT:
+			Gdx.app.exit();
+			break;
+
 		default:
 			break;
 		}
@@ -202,9 +206,7 @@ public class StartScreen extends AbstractScreen {
 
 		fbo.begin();
 		Gdx.graphics.getGL20().glClearColor(0.5f, 0.5f, 0.5f, 0);
-//		Gdx.gl.glViewport(0, 0, w, h);
-//		Gdx.gl.glViewport(0, 0, Gdx.graphics.getWidth(),
-//				Gdx.graphics.getHeight());
+
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
 
 		spriteBatch.getProjectionMatrix().setToOrtho2D(0, 0, w, h);
