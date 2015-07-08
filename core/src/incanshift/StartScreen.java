@@ -117,7 +117,7 @@ public class StartScreen extends AbstractScreen {
 		}
 	}
 
-	public enum MenuItem {
+	private enum MenuItem {
 		EXIT("Exit"), CREDITS("Credits"), OPTIONS("Options"), START("Start");
 
 		public static void dispose() {
@@ -300,7 +300,9 @@ public class StartScreen extends AbstractScreen {
 			createMenuTextures();
 			game.showGameScreen();
 			break;
-
+		case CREDITS:
+			game.showCreditScreen();
+			break;
 		case EXIT:
 			Gdx.app.exit();
 			break;

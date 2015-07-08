@@ -11,6 +11,7 @@ public class IncanShift extends Game {
 
 	private StartScreen startScreen;
 	private GameScreen gameScreen;
+	private CreditScreen creditScreen;
 
 	@Override
 	public void create() {
@@ -29,5 +30,12 @@ public class IncanShift extends Game {
 			gameScreen = new GameScreen(game, reqWidth, reqHeight);
 		}
 		setScreen(gameScreen);
+	}
+	
+	public void showCreditScreen() {
+		if (creditScreen == null) {
+			creditScreen = new CreditScreen(game, reqWidth, reqHeight);
+		}
+		setScreen(creditScreen);
 	}
 }
