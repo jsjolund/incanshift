@@ -37,7 +37,7 @@ class FPSInputProcessor implements InputProcessor, Disposable {
 			cp.getNormalWorldOnB(normal);
 
 			collisions++;
-			if (normal.epsilonEquals(Vector3.Y, 0.75f)) {
+			if (normal.epsilonEquals(Vector3.Y, 0.25f)) {
 				groundCollisions++;
 			} else {
 				climbCollisions++;

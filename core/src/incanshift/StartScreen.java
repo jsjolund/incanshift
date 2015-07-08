@@ -257,10 +257,10 @@ public class StartScreen extends AbstractScreen {
 			int x = 10;
 			int y = h - 2 * yspace * (i + 1);
 
-			font42.setColor(Color.WHITE);
+			font42.setColor(Color.GRAY);
 			GlyphLayout text = font42.draw(spriteBatch, item.toString(), x, y
 					+ yspace);
-			font42.setColor(Color.YELLOW);
+			font42.setColor(Color.WHITE);
 			font42.draw(spriteBatch, item.toString(), x + xspace, y + yspace);
 
 			int tw = (int) text.width;
@@ -367,7 +367,7 @@ public class StartScreen extends AbstractScreen {
 		Gdx.input.setInputProcessor(input);
 		music = assets.get("sound/music_menu.ogg", Music.class);
 		music.play();
-		music.setVolume(0.3f);
+		music.setVolume(1f);
 		music.setLooping(true);
 
 	}

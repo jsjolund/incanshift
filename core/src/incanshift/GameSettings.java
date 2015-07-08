@@ -12,7 +12,7 @@ public class GameSettings {
 
 	public static final float PLAYER_CLIMB_SPEED = 2f;
 	public static final float PLAYER_WALK_SPEED = 3f;
-	public static final float PLAYER_RUN_SPEED = 6f;
+	public static final float PLAYER_RUN_SPEED = 5f;
 	public static final float PLAYER_JUMP_ACCELERATION = 50f;
 	public static final float PLAYER_JUMP_TIME = 0.2f;
 
