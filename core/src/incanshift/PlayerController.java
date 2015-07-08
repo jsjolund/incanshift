@@ -286,7 +286,6 @@ class FPSInputProcessor implements InputProcessor, Disposable {
 
 		// Check if we should jump or climb
 		if (keys.containsKey(GameSettings.JUMP) && player.onGround && canClimb) {
-			System.out.println("1");
 			moveDirection.y = 1f;
 			moveSpeed = GameSettings.PLAYER_CLIMB_SPEED;
 			jumpKeyReleased = false;
@@ -294,7 +293,6 @@ class FPSInputProcessor implements InputProcessor, Disposable {
 			sound.climb();
 
 		} else if ((keys.containsKey(GameSettings.JUMP) && player.onGround && jumpKeyReleased)) {
-System.out.println("2");
 			sound.halt();
 			sound.jump();
 
@@ -313,7 +311,6 @@ System.out.println("2");
 			}, GameSettings.PLAYER_JUMP_TIME);
 
 		} else if (keys.containsKey(GameSettings.JUMP) && keepJumping) {
-			System.out.println("3");
 			player.velocity.y += GameSettings.PLAYER_JUMP_ACCELERATION * dt;
 			moveDirection.y = 0;
 
