@@ -46,24 +46,21 @@ public class GameScreen extends AbstractScreen implements Screen {
 
 	private ShapeRenderer shapeRenderer;
 
-	Matrix4 uiMatrix;
+	private Matrix4 uiMatrix;
 	private Vector3 tmp = new Vector3();
 
 	// Game objects
-	Array<GameObject> instances;
-	ArrayMap<String, GameObject.Constructor> gameObjectFactory;
+	private Array<GameObject> instances;
+	private ArrayMap<String, GameObject.Constructor> gameObjectFactory;
 
 	// Collision
 	private CollisionHandler collisionHandler;
 
-	GameObject player;
-	GameObject compass;
+	private GameObject player;
+	private ModelInstance skybox;
+	private Music music;
 
-	ModelInstance skybox;
-
-	Music music;
-
-	String msg = "Press ESC to exit";
+	private String msg = new String();
 
 	public GameScreen(IncanShift game, int reqWidth, int reqHeight) {
 		super(game, reqWidth, reqHeight);
@@ -104,31 +101,7 @@ public class GameScreen extends AbstractScreen implements Screen {
 		modelBatch = new ModelBatch();
 
 		ModelBuilder modelBuilder = new ModelBuilder();
-		// Model arrow = modelBuilder.createArrow(Vector3.Zero, Vector3.Y.cpy()
-		// .scl(1), null, Usage.Position | Usage.Normal);
-		//
-		// modelBuilder.begin();
-		//
-		// Mesh xArrow = arrow.meshes.first().copy(false);
-		// xArrow.transform(new Matrix4().rotate(Vector3.X, 90));
-		// modelBuilder.part("part1", xArrow, GL20.GL_TRIANGLES, new Material(
-		// ColorAttribute.createDiffuse(Color.RED)));
-		//
-		// modelBuilder.node();
-		// Mesh yArrow = arrow.meshes.first().copy(false);
-		// modelBuilder.part("part2", yArrow, GL20.GL_TRIANGLES, new Material(
-		// ColorAttribute.createDiffuse(Color.GREEN)));
-		//
-		// modelBuilder.node();
-		// Mesh zArrow = arrow.meshes.first().copy(false);
-		// zArrow.transform(new Matrix4().rotate(Vector3.Z, 90));
-		// modelBuilder.part("part3", zArrow, GL20.GL_TRIANGLES, new Material(
-		// ColorAttribute.createDiffuse(Color.BLUE)));
-		//
-		// arrow.dispose();
-		// Model modelCompass = modelBuilder.end();
-		//
-		// modelBuilder = new ModelBuilder();
+
 		Model modelPlayer = modelBuilder.createCapsule(
 				GameSettings.PLAYER_RADIUS, GameSettings.PLAYER_HEIGHT - 2
 						* GameSettings.PLAYER_RADIUS, 4, GL20.GL_TRIANGLES,
@@ -150,10 +123,7 @@ public class GameScreen extends AbstractScreen implements Screen {
 				Bullet.obtainStaticNodeShape(modelLevel.nodes)));
 		gameObjectFactory.put("sphere", new GameObject.Constructor(modelSphere,
 				Bullet.obtainStaticNodeShape(modelSphere.nodes)));
-		// gameObjectFactory
-		// .put("compass",
-		// new GameObject.Constructor(modelCompass, Bullet
-		// .obtainStaticNodeShape(modelCompass.nodes)));
+
 		gameObjectFactory.put("player", new GameObject.Constructor(modelPlayer,
 				new btCapsuleShape(GameSettings.PLAYER_RADIUS,
 						GameSettings.PLAYER_HEIGHT - 2
@@ -163,8 +133,6 @@ public class GameScreen extends AbstractScreen implements Screen {
 		instances.add(gameObjectFactory.get("ground").construct());
 		// instances.add(gameObjectFactory.get("temple").construct());
 		instances.add(gameObjectFactory.get("level").construct());
-
-		// compass = gameObjectFactory.get("compass").construct();
 
 		Vector3[] spherePos = { new Vector3(10, 10, 10),
 				new Vector3(10, 0, 20), new Vector3(20, 10, 10),

@@ -109,6 +109,58 @@ class FPSInputProcessor implements InputProcessor, Disposable {
 	}
 
 	@Override
+	public void dispose() {
+		contactListener.dispose();
+	}
+
+	@Override
+	public boolean keyDown(int keycode) {
+
+		if (keycode == Input.Keys.ESCAPE) {
+
+			sound.halt();
+			game.showStartScreen();
+
+		} else {
+			// Player pressed a key, handler movement on update
+			keys.put(keycode, keycode);
+		}
+		if (keycode == GameSettings.RUN) {
+			if (player.onGround && player.velocity.len() > 0) {
+				sound.move(true);
+			}
+		}
+
+		return true;
+	}
+
+	@Override
+	public boolean keyTyped(char character) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean keyUp(int keycode) {
+		keys.remove(keycode, 0);
+		if (keycode == GameSettings.JUMP) {
+			jumpKeyReleased = true;
+		}
+		if (keycode == GameSettings.RESET) {
+			player.position(GameSettings.PLAYER_START_POS);
+			for (GameObject obj : instances) {
+				obj.visible = true;
+			}
+		}
+		if (keycode == GameSettings.RUN) {
+			if (player.onGround && player.velocity.len() > 0) {
+				sound.move(false);
+			}
+		}
+		return false;
+	}
+
+	@Override
 	public boolean mouseMoved(int screenX, int screenY) {
 		if (!captureMouse) {
 			return true;
@@ -134,6 +186,44 @@ class FPSInputProcessor implements InputProcessor, Disposable {
 
 		centerMouseCursor();
 		return true;
+	}
+
+	@Override
+	public boolean scrolled(int amount) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean touchDown(int screenX, int screenY, int pointer, int button) {
+
+		if (button == Input.Buttons.LEFT) {
+
+			// Handle player click act
+			ray = viewport.getPickRay(screenX, screenY);
+			GameObject hitObject = collisionHandler.rayTest(ray, 100);
+			sound.shoot();
+
+			if (hitObject != null && hitObject.removable && hitObject.visible) {
+				hitObject.visible = false;
+				sound.bump();
+			}
+
+		}
+		return true;
+	}
+
+	@Override
+	public boolean touchDragged(int screenX, int screenY, int pointer) {
+		// Ignore dragging, interpret it as movement
+		mouseMoved(screenX, screenY);
+		return true;
+	}
+
+	@Override
+	public boolean touchUp(int screenX, int screenY, int pointer, int button) {
+		// TODO Auto-generated method stub
+		return false;
 	}
 
 	public void update(float dt) {
@@ -236,96 +326,6 @@ class FPSInputProcessor implements InputProcessor, Disposable {
 		viewport.getCamera().position.add(0, GameSettings.PLAYER_EYE_HEIGHT
 				- GameSettings.PLAYER_HEIGHT / 2, 0);
 
-	}
-
-	@Override
-	public boolean keyDown(int keycode) {
-
-		if (keycode == Input.Keys.ESCAPE) {
-
-			sound.halt();
-			game.showStartScreen();
-
-		} else {
-			// Player pressed a key, handler movement on update
-			keys.put(keycode, keycode);
-		}
-		if (keycode == GameSettings.RUN) {
-			if (player.onGround && player.velocity.len() > 0) {
-				sound.move(true);
-			}
-		}
-
-		return true;
-	}
-
-	@Override
-	public boolean touchDragged(int screenX, int screenY, int pointer) {
-		// Ignore dragging, interpret it as movement
-		mouseMoved(screenX, screenY);
-		return true;
-	}
-
-	@Override
-	public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-
-		if (button == Input.Buttons.LEFT) {
-
-			// Handle player click act
-			ray = viewport.getPickRay(screenX, screenY);
-			GameObject hitObject = collisionHandler.rayTest(ray, 100);
-			sound.shoot();
-
-			if (hitObject != null && hitObject.removable && hitObject.visible) {
-				hitObject.visible = false;
-				sound.bump();
-			}
-
-		}
-		return true;
-	}
-
-	@Override
-	public boolean keyUp(int keycode) {
-		keys.remove(keycode, 0);
-		if (keycode == GameSettings.JUMP) {
-			jumpKeyReleased = true;
-		}
-		if (keycode == GameSettings.RESET) {
-			player.position(GameSettings.PLAYER_START_POS);
-			for (GameObject obj : instances) {
-				obj.visible = true;
-			}
-		}
-		if (keycode == GameSettings.RUN) {
-			if (player.onGround && player.velocity.len() > 0) {
-				sound.move(false);
-			}
-		}
-		return false;
-	}
-
-	@Override
-	public boolean keyTyped(char character) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public boolean touchUp(int screenX, int screenY, int pointer, int button) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public boolean scrolled(int amount) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public void dispose() {
-		contactListener.dispose();
 	}
 
 }

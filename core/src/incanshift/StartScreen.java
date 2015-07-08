@@ -17,75 +17,6 @@ import com.badlogic.gdx.math.Vector3;
 
 public class StartScreen extends AbstractScreen {
 
-	public enum MenuItem {
-		EXIT("Exit"), CREDITS("Credits"), OPTIONS("Options"), START("Start");
-
-		private String name;
-		private TextureRegion texFalse;
-		private TextureRegion texTrue;
-		private Rectangle bounds = new Rectangle();
-
-		private MenuItem(String name) {
-			this.name = name;
-		}
-
-		public MenuItem getUp(MenuItem current) {
-			int i = current.ordinal();
-			return (i == size() - 1) ? get(0) : get(i + 1);
-		}
-
-		public MenuItem getDown(MenuItem current) {
-			int i = current.ordinal();
-			return (i == 0) ? get(size() - 1) : get(i - 1);
-		}
-
-		@Override
-		public String toString() {
-			return name;
-		}
-
-		public static MenuItem get(int i) {
-			return MenuItem.values()[i];
-		}
-
-		public TextureRegion getTex(boolean selected) {
-			return (selected) ? texTrue : texFalse;
-		}
-
-		public void setTex(TextureRegion tex, boolean selected) {
-			if (selected) {
-				this.texTrue = tex;
-			} else {
-				this.texFalse = tex;
-			}
-		}
-
-		public void resize(int width, int height) {
-			float spacing = 50;
-			int xc = width / 2;
-			int yc = height / 2;
-			int tw = texFalse.getRegionWidth();
-			int th = texFalse.getRegionHeight();
-			float yOffset = yc - (spacing + th) * (MenuItem.size() - 1) / 2;
-			float x = xc - tw / 2;
-			float y = yOffset + (th + spacing) * ordinal();
-			bounds.set(x, y, tw, th);
-		}
-
-		public Rectangle getBounds() {
-			return bounds;
-		}
-
-		public static void dispose() {
-			get(0).texTrue.getTexture().dispose();
-		}
-
-		public static int size() {
-			return MenuItem.values().length;
-		}
-
-	}
-
 	class MenuInputProcessor implements InputProcessor {
 
 		Vector3 tmp = new Vector3();
@@ -99,6 +30,11 @@ public class StartScreen extends AbstractScreen {
 		}
 
 		@Override
+		public boolean keyTyped(char character) {
+			return false;
+		}
+
+		@Override
 		public boolean keyUp(int keycode) {
 			if (keycode == GameSettings.FORWARD || keycode == Input.Keys.UP) {
 				selectedItem = selectedItem.getUp(selectedItem);
@@ -107,41 +43,6 @@ public class StartScreen extends AbstractScreen {
 				selectedItem = selectedItem.getDown(selectedItem);
 			}
 			return true;
-		}
-
-		@Override
-		public boolean keyTyped(char character) {
-			return false;
-		}
-
-		@Override
-		public boolean touchDown(int screenX, int screenY, int pointer,
-				int button) {
-
-			float vx = screenX - viewport.getRightGutterWidth();
-			float vy = (viewport.getWorldHeight() - screenY)
-					- viewport.getBottomGutterHeight();
-
-			for (MenuItem item : MenuItem.values()) {
-				if (item.getBounds().contains(vx, vy)) {
-					enterSelected();
-					break;
-				}
-			}
-
-			return false;
-		}
-
-		@Override
-		public boolean touchUp(int screenX, int screenY, int pointer, int button) {
-			// TODO Auto-generated method stub
-			return false;
-		}
-
-		@Override
-		public boolean touchDragged(int screenX, int screenY, int pointer) {
-			// TODO Auto-generated method stub
-			return false;
 		}
 
 		@Override
@@ -165,28 +66,137 @@ public class StartScreen extends AbstractScreen {
 			// TODO Auto-generated method stub
 			return false;
 		}
-	}
 
-	private void enterSelected() {
+		@Override
+		public boolean touchDown(int screenX, int screenY, int pointer,
+				int button) {
 
-		switch (selectedItem) {
-		case START:
-			game.showGameScreen();
-			break;
+			float vx = screenX - viewport.getRightGutterWidth();
+			float vy = (viewport.getWorldHeight() - screenY)
+					- viewport.getBottomGutterHeight();
 
-		case EXIT:
-			Gdx.app.exit();
-			break;
+			for (MenuItem item : MenuItem.values()) {
+				if (item.getBounds().contains(vx, vy)) {
+					enterSelected();
+					break;
+				}
+			}
 
-		default:
-			break;
+			return false;
+		}
+
+		@Override
+		public boolean touchDragged(int screenX, int screenY, int pointer) {
+			// TODO Auto-generated method stub
+			return false;
+		}
+
+		@Override
+		public boolean touchUp(int screenX, int screenY, int pointer, int button) {
+			// TODO Auto-generated method stub
+			return false;
 		}
 	}
 
-	Matrix4 uiMatrix;
-	MenuItem selectedItem = MenuItem.START;
+	public enum MenuItem {
+		EXIT("Exit"), CREDITS("Credits"), OPTIONS("Options"), START("Start");
 
+		public static void dispose() {
+			get(0).texTrue.getTexture().dispose();
+		}
+
+		public static MenuItem get(int i) {
+			return MenuItem.values()[i];
+		}
+
+		public static int size() {
+			return MenuItem.values().length;
+		}
+
+		private String name;
+
+		private TextureRegion texFalse;
+
+		private TextureRegion texTrue;
+
+		private Rectangle bounds = new Rectangle();
+
+		private MenuItem(String name) {
+			this.name = name;
+		}
+
+		public Rectangle getBounds() {
+			return bounds;
+		}
+
+		public MenuItem getDown(MenuItem current) {
+			int i = current.ordinal();
+			return (i == 0) ? get(size() - 1) : get(i - 1);
+		}
+
+		public TextureRegion getTex(boolean selected) {
+			return (selected) ? texTrue : texFalse;
+		}
+
+		public MenuItem getUp(MenuItem current) {
+			int i = current.ordinal();
+			return (i == size() - 1) ? get(0) : get(i + 1);
+		}
+
+		public void resize(int width, int height) {
+			float spacing = 50;
+			int xc = width / 2;
+			int yc = height / 2;
+			int tw = texFalse.getRegionWidth();
+			int th = texFalse.getRegionHeight();
+			float yOffset = yc - (spacing + th) * (MenuItem.size() - 1) / 2;
+			float x = xc - tw / 2;
+			float y = yOffset + (th + spacing) * ordinal();
+			bounds.set(x, y, tw, th);
+		}
+
+		public void setTex(TextureRegion tex, boolean selected) {
+			if (selected) {
+				this.texTrue = tex;
+			} else {
+				this.texFalse = tex;
+			}
+		}
+
+		@Override
+		public String toString() {
+			return name;
+		}
+
+	}
+
+	Matrix4 uiMatrix;
+
+	MenuItem selectedItem = MenuItem.START;
 	FrameBuffer fbo = null;
+
+	MenuInputProcessor input;
+
+	AssetManager assets;
+
+	Music music;
+
+	public StartScreen(IncanShift game, int reqWidth, int reqHeight) {
+		super(game, reqWidth, reqHeight);
+
+		assets = new AssetManager();
+		assets.load("sound/music_menu.wav", Music.class);
+
+		uiMatrix = camera.combined.cpy();
+		uiMatrix.setToOrtho2D(0, 0, viewport.getScreenWidth(),
+				viewport.getScreenHeight());
+
+		createMenuTextures();
+		input = new MenuInputProcessor();
+
+		assets.finishLoading();
+
+	}
 
 	/**
 	 * Draw menu text
@@ -246,27 +256,6 @@ public class StartScreen extends AbstractScreen {
 
 	}
 
-	MenuInputProcessor input;
-	AssetManager assets;
-	Music music;
-
-	public StartScreen(IncanShift game, int reqWidth, int reqHeight) {
-		super(game, reqWidth, reqHeight);
-
-		assets = new AssetManager();
-		assets.load("sound/music_menu.wav", Music.class);
-
-		uiMatrix = camera.combined.cpy();
-		uiMatrix.setToOrtho2D(0, 0, viewport.getScreenWidth(),
-				viewport.getScreenHeight());
-
-		createMenuTextures();
-		input = new MenuInputProcessor();
-
-		assets.finishLoading();
-
-	}
-
 	@Override
 	public void dispose() {
 		super.dispose();
@@ -275,14 +264,30 @@ public class StartScreen extends AbstractScreen {
 		assets.dispose();
 	}
 
-	@Override
-	public void show() {
-		Gdx.input.setInputProcessor(input);
-		music = assets.get("sound/music_menu.wav", Music.class);
-		music.play();
-		music.setVolume(0.3f);
-		music.setLooping(true);
+	private void enterSelected() {
 
+		switch (selectedItem) {
+		case START:
+			game.showGameScreen();
+			break;
+
+		case EXIT:
+			Gdx.app.exit();
+			break;
+
+		default:
+			break;
+		}
+	}
+
+	@Override
+	public void hide() {
+		music.stop();
+	}
+
+	@Override
+	public void pause() {
+		// TODO Auto-generated method stub
 	}
 
 	@Override
@@ -305,21 +310,6 @@ public class StartScreen extends AbstractScreen {
 	}
 
 	@Override
-	public void pause() {
-		// TODO Auto-generated method stub
-	}
-
-	@Override
-	public void resume() {
-		// TODO Auto-generated method stub
-	}
-
-	@Override
-	public void hide() {
-		music.stop();
-	}
-
-	@Override
 	public void resize(int width, int height) {
 		super.resize(width, height);
 
@@ -332,6 +322,21 @@ public class StartScreen extends AbstractScreen {
 		for (MenuItem item : MenuItem.values()) {
 			item.resize((int) vw, (int) vh);
 		}
+
+	}
+
+	@Override
+	public void resume() {
+		// TODO Auto-generated method stub
+	}
+
+	@Override
+	public void show() {
+		Gdx.input.setInputProcessor(input);
+		music = assets.get("sound/music_menu.wav", Music.class);
+		music.play();
+		music.setVolume(0.3f);
+		music.setLooping(true);
 
 	}
 }

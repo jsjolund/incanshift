@@ -10,7 +10,6 @@ public class PlayerSound {
 	Sound soundShoot;
 	Sound soundRun;
 	Sound soundWalk;
-
 	Sound soundMove;
 
 	long soundMoveId;
@@ -27,16 +26,16 @@ public class PlayerSound {
 
 	}
 
-	public void jump() {
-		soundJump.play(0.5f);
-	}
-
-	public void shoot() {
-		soundShoot.play(0.5f);
-	}
-
 	public void bump() {
 		soundBump.play(1.0f);
+	}
+
+	public void halt() {
+		soundMove.stop(soundMoveId);
+	}
+
+	public void jump() {
+		soundJump.play(0.5f);
 	}
 
 	public void move(boolean run) {
@@ -44,7 +43,7 @@ public class PlayerSound {
 		soundMoveId = (run) ? soundRun.loop(4.0f) : soundWalk.loop(4.0f);
 	}
 
-	public void halt() {
-		soundMove.stop(soundMoveId);
+	public void shoot() {
+		soundShoot.play(0.5f);
 	}
 }

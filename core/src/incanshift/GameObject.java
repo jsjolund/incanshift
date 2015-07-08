@@ -11,40 +11,9 @@ import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
 import com.badlogic.gdx.utils.Disposable;
 
 /**
- * A game object consisting of a model, collision body and some additional
- * data
+ * A game object consisting of a model, collision body and some additional data
  */
 class GameObject extends ModelInstance implements Disposable {
-
-	public final btCollisionObject body;
-
-	public boolean onGround = false;
-	public boolean removable = false;
-	public boolean visible = true;
-	public Vector3 velocity = new Vector3();
-
-	public GameObject(Model model, btCollisionShape shape) {
-		super(model);
-		body = new btCollisionObject();
-		body.setCollisionShape(shape);
-	}
-
-	public void trn(Vector3 translation) {
-		transform.trn(translation);
-		body.setWorldTransform(transform);
-		calculateTransforms();
-	}
-
-	public void position(Vector3 position) {
-		transform.setTranslation(position);
-		body.setWorldTransform(transform);
-		calculateTransforms();
-	}
-
-	@Override
-	public void dispose() {
-		body.dispose();
-	}
 
 	/**
 	 * Constructor class for game objects
@@ -71,5 +40,35 @@ class GameObject extends ModelInstance implements Disposable {
 		public void dispose() {
 			shape.dispose();
 		}
+	}
+
+	public final btCollisionObject body;
+	public boolean onGround = false;
+	public boolean removable = false;
+	public boolean visible = true;
+
+	public Vector3 velocity = new Vector3();
+
+	public GameObject(Model model, btCollisionShape shape) {
+		super(model);
+		body = new btCollisionObject();
+		body.setCollisionShape(shape);
+	}
+
+	@Override
+	public void dispose() {
+		body.dispose();
+	}
+
+	public void position(Vector3 position) {
+		transform.setTranslation(position);
+		body.setWorldTransform(transform);
+		calculateTransforms();
+	}
+
+	public void trn(Vector3 translation) {
+		transform.trn(translation);
+		body.setWorldTransform(transform);
+		calculateTransforms();
 	}
 }

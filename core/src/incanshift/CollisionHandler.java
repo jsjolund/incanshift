@@ -17,18 +17,18 @@ import com.badlogic.gdx.utils.Disposable;
 
 public class CollisionHandler implements Disposable {
 
-	Array<GameObject> instances;
-
-	btCollisionConfiguration collisionConfig;
-	btDispatcher dispatcher;
-	private btDbvtBroadphase broadphase;
-	private btCollisionWorld collisionWorld;
-	private DebugDrawer debugDrawer;
-
 	// Collision flags
 	final static short GROUND_FLAG = 1 << 8;
 	final static short OBJECT_FLAG = 1 << 9;
 	final static short ALL_FLAG = -1;
+
+	Array<GameObject> instances;
+	btCollisionConfiguration collisionConfig;
+	btDispatcher dispatcher;
+
+	private btDbvtBroadphase broadphase;
+	private btCollisionWorld collisionWorld;
+	private DebugDrawer debugDrawer;
 
 	public CollisionHandler(GameObject player, Array<GameObject> instances) {
 		this.instances = instances;
@@ -37,14 +37,17 @@ public class CollisionHandler implements Disposable {
 		dispatcher = new btCollisionDispatcher(collisionConfig);
 		broadphase = new btDbvtBroadphase();
 
-		collisionWorld = new btCollisionWorld(dispatcher, broadphase, collisionConfig);
+		collisionWorld = new btCollisionWorld(dispatcher, broadphase,
+				collisionConfig);
 
 		debugDrawer = new DebugDrawer();
 		collisionWorld.setDebugDrawer(debugDrawer);
-//		 debugDrawer.setDebugMode(btIDebugDraw.DebugDrawModes.DBG_DrawWireframe);
+		// debugDrawer.setDebugMode(btIDebugDraw.DebugDrawModes.DBG_DrawWireframe);
 
-		player.body.setCollisionFlags(player.body.getCollisionFlags() | btCollisionObject.CollisionFlags.CF_CUSTOM_MATERIAL_CALLBACK);
-		collisionWorld.addCollisionObject(player.body, OBJECT_FLAG, GROUND_FLAG);
+		player.body.setCollisionFlags(player.body.getCollisionFlags()
+				| btCollisionObject.CollisionFlags.CF_CUSTOM_MATERIAL_CALLBACK);
+		collisionWorld
+				.addCollisionObject(player.body, OBJECT_FLAG, GROUND_FLAG);
 
 		for (GameObject obj : instances) {
 			collisionWorld.addCollisionObject(obj.body, GROUND_FLAG, ALL_FLAG);
@@ -52,11 +55,31 @@ public class CollisionHandler implements Disposable {
 
 	}
 
+	public void debugDrawWorld(Camera camera) {
+		debugDrawer.begin(camera);
+		collisionWorld.debugDrawWorld();
+		debugDrawer.end();
+	}
+
+	@Override
+	public void dispose() {
+		collisionConfig.dispose();
+		dispatcher.dispose();
+		collisionWorld.dispose();
+		broadphase.dispose();
+	}
+
+	public void performDiscreteCollisionDetection() {
+		collisionWorld.performDiscreteCollisionDetection();
+	}
+
 	public GameObject rayTest(Ray ray, float maxDistance) {
 		Vector3 rayFrom = new Vector3(ray.origin);
-		Vector3 rayTo = new Vector3(ray.direction).scl(maxDistance).add(rayFrom);
+		Vector3 rayTo = new Vector3(ray.direction).scl(maxDistance)
+				.add(rayFrom);
 
-		ClosestRayResultCallback callback = new ClosestRayResultCallback(rayFrom, rayTo);
+		ClosestRayResultCallback callback = new ClosestRayResultCallback(
+				rayFrom, rayTo);
 		collisionWorld.rayTest(rayFrom, rayTo, callback);
 
 		btCollisionObject co = callback.getCollisionObject();
@@ -73,23 +96,5 @@ public class CollisionHandler implements Disposable {
 		}
 
 		return null;
-	}
-
-	@Override
-	public void dispose() {
-		collisionConfig.dispose();
-		dispatcher.dispose();
-		collisionWorld.dispose();
-		broadphase.dispose();
-	}
-
-	public void performDiscreteCollisionDetection() {
-		collisionWorld.performDiscreteCollisionDetection();
-	}
-
-	public void debugDrawWorld(Camera camera) {
-		debugDrawer.begin(camera);
-		collisionWorld.debugDrawWorld();
-		debugDrawer.end();
 	}
 }
