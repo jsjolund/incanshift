@@ -1,27 +1,21 @@
 package incanshift;
 
 import com.badlogic.gdx.Application;
-import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.Mesh;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.Pixmap.Format;
-import com.badlogic.gdx.graphics.VertexAttributes.Usage;
 import com.badlogic.gdx.graphics.g3d.Environment;
-import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
-import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
@@ -36,7 +30,6 @@ import com.badlogic.gdx.utils.Timer.Task;
 
 public class GameScreen extends AbstractScreen implements Screen {
 
-	private PerspectiveCamera camera;
 	private FPSInputProcessor playerController;
 
 	private ModelBatch modelBatch;
@@ -66,10 +59,12 @@ public class GameScreen extends AbstractScreen implements Screen {
 
 	ModelInstance skybox;
 
+	Music music;
+
 	boolean showStartMsg = true;
 	String startMsg = "Press ESC to exit";
 
-	public GameScreen(Game game, int reqWidth, int reqHeight) {
+	public GameScreen(IncanShift game, int reqWidth, int reqHeight) {
 		super(game, reqWidth, reqHeight);
 
 		Gdx.app.setLogLevel(Application.LOG_DEBUG);
@@ -86,21 +81,11 @@ public class GameScreen extends AbstractScreen implements Screen {
 		assets.load("sound/shoot.wav", Sound.class);
 		assets.load("sound/run.wav", Sound.class);
 		assets.load("sound/walk.wav", Sound.class);
-		assets.load("sound/wind.wav", Music.class);
+		assets.load("sound/music_game.wav", Music.class);
 
 		shapeRenderer = new ShapeRenderer();
 
 		Bullet.init();
-
-		camera = new PerspectiveCamera(55, Gdx.graphics.getWidth(),
-				Gdx.graphics.getHeight());
-		camera.near = 1E-2f;
-		camera.far = 1.5E3f;
-		viewport.setCamera(camera);
-
-		uiMatrix = camera.combined.cpy();
-		uiMatrix.setToOrtho2D(0, 0, viewport.getScreenWidth(),
-				viewport.getScreenHeight());
 
 		environment = new Environment();
 
@@ -117,30 +102,30 @@ public class GameScreen extends AbstractScreen implements Screen {
 
 		modelBatch = new ModelBatch();
 
-		ModelBuilder modelBuilder = new ModelBuilder();
-		Model arrow = modelBuilder.createArrow(Vector3.Zero, Vector3.Y.cpy()
-				.scl(1), null, Usage.Position | Usage.Normal);
-
-		modelBuilder.begin();
-
-		Mesh xArrow = arrow.meshes.first().copy(false);
-		xArrow.transform(new Matrix4().rotate(Vector3.X, 90));
-		modelBuilder.part("part1", xArrow, GL20.GL_TRIANGLES, new Material(
-				ColorAttribute.createDiffuse(Color.RED)));
-
-		modelBuilder.node();
-		Mesh yArrow = arrow.meshes.first().copy(false);
-		modelBuilder.part("part2", yArrow, GL20.GL_TRIANGLES, new Material(
-				ColorAttribute.createDiffuse(Color.GREEN)));
-
-		modelBuilder.node();
-		Mesh zArrow = arrow.meshes.first().copy(false);
-		zArrow.transform(new Matrix4().rotate(Vector3.Z, 90));
-		modelBuilder.part("part3", zArrow, GL20.GL_TRIANGLES, new Material(
-				ColorAttribute.createDiffuse(Color.BLUE)));
-
-		arrow.dispose();
-		Model modelCompass = modelBuilder.end();
+		// ModelBuilder modelBuilder = new ModelBuilder();
+		// Model arrow = modelBuilder.createArrow(Vector3.Zero, Vector3.Y.cpy()
+		// .scl(1), null, Usage.Position | Usage.Normal);
+		//
+		// modelBuilder.begin();
+		//
+		// Mesh xArrow = arrow.meshes.first().copy(false);
+		// xArrow.transform(new Matrix4().rotate(Vector3.X, 90));
+		// modelBuilder.part("part1", xArrow, GL20.GL_TRIANGLES, new Material(
+		// ColorAttribute.createDiffuse(Color.RED)));
+		//
+		// modelBuilder.node();
+		// Mesh yArrow = arrow.meshes.first().copy(false);
+		// modelBuilder.part("part2", yArrow, GL20.GL_TRIANGLES, new Material(
+		// ColorAttribute.createDiffuse(Color.GREEN)));
+		//
+		// modelBuilder.node();
+		// Mesh zArrow = arrow.meshes.first().copy(false);
+		// zArrow.transform(new Matrix4().rotate(Vector3.Z, 90));
+		// modelBuilder.part("part3", zArrow, GL20.GL_TRIANGLES, new Material(
+		// ColorAttribute.createDiffuse(Color.BLUE)));
+		//
+		// arrow.dispose();
+		// Model modelCompass = modelBuilder.end();
 
 		assets.finishLoading();
 
@@ -158,10 +143,10 @@ public class GameScreen extends AbstractScreen implements Screen {
 				Bullet.obtainStaticNodeShape(modelLevel.nodes)));
 		gameObjectFactory.put("sphere", new GameObject.Constructor(modelSphere,
 				Bullet.obtainStaticNodeShape(modelSphere.nodes)));
-		gameObjectFactory
-				.put("compass",
-						new GameObject.Constructor(modelCompass, Bullet
-								.obtainStaticNodeShape(modelCompass.nodes)));
+		// gameObjectFactory
+		// .put("compass",
+		// new GameObject.Constructor(modelCompass, Bullet
+		// .obtainStaticNodeShape(modelCompass.nodes)));
 		gameObjectFactory.put("player", new GameObject.Constructor(null,
 				new btCapsuleShape(GameSettings.PLAYER_RADIUS,
 						GameSettings.PLAYER_HEIGHT / 2)));
@@ -171,7 +156,7 @@ public class GameScreen extends AbstractScreen implements Screen {
 		// instances.add(gameObjectFactory.get("temple").construct());
 		instances.add(gameObjectFactory.get("level").construct());
 
-		compass = gameObjectFactory.get("compass").construct();
+		// compass = gameObjectFactory.get("compass").construct();
 
 		Vector3[] spherePos = { new Vector3(10, 10, 10),
 				new Vector3(10, 0, 20), new Vector3(20, 10, 10),
@@ -193,20 +178,10 @@ public class GameScreen extends AbstractScreen implements Screen {
 		skybox = new ModelInstance(modelSkybox);
 
 		PlayerSound sound = new PlayerSound(assets);
-		playerController = new FPSInputProcessor(viewport, player,
+
+		playerController = new FPSInputProcessor(game, viewport, player,
 				collisionHandler, instances, sound);
-		Gdx.input.setInputProcessor(playerController);
-		playerController.centerMouseCursor();
 
-		Gdx.input.setCursorCatched(true);
-		camera.update();
-
-		// Play some music
-		Music musicWind;
-		musicWind = assets.get("sound/wind.wav", Music.class);
-		musicWind.play();
-		musicWind.setVolume(0.3f);
-		musicWind.setLooping(true);
 	}
 
 	@Override
@@ -234,7 +209,8 @@ public class GameScreen extends AbstractScreen implements Screen {
 
 	@Override
 	public void hide() {
-		// TODO Auto-generated method stub
+		Gdx.input.setCursorCatched(false);
+		music.stop();
 	}
 
 	private void loadShaders() {
@@ -257,16 +233,13 @@ public class GameScreen extends AbstractScreen implements Screen {
 	}
 
 	@Override
-	public void render(float dt) {
-		int vWidth = viewport.getScreenWidth();
-		int vHeight = viewport.getScreenHeight();
+	public void render(float delta) {
+		super.render(delta);
 
 		collisionHandler.performDiscreteCollisionDetection();
-		camera.update(true);
-		playerController.update(dt);
+		camera.update();
 
-		Gdx.graphics.getGL20().glClearColor(0, 0, 0, 1);
-		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
+		playerController.update(delta);
 
 		// Render the models
 		modelBatch.begin(camera);
@@ -317,9 +290,9 @@ public class GameScreen extends AbstractScreen implements Screen {
 				public void run() {
 					showStartMsg = false;
 				}
-			}, 5);
+			}, 50);
 			spriteBatch.begin();
-			font12.draw(spriteBatch, "Press ESC to pause...", 10, 15);
+			font12.draw(spriteBatch, startMsg, 10, 15);
 			spriteBatch.end();
 
 		}
@@ -327,6 +300,8 @@ public class GameScreen extends AbstractScreen implements Screen {
 		// Draw crosshair
 		shapeRenderer.setProjectionMatrix(uiMatrix);
 		shapeRenderer.begin(ShapeType.Line);
+		int vWidth = viewport.getScreenWidth();
+		int vHeight = viewport.getScreenHeight();
 		float xc = vWidth / 2;
 		float yc = vHeight / 2;
 
@@ -350,12 +325,22 @@ public class GameScreen extends AbstractScreen implements Screen {
 	public void resize(int width, int height) {
 		super.resize(width, height);
 
+		float vw = viewport.getScreenWidth();
+		float vh = viewport.getScreenHeight();
+
 		playerController.screenCenterX = width / 2;
 		playerController.screenCenterY = height / 2;
 
 		uiMatrix = camera.combined.cpy();
-		uiMatrix.setToOrtho2D(0, 0, viewport.getScreenWidth(),
+		uiMatrix.setToOrtho2D(0, 0, vw, vh);
+
+		camera = new PerspectiveCamera(60, viewport.getScreenWidth(),
 				viewport.getScreenHeight());
+		camera.near = 1E-2f;
+		camera.far = 1.5E3f;
+		camera.update(true);
+
+		viewport.setCamera(camera);
 
 	}
 
@@ -366,7 +351,16 @@ public class GameScreen extends AbstractScreen implements Screen {
 
 	@Override
 	public void show() {
-		// TODO Auto-generated method stub
+		Gdx.input.setInputProcessor(playerController);
+		Gdx.input.setCursorCatched(true);
+		playerController.centerMouseCursor();
+
+		// Play some music
+		music = assets.get("sound/music_game.wav", Music.class);
+		music.play();
+		music.setVolume(0.3f);
+		music.setLooping(true);
+
 	}
 
 }

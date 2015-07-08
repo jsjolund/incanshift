@@ -3,7 +3,6 @@ package incanshift;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputProcessor;
-import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.math.collision.Ray;
@@ -70,7 +69,6 @@ class FPSInputProcessor implements InputProcessor, Disposable {
 	volatile boolean keepJumping = true;
 
 	Viewport viewport;
-	Camera camera;
 
 	Ray ray;
 	BoundingBox box = new BoundingBox();
@@ -87,10 +85,12 @@ class FPSInputProcessor implements InputProcessor, Disposable {
 	boolean moving = false;
 
 	PlayerSound sound;
+	IncanShift game;
 
-	public FPSInputProcessor(Viewport viewport, GameObject player,
-			CollisionHandler collisionHandler, Array<GameObject> instances,
-			PlayerSound sound) {
+	public FPSInputProcessor(IncanShift game, Viewport viewport,
+			GameObject player, CollisionHandler collisionHandler,
+			Array<GameObject> instances, PlayerSound sound) {
+		this.game = game;
 		this.collisionHandler = collisionHandler;
 		this.viewport = viewport;
 		this.player = player;
@@ -98,7 +98,7 @@ class FPSInputProcessor implements InputProcessor, Disposable {
 		this.sound = sound;
 
 		centerMouseCursor();
-		camera = viewport.getCamera();
+
 		contactListener = new MyContactListener();
 		contactListener.enable();
 
@@ -121,12 +121,13 @@ class FPSInputProcessor implements InputProcessor, Disposable {
 		int mouseDy = screenY - screenCenterY;
 
 		// Rotate camera horizontally and vertically
-		camera.rotate(Vector3.Y, -mouseSens * mouseDx);
-		camera.rotate(camera.direction.cpy().crs(Vector3.Y), -mouseSens
-				* mouseDy);
-		camera.up.set(Vector3.Y);
+		viewport.getCamera().rotate(Vector3.Y, -mouseSens * mouseDx);
+		viewport.getCamera().rotate(
+				viewport.getCamera().direction.cpy().crs(Vector3.Y),
+				-mouseSens * mouseDy);
+		viewport.getCamera().up.set(Vector3.Y);
 
-		camera.update();
+		viewport.getCamera().update();
 
 		// Rotate player horizontally
 		player.transform.rotate(Vector3.Y, -mouseSens * mouseDx);
@@ -141,24 +142,26 @@ class FPSInputProcessor implements InputProcessor, Disposable {
 		moveDirection.setZero();
 
 		if (keys.containsKey(GameSettings.FORWARD) && player.onGround) {
-			moveDirection.add(camera.direction);
+			moveDirection.add(viewport.getCamera().direction);
 		}
 		if (keys.containsKey(GameSettings.BACKWARD) && player.onGround) {
-			moveDirection.sub(camera.direction);
+			moveDirection.sub(viewport.getCamera().direction);
 		}
 		if (keys.containsKey(GameSettings.STRAFE_LEFT) && player.onGround) {
-			tmp.setZero().sub(camera.direction).crs(camera.up);
+			tmp.setZero().sub(viewport.getCamera().direction)
+					.crs(viewport.getCamera().up);
 			moveDirection.add(tmp);
 		}
 		if (keys.containsKey(GameSettings.STRAFE_RIGHT) && player.onGround) {
-			tmp.setZero().add(camera.direction).crs(camera.up);
+			tmp.setZero().add(viewport.getCamera().direction)
+					.crs(viewport.getCamera().up);
 			moveDirection.add(tmp);
 		}
 		if (keys.containsKey(GameSettings.UP)) {
-			moveDirection.add(camera.up);
+			moveDirection.add(viewport.getCamera().up);
 		}
 		if (keys.containsKey(GameSettings.DOWN)) {
-			moveDirection.sub(camera.up);
+			moveDirection.sub(viewport.getCamera().up);
 		}
 		// Prevent jumping/fighting gravity when looking up
 		if (moveDirection.y > 0) {
@@ -229,8 +232,9 @@ class FPSInputProcessor implements InputProcessor, Disposable {
 		player.trn(player.velocity.cpy().scl(dt));
 
 		// Update camera position
-		player.transform.getTranslation(camera.position);
-		camera.position.add(0, GameSettings.PLAYER_EYE_HEIGHT / 2, 0);
+		player.transform.getTranslation(viewport.getCamera().position);
+		viewport.getCamera().position.add(0,
+				GameSettings.PLAYER_EYE_HEIGHT / 2, 0);
 
 	}
 
@@ -238,14 +242,9 @@ class FPSInputProcessor implements InputProcessor, Disposable {
 	public boolean keyDown(int keycode) {
 
 		if (keycode == Input.Keys.ESCAPE) {
-			// Check if we should capture mouse cursor or not
-			captureMouse = !captureMouse;
-			if (captureMouse) {
-				Gdx.input.setCursorCatched(true);
-				centerMouseCursor();
-			} else {
-				Gdx.input.setCursorCatched(false);
-			}
+
+			sound.halt();
+			game.showStartScreen();
 
 		} else {
 			// Player pressed a key, handler movement on update

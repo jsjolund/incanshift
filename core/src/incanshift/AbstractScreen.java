@@ -1,9 +1,9 @@
 package incanshift;
 
-import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Camera;
+import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -21,12 +21,13 @@ public abstract class AbstractScreen implements Screen {
 
 	SpriteBatch spriteBatch;
 	BitmapFont font12;
+	BitmapFont font42;
 
-	Game game;
+	IncanShift game;
 	int reqHeight;
 	int reqWidth;
 
-	public AbstractScreen(Game game, int reqWidth, int reqHeight) {
+	public AbstractScreen(IncanShift game, int reqWidth, int reqHeight) {
 		this.game = game;
 		this.reqHeight = reqHeight;
 		this.reqWidth = reqWidth;
@@ -36,9 +37,13 @@ public abstract class AbstractScreen implements Screen {
 		FreeTypeFontGenerator generator = new FreeTypeFontGenerator(
 				Gdx.files.internal("font/font.ttf"));
 		FreeTypeFontParameter parameter = new FreeTypeFontParameter();
-		parameter.size = 14;
+		parameter.size = 12;
 		font12 = generator.generateFont(parameter);
+		parameter.size = 42;
+		font42 = generator.generateFont(parameter);
 		generator.dispose();
+
+		System.out.println(reqWidth);
 
 		camera = new OrthographicCamera(reqWidth, reqHeight);
 		camera.position.set(reqWidth / 2, reqHeight / 2, 0);
@@ -58,12 +63,13 @@ public abstract class AbstractScreen implements Screen {
 	}
 
 	@Override
-	public void resize(int width, int height) {
+	public void render(float delta) {
+		Gdx.graphics.getGL20().glClearColor(0, 0, 0, 1);
+		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
+	}
 
-		viewport.update(width, height);
-		camera.update(true);
-		Gdx.gl.glViewport(0, 0, viewport.getScreenWidth(),
-				viewport.getScreenHeight());
+	@Override
+	public void resize(int width, int height) {
 
 		Vector2 size = Scaling.fit.apply(reqWidth, reqHeight, width, height);
 		int viewportX = (int) (width - size.x) / 2;
@@ -75,6 +81,8 @@ public abstract class AbstractScreen implements Screen {
 		viewport.setWorldSize(width, height);
 		viewport.setScreenSize(viewportWidth, viewportHeight);
 		viewport.setScreenPosition(viewportX, viewportY);
+
+		viewport.apply();
 
 	}
 }
