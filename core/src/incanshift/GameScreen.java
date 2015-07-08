@@ -79,6 +79,7 @@ public class GameScreen extends AbstractScreen implements Screen {
 		assets.load("sound/shoot.wav", Sound.class);
 		assets.load("sound/run.wav", Sound.class);
 		assets.load("sound/walk.wav", Sound.class);
+		assets.load("sound/climb.wav", Sound.class);
 		assets.load("sound/music_game.wav", Music.class);
 
 		shapeRenderer = new ShapeRenderer();

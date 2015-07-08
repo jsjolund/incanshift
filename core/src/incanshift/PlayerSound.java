@@ -11,8 +11,10 @@ public class PlayerSound {
 	Sound soundRun;
 	Sound soundWalk;
 	Sound soundMove;
+	Sound soundClimb;
 
-	long soundMoveId;
+	long soundMoveId = -1;
+	long soundClimbId = -1;
 
 	public PlayerSound(AssetManager assets) {
 
@@ -22,6 +24,7 @@ public class PlayerSound {
 		soundShoot = assets.get("sound/shoot.wav", Sound.class);
 		soundRun = assets.get("sound/run.wav", Sound.class);
 		soundWalk = assets.get("sound/walk.wav", Sound.class);
+		soundClimb = assets.get("sound/climb.wav", Sound.class);
 		soundMove = soundWalk;
 
 	}
@@ -32,6 +35,9 @@ public class PlayerSound {
 
 	public void halt() {
 		soundMove.stop(soundMoveId);
+		soundClimb.stop(soundClimbId);
+		soundMoveId = -1;
+		soundClimbId = -1;
 	}
 
 	public void jump() {
@@ -45,5 +51,12 @@ public class PlayerSound {
 
 	public void shoot() {
 		soundShoot.play(0.5f);
+	}
+
+	public void climb() {
+		soundMove.stop(soundMoveId);
+		if (soundClimbId == -1) {
+			soundClimbId = soundClimb.loop(1.0f);
+		}
 	}
 }

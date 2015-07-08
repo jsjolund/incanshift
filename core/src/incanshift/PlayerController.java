@@ -18,9 +18,15 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 
 class FPSInputProcessor implements InputProcessor, Disposable {
 
+	boolean canClimb = false;
+
 	class MyContactListener extends ContactListener {
 
 		Vector3 xzVelocity = new Vector3();
+
+		long groundCollisions = 0;
+		long climbCollisions = 0;
+		long collisions = 0;
 
 		@Override
 		public boolean onContactAdded(btManifoldPoint cp, int userValue0,
@@ -29,6 +35,24 @@ class FPSInputProcessor implements InputProcessor, Disposable {
 			// Translate player back along normal
 			Vector3 normal = new Vector3(0, 0, 0);
 			cp.getNormalWorldOnB(normal);
+
+			collisions++;
+			if (normal.epsilonEquals(Vector3.Y, 0.75f)) {
+				groundCollisions++;
+			} else {
+				climbCollisions++;
+			}
+			if (collisions > 20) {
+				if (climbCollisions / collisions > 0.5) {
+					canClimb = true;
+				} else {
+					canClimb = false;
+				}
+				groundCollisions = 0;
+				climbCollisions = 0;
+				collisions = 0;
+			}
+
 			player.trn(normal.cpy().scl(-cp.getDistance1()));
 
 			player.onGround = true;
@@ -230,6 +254,8 @@ class FPSInputProcessor implements InputProcessor, Disposable {
 
 		// Calculate combined moved direction
 		moveDirection.setZero();
+		float moveSpeed = keys.containsKey(GameSettings.RUN) ? GameSettings.PLAYER_RUN_SPEED
+				: GameSettings.PLAYER_WALK_SPEED;
 
 		if (keys.containsKey(GameSettings.FORWARD) && player.onGround) {
 			moveDirection.add(viewport.getCamera().direction);
@@ -258,15 +284,21 @@ class FPSInputProcessor implements InputProcessor, Disposable {
 			moveDirection.y = 0;
 		}
 
-		// Check if we should jump
-		if ((keys.containsKey(GameSettings.JUMP) && player.onGround && jumpKeyReleased)) {
+		// Check if we should jump or climb
+		if (keys.containsKey(GameSettings.JUMP) && player.onGround && canClimb) {
+			moveDirection.y = 1f;
+			moveSpeed = GameSettings.PLAYER_CLIMB_SPEED;
+			sound.climb();
+
+		} else if ((keys.containsKey(GameSettings.JUMP) && player.onGround && jumpKeyReleased)) {
+
+			sound.halt();
+			sound.jump();
 
 			jumpKeyReleased = false;
 			player.velocity.y = GameSettings.PLAYER_JUMP_ACCELERATION * dt;
 			keepJumping = true;
 			moveDirection.y = 0;
-
-			sound.jump();
 
 			player.trn(Vector3.Y.cpy().scl(0.1f));
 
@@ -280,11 +312,11 @@ class FPSInputProcessor implements InputProcessor, Disposable {
 		} else if (keys.containsKey(GameSettings.JUMP) && keepJumping) {
 			player.velocity.y += GameSettings.PLAYER_JUMP_ACCELERATION * dt;
 			moveDirection.y = 0;
+
 		}
 
 		// Calculate movement velocity vector
-		float moveSpeed = keys.containsKey(GameSettings.RUN) ? GameSettings.PLAYER_RUN_SPEED
-				: GameSettings.PLAYER_WALK_SPEED;
+
 		Vector3 moveVelocity = moveDirection.nor().scl(moveSpeed);
 
 		// Increase player velocity from movement unless already at max movement
@@ -327,5 +359,4 @@ class FPSInputProcessor implements InputProcessor, Disposable {
 				- GameSettings.PLAYER_HEIGHT / 2, 0);
 
 	}
-
 }
