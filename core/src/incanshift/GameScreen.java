@@ -88,14 +88,14 @@ public class GameScreen extends AbstractScreen implements Screen {
 
 		environment = new Environment();
 
+		sunTexture = new Texture(512, 512, Format.RGBA8888);
+		sunPosition = new Vector3(500, 1200, 700);
+		sunRadius = 500000f;
+
 		environment.set(new ColorAttribute(ColorAttribute.AmbientLight, 0.3f,
 				0.3f, 0.3f, 1f));
-		environment.add(new DirectionalLight().set(0.8f, 0.8f, 0.8f, -1f,
-				-0.8f, -0.2f));
-
-		sunTexture = new Texture(512, 512, Format.RGBA8888);
-		sunPosition = new Vector3(0, 1000, -1000);
-		sunRadius = 500000f;
+		environment.add(new DirectionalLight().set(Color.WHITE,
+				sunPosition.scl(-1)));
 
 		loadShaders();
 
