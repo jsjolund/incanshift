@@ -7,15 +7,19 @@ import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.Pixmap.Format;
+import com.badlogic.gdx.graphics.VertexAttributes.Usage;
 import com.badlogic.gdx.graphics.g3d.Environment;
+import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
+import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
@@ -25,8 +29,6 @@ import com.badlogic.gdx.physics.bullet.Bullet;
 import com.badlogic.gdx.physics.bullet.collision.btCapsuleShape;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ArrayMap;
-import com.badlogic.gdx.utils.Timer;
-import com.badlogic.gdx.utils.Timer.Task;
 
 public class GameScreen extends AbstractScreen implements Screen {
 
@@ -45,13 +47,13 @@ public class GameScreen extends AbstractScreen implements Screen {
 	private ShapeRenderer shapeRenderer;
 
 	Matrix4 uiMatrix;
+	private Vector3 tmp = new Vector3();
 
 	// Game objects
 	Array<GameObject> instances;
 	ArrayMap<String, GameObject.Constructor> gameObjectFactory;
 
 	// Collision
-
 	private CollisionHandler collisionHandler;
 
 	GameObject player;
@@ -61,8 +63,7 @@ public class GameScreen extends AbstractScreen implements Screen {
 
 	Music music;
 
-	boolean showStartMsg = true;
-	String startMsg = "Press ESC to exit";
+	String msg = "Press ESC to exit";
 
 	public GameScreen(IncanShift game, int reqWidth, int reqHeight) {
 		super(game, reqWidth, reqHeight);
@@ -102,7 +103,7 @@ public class GameScreen extends AbstractScreen implements Screen {
 
 		modelBatch = new ModelBatch();
 
-		// ModelBuilder modelBuilder = new ModelBuilder();
+		ModelBuilder modelBuilder = new ModelBuilder();
 		// Model arrow = modelBuilder.createArrow(Vector3.Zero, Vector3.Y.cpy()
 		// .scl(1), null, Usage.Position | Usage.Normal);
 		//
@@ -126,6 +127,12 @@ public class GameScreen extends AbstractScreen implements Screen {
 		//
 		// arrow.dispose();
 		// Model modelCompass = modelBuilder.end();
+		//
+		// modelBuilder = new ModelBuilder();
+		Model modelPlayer = modelBuilder.createCapsule(
+				GameSettings.PLAYER_RADIUS, GameSettings.PLAYER_HEIGHT - 2
+						* GameSettings.PLAYER_RADIUS, 4, GL20.GL_TRIANGLES,
+				new Material(), Usage.Position | Usage.Normal);
 
 		assets.finishLoading();
 
@@ -147,9 +154,10 @@ public class GameScreen extends AbstractScreen implements Screen {
 		// .put("compass",
 		// new GameObject.Constructor(modelCompass, Bullet
 		// .obtainStaticNodeShape(modelCompass.nodes)));
-		gameObjectFactory.put("player", new GameObject.Constructor(null,
+		gameObjectFactory.put("player", new GameObject.Constructor(modelPlayer,
 				new btCapsuleShape(GameSettings.PLAYER_RADIUS,
-						GameSettings.PLAYER_HEIGHT / 2)));
+						GameSettings.PLAYER_HEIGHT - 2
+								* GameSettings.PLAYER_RADIUS)));
 
 		instances = new Array<GameObject>();
 		instances.add(gameObjectFactory.get("ground").construct());
@@ -171,6 +179,7 @@ public class GameScreen extends AbstractScreen implements Screen {
 
 		player = gameObjectFactory.get("player").construct();
 		player.position(GameSettings.PLAYER_START_POS);
+		player.visible = false;
 
 		collisionHandler = new CollisionHandler(player, instances);
 
@@ -239,6 +248,10 @@ public class GameScreen extends AbstractScreen implements Screen {
 		collisionHandler.performDiscreteCollisionDetection();
 		camera.update();
 
+		player.transform.getTranslation(tmp);
+		msg = String.format("x=%.2f, y=%.2f, z=%.2f", tmp.x, -tmp.z, tmp.y
+				- GameSettings.PLAYER_HEIGHT / 2);
+
 		playerController.update(delta);
 
 		// Render the models
@@ -279,23 +292,12 @@ public class GameScreen extends AbstractScreen implements Screen {
 
 		collisionHandler.debugDrawWorld(camera);
 
-		// Show a message which disappears after 5 sec
-		if (showStartMsg) {
+		spriteBatch.setShader(null);
+		spriteBatch.setProjectionMatrix(uiMatrix);
 
-			spriteBatch.setShader(null);
-			spriteBatch.setProjectionMatrix(uiMatrix);
-
-			Timer.schedule(new Task() {
-				@Override
-				public void run() {
-					showStartMsg = false;
-				}
-			}, 50);
-			spriteBatch.begin();
-			font12.draw(spriteBatch, startMsg, 10, 15);
-			spriteBatch.end();
-
-		}
+		spriteBatch.begin();
+		font12.draw(spriteBatch, msg, 10, 15);
+		spriteBatch.end();
 
 		// Draw crosshair
 		shapeRenderer.setProjectionMatrix(uiMatrix);
@@ -334,8 +336,8 @@ public class GameScreen extends AbstractScreen implements Screen {
 		uiMatrix = camera.combined.cpy();
 		uiMatrix.setToOrtho2D(0, 0, vw, vh);
 
-		camera = new PerspectiveCamera(60, viewport.getScreenWidth(),
-				viewport.getScreenHeight());
+		camera = new PerspectiveCamera(GameSettings.CAMERA_FOV,
+				viewport.getScreenWidth(), viewport.getScreenHeight());
 		camera.near = 1E-2f;
 		camera.far = 1.5E3f;
 		camera.update(true);

@@ -43,8 +43,6 @@ public abstract class AbstractScreen implements Screen {
 		font42 = generator.generateFont(parameter);
 		generator.dispose();
 
-		System.out.println(reqWidth);
-
 		camera = new OrthographicCamera(reqWidth, reqHeight);
 		camera.position.set(reqWidth / 2, reqHeight / 2, 0);
 		camera.update();

@@ -233,8 +233,8 @@ class FPSInputProcessor implements InputProcessor, Disposable {
 
 		// Update camera position
 		player.transform.getTranslation(viewport.getCamera().position);
-		viewport.getCamera().position.add(0,
-				GameSettings.PLAYER_EYE_HEIGHT / 2, 0);
+		viewport.getCamera().position.add(0, GameSettings.PLAYER_EYE_HEIGHT
+				- GameSettings.PLAYER_HEIGHT / 2, 0);
 
 	}
 
