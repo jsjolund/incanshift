@@ -18,6 +18,8 @@ void main() {
 	} else if (dst_center <= rad_sun_corona) {
 		float alpha = 1.0 - (dst_center - radius)/(rad_sun_corona - radius);
 		gl_FragColor = vec4(1.0, 1.0, 1.0, alpha);
+	} else {
+		gl_FragColor = vec4(1.0, 1.0, 1.0, 0.0);	
 	}
 
 }
