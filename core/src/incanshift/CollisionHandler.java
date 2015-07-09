@@ -46,11 +46,15 @@ public class CollisionHandler implements Disposable {
 
 		player.body.setCollisionFlags(player.body.getCollisionFlags()
 				| btCollisionObject.CollisionFlags.CF_CUSTOM_MATERIAL_CALLBACK);
+		player.body.setContactCallbackFlag(OBJECT_FLAG);
+
 		collisionWorld
 				.addCollisionObject(player.body, OBJECT_FLAG, GROUND_FLAG);
+		
 
 		for (GameObject obj : instances) {
 			collisionWorld.addCollisionObject(obj.body, GROUND_FLAG, ALL_FLAG);
+			obj.body.setContactCallbackFlag(GROUND_FLAG);
 		}
 
 	}

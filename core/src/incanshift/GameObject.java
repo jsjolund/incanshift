@@ -43,11 +43,8 @@ class GameObject extends ModelInstance implements Disposable {
 	}
 
 	public final btCollisionObject body;
-	public boolean onGround = false;
 	public boolean removable = false;
 	public boolean visible = true;
-
-	public Vector3 velocity = new Vector3();
 
 	public GameObject(Model model, btCollisionShape shape) {
 		super(model);
@@ -60,8 +57,20 @@ class GameObject extends ModelInstance implements Disposable {
 		body.dispose();
 	}
 
+	public void position(float x, float y, float z) {
+		transform.setTranslation(x, y, z);
+		body.setWorldTransform(transform);
+		calculateTransforms();
+	}
+
 	public void position(Vector3 position) {
 		transform.setTranslation(position);
+		body.setWorldTransform(transform);
+		calculateTransforms();
+	}
+
+	public void trn(float x, float y, float z) {
+		transform.trn(x, y, z);
 		body.setWorldTransform(transform);
 		calculateTransforms();
 	}
