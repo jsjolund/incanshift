@@ -49,12 +49,13 @@ public class PlayerContactListener extends ContactListener {
 
 		player.velocity.set(velocityCombined);
 
-		player.velocity.y *= collisionNormal.dst2(Vector3.Y) / 2;
+		player.velocity.y *= collisionNormal.dst2(Vector3.Y);
 
 		if (collisionNormal.epsilonEquals(Vector3.Y, 0.1f)) {
 
 			if (setOnGround != null && setOnGround.isScheduled()) {
 				setOnGround.cancel();
+				timerIsOn = false;
 			}
 			player.gravity = false;
 			player.onGround = true;
@@ -62,10 +63,6 @@ public class PlayerContactListener extends ContactListener {
 		} else if (collisionNormal.isPerpendicular(Vector3.Y, 0.1f)) {
 			// wall
 		}
-
-		player.velocity.x *= 1;
-		// player.velocity.y *= 1f;
-		player.velocity.z *= 1;
 
 		return true;
 	}
@@ -79,13 +76,13 @@ public class PlayerContactListener extends ContactListener {
 		if (colObj0.getContactCallbackFlag() == CollisionHandler.GROUND_FLAG) {
 
 		}
-		System.out.println("fly");
 		if (!timerIsOn) {
 			timerIsOn = true;
 			setOnGround = Timer.schedule(new Task() {
 				@Override
 				public void run() {
 					player.onGround = false;
+					timerIsOn = false;
 				}
 			}, 0.1f);
 		}

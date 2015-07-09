@@ -1,7 +1,5 @@
 package incanshift;
 
-import sun.org.mozilla.javascript.ast.Jump;
-
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
@@ -57,15 +55,8 @@ public class Player implements Disposable {
 	private PlayerSound sound;
 
 	IncanShift game;
-	private long groundCollisions = 0;
 
-	private long climbCollisions = 0;
-	private long collisions = 0;
 	public boolean gravity = true;
-
-	// boolean canClimb() {
-	// return canClimb;
-	// }
 
 	Viewport viewport;
 
@@ -118,7 +109,7 @@ public class Player implements Disposable {
 	}
 
 	public void update(float delta) {
-
+		collisionHandler.performDiscreteCollisionDetection();
 		boolean newAction = currentAction != previousAction;
 
 		if (newAction && currentAction == PlayerAction.STOP) {
@@ -168,25 +159,32 @@ public class Player implements Disposable {
 		if (onGround && currentAction != PlayerAction.JUMP) {
 			velocity.add(moveVelocity);
 		}
-		
+
 		if (gravity) {
 			velocity.y -= GameSettings.GRAVITY * delta;
 		}
 
 		// Translate player
-		position.add(velocity.cpy().scl(delta));
-
-		collisionHandler.performDiscreteCollisionDetection();
 
 		if (newAction && currentAction == PlayerAction.JUMP && onGround) {
 			sound.jump();
 
-			position.add(0, 0.01f, 0);
-			velocity.y += GameSettings.PLAYER_JUMP_ACCELERATION;
+			position.add(0, 0.1f, 0);
+			velocity.y += GameSettings.PLAYER_JUMP_ACCELERATION* delta;
 
 		} else if (currentAction == PlayerAction.JUMP) {
 			velocity.y += GameSettings.PLAYER_JUMP_ACCELERATION * delta;
+		} else if (!onGround) {
+			currentAction = PlayerAction.STOP;
 		}
+
+		if (currentAction != previousAction) {
+			System.out.println(currentAction);
+		}
+
+		position.add(velocity.cpy().scl(delta));
+
+
 
 		// Update camera
 		Camera cam = viewport.getCamera();
@@ -198,7 +196,7 @@ public class Player implements Disposable {
 		cam.update();
 
 		object.position(position);
-//		 object.transform.rotate(Vector3.Y, direction);
+		// object.transform.rotate(Vector3.Y, direction);
 
 	}
 }

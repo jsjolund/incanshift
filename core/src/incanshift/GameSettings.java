@@ -7,13 +7,13 @@ public class GameSettings {
 
 	public static final int CROSSHAIR = 7;
 	public static final float MOUSE_SENSITIVITY = 0.05f;
-	public static final float GRAVITY = 21f;
+	public static final float GRAVITY = 25f;
 	public static final float CAMERA_FOV = 90;
 
 	public static final float PLAYER_CLIMB_SPEED = 2f;
 	public static final float PLAYER_WALK_SPEED = 3f;
 	public static final float PLAYER_RUN_SPEED = 5f;
-	public static final float PLAYER_JUMP_ACCELERATION = 20f;
+	public static final float PLAYER_JUMP_ACCELERATION = 60f;
 	public static final float PLAYER_JUMP_TIME = 0.2f;
 
 	public static final float PLAYER_HEIGHT = 2f;

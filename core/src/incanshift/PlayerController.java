@@ -98,7 +98,7 @@ class PlayerController implements InputProcessor {
 			action = PlayerAction.JUMP;
 			moveDirection.y = 0;
 		}
-		 System.out.println(action);
+
 		player.setCurrentAction(action);
 
 		return moveDirection;
