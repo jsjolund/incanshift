@@ -313,7 +313,7 @@ public class GameScreen extends AbstractScreen implements Screen {
 		spriteBatch.setProjectionMatrix(uiMatrix);
 
 		spriteBatch.begin();
-		font12.draw(spriteBatch, msg, 10, 15);
+		fontTiny.draw(spriteBatch, msg, 10, 15);
 		spriteBatch.end();
 
 		// Draw crosshair

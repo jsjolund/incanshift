@@ -155,14 +155,14 @@ public class CreditScreen extends AbstractScreen {
 		// }
 
 		public void resize(int width, int height) {
-			float spacing = 50;
 			int xc = width / 2;
 			int yc = height / 2;
 			int tw = texFalse.getRegionWidth();
 			int th = texFalse.getRegionHeight();
-			float yOffset = yc - (spacing + th) * (MenuItem.size() - 1) / 2;
+			float yOffset = yc - (textVerticalSpacing + th)
+					* (MenuItem.size() - 1) / 2;
 			float x = xc - tw / 2;
-			float y = yOffset + (th + spacing) * ordinal();
+			float y = yOffset + (th + textVerticalSpacing) * ordinal();
 			bounds.set(x, y, tw, th);
 		}
 
@@ -180,6 +180,8 @@ public class CreditScreen extends AbstractScreen {
 		}
 
 	}
+
+	static float textVerticalSpacing = 5;
 
 	MenuItem selectedItem = MenuItem.EXIT;
 
@@ -248,11 +250,11 @@ public class CreditScreen extends AbstractScreen {
 			int x = 10;
 			int y = h - 2 * yspace * (i + 1);
 
-			font42.setColor(Color.GRAY);
-			GlyphLayout text = font42.draw(spriteBatch, item.toString(), x, y
+			fontLarge.setColor(Color.GRAY);
+			GlyphLayout text = fontLarge.draw(spriteBatch, item.toString(), x, y
 					+ yspace);
-			font42.setColor(Color.WHITE);
-			font42.draw(spriteBatch, item.toString(), x + xspace, y + yspace);
+			fontLarge.setColor(Color.WHITE);
+			fontLarge.draw(spriteBatch, item.toString(), x + xspace, y + yspace);
 
 			int tw = (int) text.width;
 			int th = (int) text.height * 2;

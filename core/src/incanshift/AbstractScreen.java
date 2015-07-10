@@ -20,8 +20,9 @@ public abstract class AbstractScreen implements Screen {
 	Camera camera;
 
 	SpriteBatch spriteBatch;
-	BitmapFont font12;
-	BitmapFont font42;
+	BitmapFont fontTiny;
+	BitmapFont fontNormal;
+	BitmapFont fontLarge;
 
 	IncanShift game;
 	int reqHeight;
@@ -38,9 +39,11 @@ public abstract class AbstractScreen implements Screen {
 				Gdx.files.internal("font/font.ttf"));
 		FreeTypeFontParameter parameter = new FreeTypeFontParameter();
 		parameter.size = 12;
-		font12 = generator.generateFont(parameter);
-		parameter.size = 42;
-		font42 = generator.generateFont(parameter);
+		fontTiny = generator.generateFont(parameter);
+		parameter.size = 24;
+		fontNormal = generator.generateFont(parameter);
+		parameter.size = 35;
+		fontLarge = generator.generateFont(parameter);
 		generator.dispose();
 
 		camera = new OrthographicCamera(reqWidth, reqHeight);
@@ -55,7 +58,7 @@ public abstract class AbstractScreen implements Screen {
 	@Override
 	public void dispose() {
 		spriteBatch.dispose();
-		font12.dispose();
+		fontTiny.dispose();
 		game.dispose();
 
 	}
