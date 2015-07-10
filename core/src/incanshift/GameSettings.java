@@ -7,17 +7,17 @@ public class GameSettings {
 
 	public static final int CROSSHAIR = 7;
 	public static final float MOUSE_SENSITIVITY = 0.05f;
-	public static final float GRAVITY = 25f;
+	public static final float GRAVITY = 1f;
 	public static final float CAMERA_FOV = 90;
 
 	public static final float PLAYER_CLIMB_SPEED = 2f;
-	public static final float PLAYER_WALK_SPEED = 3f;
-	public static final float PLAYER_RUN_SPEED = 5f;
-	public static final float PLAYER_JUMP_ACCELERATION = 60f;
+	public static final float PLAYER_WALK_SPEED = 8f;
+	public static final float PLAYER_RUN_SPEED = 16f;
+	public static final float PLAYER_JUMP_ACCELERATION = 2f;
 	public static final float PLAYER_JUMP_TIME = 0.2f;
 
 	public static final float PLAYER_HEIGHT = 2f;
-	public static final float PLAYER_RADIUS = 0.5f;
+	public static final float PLAYER_RADIUS = 0.3f;
 	public static final float PLAYER_EYE_HEIGHT = 1.8f;
 	public static final Vector3 PLAYER_START_POS = new Vector3(-10,30, 10);
 

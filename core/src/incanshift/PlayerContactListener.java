@@ -4,24 +4,21 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.collision.ContactListener;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
 import com.badlogic.gdx.physics.bullet.collision.btManifoldPoint;
-import com.badlogic.gdx.utils.Timer;
 import com.badlogic.gdx.utils.Timer.Task;
 
 public class PlayerContactListener extends ContactListener {
 
 	private Player player;
-	Vector3 collisionNormal = new Vector3();
-	float collisionDistance = 0;
+	private Vector3 collisionNormal = new Vector3();
+	private float collisionDistance = 0;
 
-	Vector3 collisionRemoval = new Vector3();
+	// private Vector3 xzVelocity = new Vector3();
+	private Vector3 collisionRemoval = new Vector3();
 
-	Vector3 velocityNormal = new Vector3();
-	Vector3 velocityCombined = new Vector3();
-
-	Vector3 velocityCrs1 = new Vector3();
-	Vector3 velocityCrs2 = new Vector3();
-
-	Vector3 xzVelocity = new Vector3();
+	private Vector3 velocityNormal = new Vector3();
+	private Vector3 orthagonal = new Vector3();
+	private Vector3 projection = new Vector3();
+	private Vector3 tmp = new Vector3();
 
 	boolean timerIsOn = false;
 	Task setOnGround;
@@ -36,34 +33,31 @@ public class PlayerContactListener extends ContactListener {
 
 		cp.getNormalWorldOnB(collisionNormal);
 		collisionDistance = cp.getDistance1();
-
 		collisionNormal.nor();
 
 		// Translate player back along normal
 		collisionRemoval.set(collisionNormal).scl(-collisionDistance);
 		player.position.add(collisionRemoval);
 
-		velocityNormal.set(player.velocity.cpy().scl(1, 0, 1)).nor();
-		velocityCombined.set(velocityNormal).add(collisionNormal).nor()
-				.scl(player.velocity.len());
+		// Change velocity vector to the projection on the surface
+		velocityNormal.set(player.velocity).nor();
 
-		player.velocity.set(velocityCombined);
+		orthagonal.set(velocityNormal).crs(collisionNormal).nor()
+				.rotate(collisionNormal, 90);
 
-		player.velocity.y *= collisionNormal.dst2(Vector3.Y);
+		projection
+				.set(orthagonal)
+				.sub(collisionNormal.scl(tmp.set(orthagonal)
+						.sub(velocityNormal).dot(collisionNormal))).nor();
 
-		if (collisionNormal.epsilonEquals(Vector3.Y, 0.1f)) {
+		player.velocity.set(projection).scl(player.velocity.len());
 
-			if (setOnGround != null && setOnGround.isScheduled()) {
-				setOnGround.cancel();
-				timerIsOn = false;
-			}
-			player.gravity = false;
-			player.onGround = true;
+		// Slow down the player
+		// player.velocity.y *= collisionNormal.dst2(Vector3.Y) / 2;
+		player.velocity.y = 0;
 
-		} else if (collisionNormal.isPerpendicular(Vector3.Y, 0.1f)) {
-			// wall
-		}
-
+		player.gravity = false;
+		player.onGround = true;
 		return true;
 	}
 
@@ -76,16 +70,16 @@ public class PlayerContactListener extends ContactListener {
 		if (colObj0.getContactCallbackFlag() == CollisionHandler.GROUND_FLAG) {
 
 		}
-		if (!timerIsOn) {
-			timerIsOn = true;
-			setOnGround = Timer.schedule(new Task() {
-				@Override
-				public void run() {
-					player.onGround = false;
-					timerIsOn = false;
-				}
-			}, 0.1f);
-		}
+		// if (!timerIsOn) {
+		// timerIsOn = true;
+		// setOnGround = Timer.schedule(new Task() {
+		// @Override
+		// public void run() {
+		player.onGround = false;
+		// timerIsOn = false;
+		// }
+		// }, 0.1f);
+		// }
 		player.gravity = true;
 
 	}

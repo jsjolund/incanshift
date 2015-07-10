@@ -12,20 +12,30 @@ import com.badlogic.gdx.utils.Timer.Task;
 
 class PlayerController implements InputProcessor {
 
-	Player player;
-
+	private Player player;
 	private final IntIntMap keys = new IntIntMap();
-
-	boolean jumpKeyReleased = true;
-
-	boolean keepJumping = true;
-
+	private boolean jumpKeyReleased = true;
+	private boolean keepJumping = true;
 	private final Vector3 moveDirection = new Vector3();
-
 	private final Vector3 tmp = new Vector3();
+	private IntIntMap actionQueue = new IntIntMap();
+
+	PlayerAction move = PlayerAction.WALK;
 
 	public PlayerController(Player player) {
 		this.player = player;
+	}
+
+	private void actionQueueAdd(PlayerAction action) {
+		actionQueue.put(action.ordinal(), 1);
+	}
+
+	public void actionQueueClear() {
+		actionQueue.clear();
+	}
+
+	public boolean actionQueueContains(PlayerAction action) {
+		return actionQueue.containsKey(action.ordinal());
 	}
 
 	public void centerMouseCursor() {
@@ -34,73 +44,6 @@ class PlayerController implements InputProcessor {
 	}
 
 	public Vector3 getMoveDirection() {
-		// Calculate combined moved direction
-		moveDirection.setZero();
-
-		PlayerAction action = PlayerAction.STOP;
-		PlayerAction move = (keys.containsKey(GameSettings.RUN)) ? PlayerAction.RUN
-				: PlayerAction.WALK;
-
-		if (keys.containsKey(GameSettings.FORWARD)) {
-			action = move;
-			moveDirection.add(player.direction);
-		}
-		if (keys.containsKey(GameSettings.BACKWARD)) {
-			action = move;
-			moveDirection.sub(player.direction);
-		}
-		if (keys.containsKey(GameSettings.STRAFE_LEFT)) {
-			tmp.setZero().sub(player.direction).crs(player.up);
-			action = move;
-			moveDirection.add(tmp);
-		}
-		if (keys.containsKey(GameSettings.STRAFE_RIGHT)) {
-			action = move;
-			tmp.setZero().add(player.direction).crs(player.up);
-			moveDirection.add(tmp);
-		}
-		if (keys.containsKey(GameSettings.UP)) {
-			action = move;
-			moveDirection.add(player.up);
-		}
-		if (keys.containsKey(GameSettings.DOWN)) {
-			action = move;
-			moveDirection.sub(player.up);
-		}
-		// Prevent jumping/fighting gravity when looking up
-		if (moveDirection.y > 0) {
-			moveDirection.y = 0;
-		}
-		// moveDirection.y = 0;
-
-		// Check if we should jump or climb
-		if (keys.containsKey(GameSettings.JUMP) && player.canClimb) {
-			action = PlayerAction.CLIMB;
-			moveDirection.y = 1f;
-			jumpKeyReleased = false;
-			keepJumping = false;
-
-		} else if ((keys.containsKey(GameSettings.JUMP) && jumpKeyReleased)) {
-			action = PlayerAction.JUMP;
-
-			jumpKeyReleased = false;
-			keepJumping = true;
-			moveDirection.y = 0;
-
-			Timer.schedule(new Task() {
-				@Override
-				public void run() {
-					keepJumping = false;
-				}
-			}, GameSettings.PLAYER_JUMP_TIME);
-
-		} else if (keys.containsKey(GameSettings.JUMP) && keepJumping) {
-			action = PlayerAction.JUMP;
-			moveDirection.y = 0;
-		}
-
-		player.setCurrentAction(action);
-
 		return moveDirection;
 	}
 
@@ -108,8 +51,8 @@ class PlayerController implements InputProcessor {
 	public boolean keyDown(int keycode) {
 
 		if (keycode == Input.Keys.ESCAPE) {
-
-			player.setCurrentAction(PlayerAction.STOP);
+			actionQueueClear();
+			actionQueueAdd(PlayerAction.STOP);
 			player.game.showStartScreen();
 
 		} else {
@@ -117,7 +60,7 @@ class PlayerController implements InputProcessor {
 		}
 		if (keycode == GameSettings.RUN) {
 			if (player.onGround && player.velocity.len() > 0) {
-				player.setCurrentAction(PlayerAction.RUN);
+				move = PlayerAction.RUN;
 			}
 		}
 
@@ -138,13 +81,11 @@ class PlayerController implements InputProcessor {
 		}
 		if (keycode == GameSettings.RESET) {
 			player.position.set(GameSettings.PLAYER_START_POS);
-			// for (GameObject obj : player.instances) {
-			// obj.visible = true;
-			// }
+			player.velocity.setZero();
 		}
 		if (keycode == GameSettings.RUN) {
 			if (player.onGround && player.velocity.len() > 0) {
-				player.setCurrentAction(PlayerAction.WALK);
+				move = PlayerAction.WALK;
 			}
 		}
 		return false;
@@ -182,7 +123,7 @@ class PlayerController implements InputProcessor {
 	@Override
 	public boolean touchDown(int screenX, int screenY, int pointer, int button) {
 		if (button == Input.Buttons.LEFT) {
-			player.setCurrentAction(PlayerAction.SHOOT);
+			actionQueueAdd(PlayerAction.SHOOT);
 		}
 		return true;
 	}
@@ -198,5 +139,69 @@ class PlayerController implements InputProcessor {
 	public boolean touchUp(int screenX, int screenY, int pointer, int button) {
 		// TODO Auto-generated method stub
 		return false;
+	}
+
+	public void update() {
+		// Calculate combined moved direction
+		moveDirection.setZero();
+		PlayerAction action = PlayerAction.STOP;
+
+		if (keys.containsKey(GameSettings.FORWARD)) {
+			moveDirection.add(player.direction);
+			action = move;
+		}
+		if (keys.containsKey(GameSettings.BACKWARD)) {
+			moveDirection.sub(player.direction);
+			action = move;
+		}
+		if (keys.containsKey(GameSettings.STRAFE_LEFT)) {
+			tmp.setZero().sub(player.direction).crs(player.up);
+			moveDirection.add(tmp);
+			action = move;
+		}
+		if (keys.containsKey(GameSettings.STRAFE_RIGHT)) {
+			tmp.setZero().add(player.direction).crs(player.up);
+			moveDirection.add(tmp);
+			action = move;
+		}
+		if (keys.containsKey(GameSettings.UP)) {
+			moveDirection.add(player.up);
+			action = move;
+		}
+		if (keys.containsKey(GameSettings.DOWN)) {
+			moveDirection.sub(player.up);
+			action = move;
+		}
+
+		actionQueueAdd(action);
+
+		// Prevent jumping/fighting gravity when looking up
+		if (moveDirection.y > 0) {
+			moveDirection.y = 0;
+		}
+		// Check if we should jump or climb
+		if (keys.containsKey(GameSettings.JUMP) && player.canClimb) {
+			moveDirection.y = 1f;
+			jumpKeyReleased = false;
+			keepJumping = false;
+			actionQueueAdd(PlayerAction.CLIMB);
+
+		} else if ((keys.containsKey(GameSettings.JUMP) && jumpKeyReleased)) {
+			jumpKeyReleased = false;
+			keepJumping = true;
+			moveDirection.y = 0;
+			actionQueueAdd(PlayerAction.JUMP);
+
+			Timer.schedule(new Task() {
+				@Override
+				public void run() {
+					keepJumping = false;
+				}
+			}, GameSettings.PLAYER_JUMP_TIME);
+
+		} else if (keys.containsKey(GameSettings.JUMP) && keepJumping) {
+			actionQueueAdd(PlayerAction.JUMP);
+			moveDirection.y = 0;
+		}
 	}
 }
