@@ -6,8 +6,8 @@ import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
+import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.badlogic.gdx.utils.Disposable;
 
 /**
@@ -22,34 +22,45 @@ class GameObject extends ModelInstance implements Disposable {
 
 		public final Model model;
 		public final btCollisionShape shape;
+		public final btRigidBody.btRigidBodyConstructionInfo constructionInfo;
+		private static Vector3 localInertia = new Vector3();
 
-		public Constructor(Model model, btCollisionShape shape) {
-			this.shape = shape;
+		public Constructor(Model model, btCollisionShape shape, float mass) {
 			if (model == null) {
-				model = new ModelBuilder().createXYZCoordinates(1,
+				this.model = new ModelBuilder().createXYZCoordinates(1,
 						new Material(), Usage.Position | Usage.Normal);
+			} else {
+				this.model = model;
 			}
-			this.model = model;
+			this.shape = shape;
+			if (mass > 0f)
+				shape.calculateLocalInertia(mass, localInertia);
+			else
+				localInertia.set(0, 0, 0);
+			this.constructionInfo = new btRigidBody.btRigidBodyConstructionInfo(
+					mass, null, shape, localInertia);
 		}
 
 		public GameObject construct() {
-			return new GameObject(model, shape);
+			return new GameObject(model, constructionInfo);
 		}
 
 		@Override
 		public void dispose() {
 			shape.dispose();
+			constructionInfo.dispose();
 		}
+
 	}
 
-	public final btCollisionObject body;
+	public final btRigidBody body;
 	public boolean removable = false;
 	public boolean visible = true;
 
-	public GameObject(Model model, btCollisionShape shape) {
+	public GameObject(Model model,
+			btRigidBody.btRigidBodyConstructionInfo constructionInfo) {
 		super(model);
-		body = new btCollisionObject();
-		body.setCollisionShape(shape);
+		body = new btRigidBody(constructionInfo);
 	}
 
 	@Override

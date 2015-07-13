@@ -3,7 +3,10 @@ package incanshift;
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
-import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.physics.bullet.collision.Collision;
+import com.badlogic.gdx.physics.bullet.collision.ContactListener;
+import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
+import com.badlogic.gdx.physics.bullet.collision.btManifoldPoint;
 import com.badlogic.gdx.utils.Disposable;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
@@ -25,6 +28,21 @@ public class Player implements Disposable {
 		}
 	}
 
+	public class PlayerContactListener extends ContactListener {
+
+		@Override
+		public boolean onContactAdded(btManifoldPoint cp, int userValue0,
+				int partId0, int index0, int userValue1, int partId1, int index1) {
+			// Check if collision normal is horizontal, if so, climb
+			return true;
+		}
+
+		@Override
+		public void onContactEnded(btCollisionObject colObj0,
+				btCollisionObject colObj1) {
+		}
+	}
+
 	private PlayerSound sound;
 
 	IncanShift game;
@@ -32,52 +50,47 @@ public class Player implements Disposable {
 	private Viewport viewport;
 	Vector3 screenCenter;
 
-	private GameObject object;
+	GameObject object;
 
 	private CollisionHandler collisionHandler;
 	private PlayerContactListener contactListener;
 	PlayerController controller;
 
-	Vector3 direction;
-	Vector3 position;
-	Vector3 up;
-	Vector3 moveDirection;
-	Vector3 velocity;
-	Vector3 xzVelocity;
+	public Vector3 direction = new Vector3();
+	public Vector3 velocity = new Vector3();
+	public Vector3 velocityXZ = new Vector3();
+	public Vector3 velocityNew = new Vector3();
+	public Vector3 position = new Vector3();
+	public Vector3 moveDirection = new Vector3();
+	public Vector3 up = new Vector3(Vector3.Y);
 
-	// private Array<GameObject> instances;
-
-	public boolean captureMouse = true;
-	public boolean canClimb = false;
-	public boolean onGround = false;
-	public boolean gravity = true;
+	boolean canClimb = false;
+	boolean isJumping = false;
+	private Ray ray = new Ray();
 
 	public boolean newCollision;
 	private float cameraOffsetY = GameSettings.PLAYER_EYE_HEIGHT
 			- GameSettings.PLAYER_HEIGHT / 2;
 
-	public Player(IncanShift game, GameObject object, Vector3 screenCenter,
-			Viewport viewport, CollisionHandler collisionHandler,
-			Array<GameObject> instances, PlayerSound sound) {
+	PlayerAction moveMode = PlayerAction.STOP;
 
+	public Player(IncanShift game, GameObject playerObject,
+			Vector3 screenCenter, Viewport viewport,
+			CollisionHandler collisionHandler, PlayerSound sound) {
 		this.viewport = viewport;
 		this.game = game;
 		this.collisionHandler = collisionHandler;
-		this.object = object;
-		// this.instances = instances;
+		this.object = playerObject;
 		this.sound = sound;
 		this.screenCenter = screenCenter;
 
-		velocity = new Vector3();
-		up = new Vector3(Vector3.Y);
 		position = new Vector3();
-		object.transform.getTranslation(position);
+		playerObject.transform.getTranslation(position);
 
 		moveDirection = new Vector3();
 		direction = new Vector3(Vector3.X);
-		xzVelocity = new Vector3();
 
-		contactListener = new PlayerContactListener(this);
+		contactListener = new PlayerContactListener();
 		contactListener.enable();
 
 		controller = new PlayerController(this);
@@ -89,35 +102,33 @@ public class Player implements Disposable {
 		contactListener.dispose();
 	}
 
-	Vector3 translation = new Vector3();
-
-	PlayerAction moveMode = PlayerAction.STOP;
+	private boolean isOnGround() {
+		ray.set(position, up.cpy().scl(-1));
+		float distance = GameSettings.PLAYER_HEIGHT / 2 + 0.5f;
+		return collisionHandler.rayTest(ray, distance) != null;
+	}
 
 	public void update(float delta) {
-		collisionHandler.performDiscreteCollisionDetection();
+		boolean isOnGround = isOnGround();
 
-		moveDirection.set(controller.getMoveDirection());
 		controller.update();
+		moveDirection.set(controller.getMoveDirection());
 
-		if (controller.actionQueueContains(PlayerAction.STOP)
+		if (!isOnGround || controller.actionQueueContains(PlayerAction.STOP)
 				&& moveMode != PlayerAction.STOP) {
 			sound.halt();
 			moveMode = PlayerAction.STOP;
 		}
-		if (controller.actionQueueContains(PlayerAction.WALK)
+		if (isOnGround && controller.actionQueueContains(PlayerAction.WALK)
 				&& moveMode != PlayerAction.WALK) {
 			sound.move(false);
 			moveMode = PlayerAction.WALK;
 		}
-		if (controller.actionQueueContains(PlayerAction.RUN)
+		if (isOnGround && controller.actionQueueContains(PlayerAction.RUN)
 				&& moveMode != PlayerAction.RUN) {
 			sound.move(true);
 			moveMode = PlayerAction.RUN;
 		}
-
-		// if (newAction && currentAction == PlayerAction.CLIMB) {
-		// sound.climb();
-		// }
 
 		if (controller.actionQueueContains(PlayerAction.SHOOT)) {
 			sound.shoot();
@@ -129,21 +140,8 @@ public class Player implements Disposable {
 				sound.bump();
 			}
 		}
-		if (controller.actionQueueContains(PlayerAction.JUMP) && onGround) {
-			sound.jump();
-			position.add(0, 0.1f, 0);
-			velocity.y = GameSettings.PLAYER_JUMP_ACCELERATION;
 
-		} else if (controller.actionQueueContains(PlayerAction.JUMP)) {
-			velocity.y += GameSettings.PLAYER_JUMP_ACCELERATION;
-
-		} else if (!onGround) {
-			moveMode = PlayerAction.STOP;
-		}
-
-		// collisionHandler.performDiscreteCollisionDetection();
-
-		float moveSpeed = velocity.len();
+		float moveSpeed = 0;
 
 		if (moveMode == PlayerAction.WALK) {
 			moveSpeed = GameSettings.PLAYER_WALK_SPEED;
@@ -158,39 +156,56 @@ public class Player implements Disposable {
 			moveSpeed = 0;
 		}
 
-		// Calculate movement velocity vector
-		Vector3 moveVelocity = moveDirection.nor().scl(moveSpeed);
-
-		if (onGround) {
-			velocity.add(moveVelocity);
+		if (moveDirection.y > 0) {
+			moveDirection.y = 0;
 		}
 
-		if (gravity) {
-			velocity.y -= GameSettings.GRAVITY;
+		velocity.set(object.body.getLinearVelocity());
+		velocityXZ.set(velocity.x, 0, velocity.z);
+		float currentSpeed = velocityXZ.len();
+
+		object.body.setActivationState(Collision.DISABLE_DEACTIVATION);
+
+		if (isOnGround) {
+			if (moveSpeed == 0) {
+				velocity.x *= 0.5f;
+				velocity.z *= 0.5f;
+			}
+			if (currentSpeed < moveSpeed) {
+				velocityNew.set(moveDirection).nor().scl(moveSpeed);
+
+				velocity.set(velocityNew.x, velocity.y, velocityNew.z);
+			}
 		}
 
-		xzVelocity.set(velocity);
-		xzVelocity.y = 0;
-		if (moveMode == PlayerAction.STOP && onGround && xzVelocity.len() < 1) {
-			velocity.setZero();
+		if (controller.actionQueueContains(PlayerAction.JUMP)) {
+			if (!isJumping && isOnGround) {
+				isJumping = true;
+				sound.jump();
+			} else if (isJumping) {
+				object.body.applyCentralForce(new Vector3(Vector3.Y)
+						.scl(GameSettings.PLAYER_JUMP_ACCELERATION));
+			}
+		} else {
+			isJumping = false;
 		}
+
+		object.body.setLinearVelocity(velocity);
 
 		controller.actionQueueClear();
 
-		// Translate player
-		position.add(translation.set(velocity).scl(delta));
+		object.body.setAngularVelocity(Vector3.Zero);
+		object.body.getWorldTransform(object.transform);
+		object.transform.getTranslation(position);
+		object.calculateTransforms();
 
 		// Update camera
-		Camera cam = viewport.getCamera();
-		cam.position.set(position);
-		cam.position.add(0, cameraOffsetY, 0);
-		cam.direction.set(direction);
-		up.set(Vector3.Y);
-		cam.up.set(up.nor());
-		cam.update();
-
-		object.position(position);
-		// object.transform.rotate(Vector3.Y, direction);
+		Camera camera = viewport.getCamera();
+		camera.position.set(position);
+		camera.position.add(0, cameraOffsetY, 0);
+		camera.direction.set(direction);
+		camera.up.set(Vector3.Y);
+		camera.update();
 
 	}
 }

@@ -26,29 +26,32 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.physics.bullet.Bullet;
+import com.badlogic.gdx.physics.bullet.collision.btBoxShape;
 import com.badlogic.gdx.physics.bullet.collision.btCapsuleShape;
+import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ArrayMap;
 
 public class GameScreen extends AbstractScreen implements Screen {
 
-	private Player playerController;
+	private Player player;
 
 	private ModelBatch modelBatch;
 	private AssetManager assets;
+	private Music music;
 
 	// Lights and stuff
 	private Environment environment;
 	private ShaderProgram shaderSun;
 	private Texture sunTexture;
 	private Vector3 sunPosition;
+	private Vector3 sunPositionProj;
 	private float sunRadius;
-
 	private ShapeRenderer shapeRenderer;
-
+	private ModelInstance skybox;
 	private Matrix4 uiMatrix;
-	private Vector3 tmp = new Vector3();
 
 	// Game objects
 	private Array<GameObject> instances;
@@ -57,18 +60,24 @@ public class GameScreen extends AbstractScreen implements Screen {
 	// Collision
 	private CollisionHandler collisionHandler;
 
-	private GameObject playerObject;
-	private GameObject gunInstance;
-	private ModelInstance skybox;
-	private Music music;
+	// Gun positioning
+	private GameObject gun;
+	private Matrix4 gunBaseTransform = new Matrix4();
+	private Vector3 gunFrontBackPosition = new Vector3();
+	private Vector3 gunLeftRightPosition = new Vector3();
+	private Vector3 gunUpDownPosition = new Vector3();
 
 	private String msg = new String();
+
+	private Vector3 lastCameraDirection = new Vector3();
+	private Vector3 screenCenter = new Vector3();
 
 	public GameScreen(IncanShift game, int reqWidth, int reqHeight) {
 		super(game, reqWidth, reqHeight);
 
 		Gdx.app.setLogLevel(Application.LOG_DEBUG);
 
+		// Load game assets
 		assets = new AssetManager();
 		assets.load("model/temple.g3db", Model.class);
 		assets.load("model/ground.g3db", Model.class);
@@ -85,34 +94,27 @@ public class GameScreen extends AbstractScreen implements Screen {
 		assets.load("sound/climb.wav", Sound.class);
 		assets.load("sound/music_game.ogg", Music.class);
 
-		shapeRenderer = new ShapeRenderer();
-
+		// Collision handler
 		Bullet.init();
+		instances = new Array<GameObject>();
+		collisionHandler = new CollisionHandler(instances);
 
+		// Various environment graphics stuff
+		shapeRenderer = new ShapeRenderer();
 		environment = new Environment();
-
 		sunTexture = new Texture(512, 512, Format.RGBA8888);
 		sunPosition = new Vector3(500, 1200, 700);
+		sunPositionProj = sunPosition.cpy();
 		sunRadius = 500000f;
-
 		environment.set(new ColorAttribute(ColorAttribute.AmbientLight, 0.3f,
 				0.3f, 0.3f, 1f));
 		environment.add(new DirectionalLight().set(Color.WHITE,
 				sunPosition.scl(-1)));
-
 		loadShaders();
 
+		// Create game instances
 		modelBatch = new ModelBatch();
-
-		ModelBuilder modelBuilder = new ModelBuilder();
-
-		Model modelPlayer = modelBuilder.createCapsule(
-				GameSettings.PLAYER_RADIUS, GameSettings.PLAYER_HEIGHT - 2
-						* GameSettings.PLAYER_RADIUS, 4, GL20.GL_TRIANGLES,
-				new Material(), Usage.Position | Usage.Normal);
-
 		assets.finishLoading();
-
 		Model modelTemple = assets.get("model/temple.g3db", Model.class);
 		Model modelGround = assets.get("model/ground.g3db", Model.class);
 		Model modelLevel = assets.get("model/level.g3db", Model.class);
@@ -121,21 +123,25 @@ public class GameScreen extends AbstractScreen implements Screen {
 
 		gameObjectFactory = new ArrayMap<String, GameObject.Constructor>();
 		gameObjectFactory.put("temple", new GameObject.Constructor(modelTemple,
-				Bullet.obtainStaticNodeShape(modelTemple.nodes)));
+				Bullet.obtainStaticNodeShape(modelTemple.nodes), 0));
 		gameObjectFactory.put("ground", new GameObject.Constructor(modelGround,
-				Bullet.obtainStaticNodeShape(modelGround.nodes)));
+				Bullet.obtainStaticNodeShape(modelGround.nodes), 0));
 		gameObjectFactory.put("level", new GameObject.Constructor(modelLevel,
-				Bullet.obtainStaticNodeShape(modelLevel.nodes)));
+				Bullet.obtainStaticNodeShape(modelLevel.nodes), 0));
 		gameObjectFactory.put("sphere", new GameObject.Constructor(modelSphere,
-				Bullet.obtainStaticNodeShape(modelSphere.nodes)));
-		gameObjectFactory.put("gun", new GameObject.Constructor(modelGun,
-				new btCapsuleShape(0, 0)));
-		gameObjectFactory.put("player", new GameObject.Constructor(modelPlayer,
-				new btCapsuleShape(GameSettings.PLAYER_RADIUS,
-						GameSettings.PLAYER_HEIGHT - 2
-								* GameSettings.PLAYER_RADIUS)));
+				Bullet.obtainStaticNodeShape(modelSphere.nodes), 0));
 
-		instances = new Array<GameObject>();
+		Model modelSkybox = assets.get("model/skybox.g3db", Model.class);
+		skybox = new ModelInstance(modelSkybox);
+
+		Model modelCompass = buildCompassModel();
+		gameObjectFactory.put("compass", new GameObject.Constructor(
+				modelCompass, Bullet.obtainStaticNodeShape(modelCompass.nodes),
+				0));
+		GameObject compass = gameObjectFactory.get("compass").construct();
+		compass.position(10, 0.5f, 10);
+		instances.add(compass);
+
 		instances.add(gameObjectFactory.get("ground").construct());
 		// instances.add(gameObjectFactory.get("temple").construct());
 		instances.add(gameObjectFactory.get("level").construct());
@@ -153,56 +159,75 @@ public class GameScreen extends AbstractScreen implements Screen {
 			instances.add(sphere);
 		}
 
-		gunInstance = gameObjectFactory.get("gun").construct();
-		// instances.add(gunInstance);
+		for (GameObject obj : instances) {
+			collisionHandler.add(obj, CollisionHandler.GROUND_FLAG,
+					CollisionHandler.ALL_FLAG);
+			obj.body.setContactCallbackFlag(CollisionHandler.GROUND_FLAG);
+		}
 
-		playerObject = gameObjectFactory.get("player").construct();
+		// Gun
+		BoundingBox gunBB = new BoundingBox();
+		Vector3 gunDim = new Vector3();
+		modelGun.calculateBoundingBox(gunBB);
+		gunBB.getDimensions(gunDim);
+		gameObjectFactory.put("gun", new GameObject.Constructor(modelGun,
+				new btBoxShape(gunDim), 1f));
+		gun = gameObjectFactory.get("gun").construct();
+		gun.position(GameSettings.PLAYER_START_POS);
+		gun.body.setContactCallbackFlag(CollisionHandler.OBJECT_FLAG);
+		collisionHandler.add(gun, CollisionHandler.OBJECT_FLAG,
+				CollisionHandler.NONE_FLAG);
+
+		// Player
+		Model modelPlayer = new ModelBuilder().createCapsule(
+				GameSettings.PLAYER_RADIUS, GameSettings.PLAYER_HEIGHT - 2
+						* GameSettings.PLAYER_RADIUS, 4, GL20.GL_TRIANGLES,
+				new Material(), Usage.Position | Usage.Normal);
+		gameObjectFactory.put("player", new GameObject.Constructor(modelPlayer,
+				new btCapsuleShape(GameSettings.PLAYER_RADIUS,
+						GameSettings.PLAYER_HEIGHT - 2
+								* GameSettings.PLAYER_RADIUS), 100));
+		GameObject playerObject = gameObjectFactory.get("player").construct();
 		playerObject.position(GameSettings.PLAYER_START_POS);
 		playerObject.visible = false;
-
-		collisionHandler = new CollisionHandler(playerObject, instances);
-
-		Model modelSkybox = assets.get("model/skybox.g3db", Model.class);
-		skybox = new ModelInstance(modelSkybox);
+		playerObject.body.setAngularFactor(Vector3.Y);
+		// playerObject.body.setFriction(3);
+		playerObject.body.setCollisionFlags(playerObject.body
+				.getCollisionFlags()
+				| btCollisionObject.CollisionFlags.CF_CUSTOM_MATERIAL_CALLBACK);
+		playerObject.body.setContactCallbackFlag(CollisionHandler.OBJECT_FLAG);
 
 		PlayerSound sound = new PlayerSound(assets);
 
-		playerController = new Player(game, playerObject, screenCenter,
-				viewport, collisionHandler, instances, sound);
+		player = new Player(game, playerObject, screenCenter, viewport,
+				collisionHandler, sound);
 
+		collisionHandler.add(playerObject, CollisionHandler.OBJECT_FLAG,
+				CollisionHandler.GROUND_FLAG);
+
+	}
+
+	private Model buildCompassModel() {
+		float compassScale = 5;
+		ModelBuilder modelBuilder = new ModelBuilder();
 		Model arrow = modelBuilder.createArrow(Vector3.Zero, Vector3.Y.cpy()
-				.scl(4), null, Usage.Position | Usage.Normal);
-
+				.scl(compassScale), null, Usage.Position | Usage.Normal);
 		modelBuilder.begin();
-
 		Mesh xArrow = arrow.meshes.first().copy(false);
 		xArrow.transform(new Matrix4().rotate(Vector3.X, 90));
 		modelBuilder.part("part1", xArrow, GL20.GL_TRIANGLES, new Material(
 				ColorAttribute.createDiffuse(Color.RED)));
-
 		modelBuilder.node();
 		Mesh yArrow = arrow.meshes.first().copy(false);
 		modelBuilder.part("part2", yArrow, GL20.GL_TRIANGLES, new Material(
 				ColorAttribute.createDiffuse(Color.GREEN)));
-
 		modelBuilder.node();
 		Mesh zArrow = arrow.meshes.first().copy(false);
 		zArrow.transform(new Matrix4().rotate(Vector3.Z, 90));
 		modelBuilder.part("part3", zArrow, GL20.GL_TRIANGLES, new Material(
 				ColorAttribute.createDiffuse(Color.BLUE)));
-
 		arrow.dispose();
-		Model modelCompass = modelBuilder.end();
-
-		modelBuilder = new ModelBuilder();
-		gameObjectFactory
-				.put("compass",
-						new GameObject.Constructor(modelCompass, Bullet
-								.obtainStaticNodeShape(modelCompass.nodes)));
-
-		GameObject compass = gameObjectFactory.get("compass").construct();
-		compass.position(10, 0.5f, 10);
-		instances.add(compass);
+		return modelBuilder.end();
 	}
 
 	@Override
@@ -218,7 +243,7 @@ public class GameScreen extends AbstractScreen implements Screen {
 		gameObjectFactory.clear();
 
 		collisionHandler.dispose();
-		playerController.dispose();
+		player.dispose();
 
 		modelBatch.dispose();
 		assets.dispose();
@@ -227,8 +252,6 @@ public class GameScreen extends AbstractScreen implements Screen {
 		sunTexture.dispose();
 
 	}
-
-	Vector3 lastCameraDirection = new Vector3();
 
 	@Override
 	public void hide() {
@@ -243,11 +266,11 @@ public class GameScreen extends AbstractScreen implements Screen {
 		shaderSun = new ShaderProgram(vert, frag);
 		ShaderProgram.pedantic = false;
 		if (!shaderSun.isCompiled()) {
-			Gdx.app.debug("Shader", shaderSun.getLog());
+			Gdx.app.debug("Shader:", shaderSun.getLog());
 			Gdx.app.exit();
 		}
 		if (shaderSun.getLog().length() != 0) {
-			Gdx.app.debug("Shader", shaderSun.getLog());
+			Gdx.app.debug("Shader:", shaderSun.getLog());
 		}
 	}
 
@@ -258,18 +281,30 @@ public class GameScreen extends AbstractScreen implements Screen {
 
 	@Override
 	public void render(float delta) {
+		delta = Math.min(1f / 30f, Gdx.graphics.getDeltaTime());
 		super.render(delta);
 
-		playerController.update(delta);
-		playerObject.transform.getTranslation(tmp);
-		msg = String.format("x=%.2f, y=%.2f, z=%.2f", tmp.x, -tmp.z, tmp.y
-				- GameSettings.PLAYER_HEIGHT / 2);
+		collisionHandler.dynamicsWorld.stepSimulation(delta, 5, 1f / 60f);
 
-		// camera.update();
+		player.update(delta);
+		player.object.body.getWorldTransform(player.object.transform);
 
-		gunInstance.transform.setToTranslation(camera.position);
-		// gunInstance.transform.rotate(camera.direction,
-		// gunInstance.transform.);
+		// Gun position/rotation relative to camera
+		gunLeftRightPosition.set(player.direction).nor().crs(Vector3.Y)
+				.scl(0.075f);
+		gunFrontBackPosition.set(player.direction).nor().scl(0.1f);
+		gunUpDownPosition.set(player.direction).nor().crs(gunLeftRightPosition)
+				.scl(0.75f);
+		gunBaseTransform.set(camera.view).inv();
+		gun.body.setWorldTransform(gunBaseTransform);
+		gun.body.translate(gunLeftRightPosition);
+		gun.body.translate(gunFrontBackPosition);
+		gun.body.translate(gunUpDownPosition);
+		gun.body.setLinearVelocity(player.object.body.getLinearVelocity());
+		gun.body.getWorldTransform(gun.transform);
+
+		for (GameObject obj : instances)
+			obj.body.getWorldTransform(obj.transform);
 
 		// Render the models
 		modelBatch.begin(camera);
@@ -281,37 +316,41 @@ public class GameScreen extends AbstractScreen implements Screen {
 		spriteBatch.setProjectionMatrix(uiMatrix);
 		shaderSun.begin();
 
-		Vector3 s_pos_sun = viewport.project(sunPosition.cpy());
+		Vector3 s_pos_sun = viewport.project(sunPositionProj.set(sunPosition));
 		s_pos_sun.y = s_pos_sun.y - viewport.getScreenHeight() / 2;
 		shaderSun.setUniformf("pos_sun", s_pos_sun);
 		shaderSun.setUniformf("resolution", viewport.getScreenWidth(),
 				viewport.getScreenHeight());
-
 		shaderSun.end();
-
 		float dst = camera.position.dst(sunPosition);
 		spriteBatch.setShader(shaderSun);
 		float sw = sunRadius / dst;
 		float sh = sw;
 		spriteBatch.draw(sunTexture, s_pos_sun.x - sw / 2,
 				s_pos_sun.y - sh / 2, sw, sh);
-
 		spriteBatch.setShader(null);
 		spriteBatch.end();
 
+		// Render the game level models and player gun
 		modelBatch.begin(camera);
 		for (GameObject obj : instances) {
 			if (obj.visible) {
 				modelBatch.render(obj, environment);
 			}
 		}
+		modelBatch.render(gun, environment);
 		modelBatch.end();
 
-		collisionHandler.debugDrawWorld(camera);
+		// Draw collision debug wireframe
+		// collisionHandler.debugDrawWorld(camera);
 
+		// Draw player coordinates
+		msg = String.format("x=%.2f, y=%.2f, z=%.2f, v=%.2f",
+				player.velocity.x, -player.velocity.z, player.velocity.y
+						- GameSettings.PLAYER_HEIGHT / 2, player.object.body
+						.getLinearVelocity().len());
 		spriteBatch.setShader(null);
 		spriteBatch.setProjectionMatrix(uiMatrix);
-
 		spriteBatch.begin();
 		fontTiny.draw(spriteBatch, msg, 10, 15);
 		spriteBatch.end();
@@ -339,8 +378,6 @@ public class GameScreen extends AbstractScreen implements Screen {
 		shapeRenderer.end();
 
 	}
-
-	public Vector3 screenCenter = new Vector3();
 
 	@Override
 	public void resize(int width, int height) {
@@ -374,7 +411,7 @@ public class GameScreen extends AbstractScreen implements Screen {
 
 	@Override
 	public void show() {
-		Gdx.input.setInputProcessor(playerController.controller);
+		Gdx.input.setInputProcessor(player.controller);
 		Gdx.input.setCursorCatched(true);
 
 		// Play some music

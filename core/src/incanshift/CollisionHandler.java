@@ -8,60 +8,58 @@ import com.badlogic.gdx.physics.bullet.collision.ClosestRayResultCallback;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionConfiguration;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionDispatcher;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
-import com.badlogic.gdx.physics.bullet.collision.btCollisionWorld;
 import com.badlogic.gdx.physics.bullet.collision.btDbvtBroadphase;
 import com.badlogic.gdx.physics.bullet.collision.btDefaultCollisionConfiguration;
 import com.badlogic.gdx.physics.bullet.collision.btDispatcher;
+import com.badlogic.gdx.physics.bullet.dynamics.btConstraintSolver;
+import com.badlogic.gdx.physics.bullet.dynamics.btDiscreteDynamicsWorld;
+import com.badlogic.gdx.physics.bullet.dynamics.btDynamicsWorld;
+import com.badlogic.gdx.physics.bullet.dynamics.btSequentialImpulseConstraintSolver;
+import com.badlogic.gdx.physics.bullet.linearmath.btIDebugDraw;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
 
 public class CollisionHandler implements Disposable {
 
 	// Collision flags
+	final static short NONE_FLAG = 0;
 	final static short GROUND_FLAG = 1 << 8;
 	final static short OBJECT_FLAG = 1 << 9;
 	final static short ALL_FLAG = -1;
 
-	Array<GameObject> instances;
-	btCollisionConfiguration collisionConfig;
-	btDispatcher dispatcher;
+	private Array<GameObject> instances;
+	private btCollisionConfiguration collisionConfig;
+	private btDispatcher dispatcher;
 
+	btDynamicsWorld dynamicsWorld;
+	private btConstraintSolver constraintSolver;
 	private btDbvtBroadphase broadphase;
-	private btCollisionWorld collisionWorld;
 	private DebugDrawer debugDrawer;
 
-	public CollisionHandler(GameObject player, Array<GameObject> instances) {
+	public CollisionHandler(Array<GameObject> instances) {
 		this.instances = instances;
 
 		collisionConfig = new btDefaultCollisionConfiguration();
 		dispatcher = new btCollisionDispatcher(collisionConfig);
 		broadphase = new btDbvtBroadphase();
-
-		collisionWorld = new btCollisionWorld(dispatcher, broadphase,
-				collisionConfig);
+		constraintSolver = new btSequentialImpulseConstraintSolver();
+		dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher, broadphase,
+				constraintSolver, collisionConfig);
+		dynamicsWorld.setGravity(new Vector3(0, GameSettings.GRAVITY, 0));
 
 		debugDrawer = new DebugDrawer();
-		collisionWorld.setDebugDrawer(debugDrawer);
-		// debugDrawer.setDebugMode(btIDebugDraw.DebugDrawModes.DBG_DrawWireframe);
+		dynamicsWorld.setDebugDrawer(debugDrawer);
+		debugDrawer.setDebugMode(btIDebugDraw.DebugDrawModes.DBG_DrawWireframe);
 
-		player.body.setCollisionFlags(player.body.getCollisionFlags()
-				| btCollisionObject.CollisionFlags.CF_CUSTOM_MATERIAL_CALLBACK);
-		player.body.setContactCallbackFlag(OBJECT_FLAG);
+	}
 
-		collisionWorld
-				.addCollisionObject(player.body, OBJECT_FLAG, GROUND_FLAG);
-		
-
-		for (GameObject obj : instances) {
-			collisionWorld.addCollisionObject(obj.body, GROUND_FLAG, ALL_FLAG);
-			obj.body.setContactCallbackFlag(GROUND_FLAG);
-		}
-
+	public void add(GameObject obj, short flag0, short flag1) {
+		dynamicsWorld.addRigidBody(obj.body, flag0, flag1);
 	}
 
 	public void debugDrawWorld(Camera camera) {
 		debugDrawer.begin(camera);
-		collisionWorld.debugDrawWorld();
+		dynamicsWorld.debugDrawWorld();
 		debugDrawer.end();
 	}
 
@@ -69,12 +67,9 @@ public class CollisionHandler implements Disposable {
 	public void dispose() {
 		collisionConfig.dispose();
 		dispatcher.dispose();
-		collisionWorld.dispose();
+		dynamicsWorld.dispose();
 		broadphase.dispose();
-	}
-
-	public void performDiscreteCollisionDetection() {
-		collisionWorld.performDiscreteCollisionDetection();
+		constraintSolver.dispose();
 	}
 
 	public GameObject rayTest(Ray ray, float maxDistance) {
@@ -84,7 +79,7 @@ public class CollisionHandler implements Disposable {
 
 		ClosestRayResultCallback callback = new ClosestRayResultCallback(
 				rayFrom, rayTo);
-		collisionWorld.rayTest(rayFrom, rayTo, callback);
+		dynamicsWorld.rayTest(rayFrom, rayTo, callback);
 
 		btCollisionObject co = callback.getCollisionObject();
 		boolean hasHit = callback.hasHit();

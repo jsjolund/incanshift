@@ -14,13 +14,16 @@ class PlayerController implements InputProcessor {
 
 	private Player player;
 	private final IntIntMap keys = new IntIntMap();
+	private final IntIntMap actionQueue = new IntIntMap();
 	private boolean jumpKeyReleased = true;
-	private boolean keepJumping = true;
+	private boolean jumpTimerRunning = true;
 	private final Vector3 moveDirection = new Vector3();
 	private final Vector3 tmp = new Vector3();
-	private IntIntMap actionQueue = new IntIntMap();
+	private final Vector3 xzMouseRotation = new Vector3();
+	Vector3 directionOld = new Vector3();
+	float epsilonY = 0.01f;
 
-	PlayerAction move = PlayerAction.WALK;
+	private PlayerAction move = PlayerAction.WALK;
 
 	public PlayerController(Player player) {
 		this.player = player;
@@ -54,14 +57,14 @@ class PlayerController implements InputProcessor {
 			actionQueueClear();
 			actionQueueAdd(PlayerAction.STOP);
 			player.game.showStartScreen();
-
 		} else {
 			keys.put(keycode, keycode);
 		}
+		if (keycode == GameSettings.RESET) {
+			// TODO
+		}
 		if (keycode == GameSettings.RUN) {
-			if (player.onGround && player.velocity.len() > 0) {
-				move = PlayerAction.RUN;
-			}
+			move = PlayerAction.RUN;
 		}
 
 		return true;
@@ -69,7 +72,6 @@ class PlayerController implements InputProcessor {
 
 	@Override
 	public boolean keyTyped(char character) {
-		// TODO Auto-generated method stub
 		return false;
 	}
 
@@ -79,38 +81,32 @@ class PlayerController implements InputProcessor {
 		if (keycode == GameSettings.JUMP) {
 			jumpKeyReleased = true;
 		}
-		if (keycode == GameSettings.RESET) {
-			player.position.set(GameSettings.PLAYER_START_POS);
-			player.velocity.setZero();
-		}
 		if (keycode == GameSettings.RUN) {
-			if (player.onGround && player.velocity.len() > 0) {
-				move = PlayerAction.WALK;
-			}
+			move = PlayerAction.WALK;
 		}
 		return false;
 	}
 
 	@Override
 	public boolean mouseMoved(int screenX, int screenY) {
-		if (!player.captureMouse) {
-			return true;
-		}
 		// Perform camera mouse look
 		float mouseSens = GameSettings.MOUSE_SENSITIVITY;
+
+		directionOld.set(player.direction);
 
 		float mouseDx = screenX - player.screenCenter.x;
 		float mouseDy = screenY - player.screenCenter.y;
 
-		player.direction.rotate(Vector3.Y, -mouseSens * mouseDx);
-		player.direction.rotate(player.direction.cpy().crs(Vector3.Y),
+		player.direction.rotate(
+				xzMouseRotation.set(player.direction).crs(Vector3.Y),
 				-mouseSens * mouseDy);
-		player.up.rotate(Vector3.Y, -mouseSens * mouseDx);
-		player.up.rotate(player.direction.cpy().crs(Vector3.Y), -mouseSens
-				* mouseDy);
 
+		if (player.direction.isCollinear(Vector3.Y, epsilonY)
+				|| player.direction.isCollinearOpposite(Vector3.Y, epsilonY)) {
+			player.direction.set(directionOld);
+		}
+		player.direction.rotate(Vector3.Y, -mouseSens * mouseDx);
 		centerMouseCursor();
-
 		return true;
 	}
 
@@ -130,14 +126,12 @@ class PlayerController implements InputProcessor {
 
 	@Override
 	public boolean touchDragged(int screenX, int screenY, int pointer) {
-		// Ignore dragging, interpret it as movement
 		mouseMoved(screenX, screenY);
 		return true;
 	}
 
 	@Override
 	public boolean touchUp(int screenX, int screenY, int pointer, int button) {
-		// TODO Auto-generated method stub
 		return false;
 	}
 
@@ -175,33 +169,26 @@ class PlayerController implements InputProcessor {
 
 		actionQueueAdd(action);
 
-		// Prevent jumping/fighting gravity when looking up
-		if (moveDirection.y > 0) {
-			moveDirection.y = 0;
-		}
 		// Check if we should jump or climb
 		if (keys.containsKey(GameSettings.JUMP) && player.canClimb) {
-			moveDirection.y = 1f;
 			jumpKeyReleased = false;
-			keepJumping = false;
+			jumpTimerRunning = false;
 			actionQueueAdd(PlayerAction.CLIMB);
 
 		} else if ((keys.containsKey(GameSettings.JUMP) && jumpKeyReleased)) {
 			jumpKeyReleased = false;
-			keepJumping = true;
-			moveDirection.y = 0;
+			jumpTimerRunning = true;
 			actionQueueAdd(PlayerAction.JUMP);
 
 			Timer.schedule(new Task() {
 				@Override
 				public void run() {
-					keepJumping = false;
+					jumpTimerRunning = false;
 				}
 			}, GameSettings.PLAYER_JUMP_TIME);
 
-		} else if (keys.containsKey(GameSettings.JUMP) && keepJumping) {
+		} else if (keys.containsKey(GameSettings.JUMP) && jumpTimerRunning) {
 			actionQueueAdd(PlayerAction.JUMP);
-			moveDirection.y = 0;
 		}
 	}
 }

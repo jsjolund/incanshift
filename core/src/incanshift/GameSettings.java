@@ -5,21 +5,23 @@ import com.badlogic.gdx.math.Vector3;
 
 public class GameSettings {
 
-	public static final int CROSSHAIR = 7;
+	public static final int CROSSHAIR = 5;
 	public static final float MOUSE_SENSITIVITY = 0.05f;
-	public static final float GRAVITY = 1f;
-	public static final float CAMERA_FOV = 90;
+	public static final float GRAVITY = -9.81f;
+	public static final float CAMERA_FOV = 60;
 
 	public static final float PLAYER_CLIMB_SPEED = 2f;
-	public static final float PLAYER_WALK_SPEED = 8f;
-	public static final float PLAYER_RUN_SPEED = 16f;
-	public static final float PLAYER_JUMP_ACCELERATION = 2f;
-	public static final float PLAYER_JUMP_TIME = 0.2f;
+	public static final float PLAYER_WALK_SPEED = 4f;
+	public static final float PLAYER_RUN_SPEED = 8f;
+	public static final float PLAYER_JUMP_ACCELERATION = 4000f;
+	public static final float PLAYER_JUMP_TIME = 0.3f;
+	public static final float PLAYER_FRICTION = 100f;
 
 	public static final float PLAYER_HEIGHT = 2f;
-	public static final float PLAYER_RADIUS = 0.3f;
+	public static final float PLAYER_RADIUS = 0.5f;
 	public static final float PLAYER_EYE_HEIGHT = 1.8f;
-	public static final Vector3 PLAYER_START_POS = new Vector3(-10,30, 10);
+	// public static final Vector3 PLAYER_START_POS = new Vector3(-15,25, 20);
+	public static final Vector3 PLAYER_START_POS = new Vector3(10, 25, 0);
 
 	public static final int STRAFE_LEFT = Keys.A;
 	public static final int STRAFE_RIGHT = Keys.D;

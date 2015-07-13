@@ -30,7 +30,7 @@ public class PlayerSound {
 	}
 
 	public void bump() {
-		soundBump.play(1.0f);
+		soundBump.play(4.0f);
 	}
 
 	public void halt() {
