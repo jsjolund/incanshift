@@ -6,7 +6,7 @@ import com.badlogic.gdx.audio.Sound;
 public class PlayerSound {
 
 	Sound soundJump;
-	Sound soundBump;
+	Sound soundShatter;
 	Sound soundShoot;
 	Sound soundRun;
 	Sound soundWalk;
@@ -20,7 +20,7 @@ public class PlayerSound {
 
 		assets.finishLoading();
 		soundJump = assets.get("sound/jump.wav", Sound.class);
-		soundBump = assets.get("sound/bump.wav", Sound.class);
+		soundShatter = assets.get("sound/shatter.wav", Sound.class);
 		soundShoot = assets.get("sound/shoot.wav", Sound.class);
 		soundRun = assets.get("sound/run.wav", Sound.class);
 		soundWalk = assets.get("sound/walk.wav", Sound.class);
@@ -29,8 +29,8 @@ public class PlayerSound {
 
 	}
 
-	public void bump() {
-		soundBump.play(4.0f);
+	public void shatter() {
+		soundShatter.play(1.0f);
 	}
 
 	public void halt() {

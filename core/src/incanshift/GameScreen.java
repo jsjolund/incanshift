@@ -87,7 +87,7 @@ public class GameScreen extends AbstractScreen implements Screen {
 		assets.load("model/sphere.g3db", Model.class);
 
 		assets.load("sound/jump.wav", Sound.class);
-		assets.load("sound/bump.wav", Sound.class);
+		assets.load("sound/shatter.wav", Sound.class);
 		assets.load("sound/shoot.wav", Sound.class);
 		assets.load("sound/run.wav", Sound.class);
 		assets.load("sound/walk.wav", Sound.class);

@@ -137,7 +137,7 @@ public class Player implements Disposable {
 			GameObject hitObject = collisionHandler.rayTest(ray, 100);
 			if (hitObject != null && hitObject.removable && hitObject.visible) {
 				hitObject.visible = false;
-				sound.bump();
+				sound.shatter();
 			}
 		}
 
