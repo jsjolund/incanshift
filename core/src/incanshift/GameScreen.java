@@ -159,6 +159,7 @@ public class GameScreen extends AbstractScreen implements Screen {
 			instances.add(sphere);
 		}
 
+		// Add all game instances to the collision world as ground
 		for (GameObject obj : instances) {
 			collisionHandler.add(obj, CollisionHandler.GROUND_FLAG,
 					CollisionHandler.ALL_FLAG);
@@ -284,13 +285,16 @@ public class GameScreen extends AbstractScreen implements Screen {
 		delta = Math.min(1f / 30f, Gdx.graphics.getDeltaTime());
 		super.render(delta);
 
+		// Update collisions
 		collisionHandler.dynamicsWorld.stepSimulation(delta, 5, 1f / 60f);
 
+		// Update player transform from user input
 		player.update(delta);
 		player.object.body.getWorldTransform(player.object.transform);
 
-		// Gun position/rotation relative to camera
-		gunLeftRightPosition.set(player.direction).nor().crs(Vector3.Y)
+		// Update gun position/rotation relative to camera
+		player.direction.nor();
+		gunLeftRightPosition.set(player.direction).crs(Vector3.Y).nor()
 				.scl(0.075f);
 		gunFrontBackPosition.set(player.direction).nor().scl(0.1f);
 		gunUpDownPosition.set(player.direction).nor().crs(gunLeftRightPosition)
@@ -315,7 +319,6 @@ public class GameScreen extends AbstractScreen implements Screen {
 		spriteBatch.begin();
 		spriteBatch.setProjectionMatrix(uiMatrix);
 		shaderSun.begin();
-
 		Vector3 s_pos_sun = viewport.project(sunPositionProj.set(sunPosition));
 		s_pos_sun.y = s_pos_sun.y - viewport.getScreenHeight() / 2;
 		shaderSun.setUniformf("pos_sun", s_pos_sun);
@@ -358,11 +361,8 @@ public class GameScreen extends AbstractScreen implements Screen {
 		// Draw crosshair
 		shapeRenderer.setProjectionMatrix(uiMatrix);
 		shapeRenderer.begin(ShapeType.Line);
-		int vWidth = viewport.getScreenWidth();
-		int vHeight = viewport.getScreenHeight();
-		float xc = vWidth / 2;
-		float yc = vHeight / 2;
-
+		float xc = viewport.getScreenWidth() / 2;
+		float yc = viewport.getScreenHeight() / 2;
 		shapeRenderer.setColor(Color.GRAY);
 		shapeRenderer.line(xc + 1, yc - GameSettings.CROSSHAIR, xc + 1, yc
 				+ GameSettings.CROSSHAIR);
@@ -374,7 +374,6 @@ public class GameScreen extends AbstractScreen implements Screen {
 				+ GameSettings.CROSSHAIR);
 		shapeRenderer.line(xc - GameSettings.CROSSHAIR, yc, xc
 				+ GameSettings.CROSSHAIR, yc);
-
 		shapeRenderer.end();
 
 	}
