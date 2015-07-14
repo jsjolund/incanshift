@@ -29,6 +29,7 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.physics.bullet.Bullet;
 import com.badlogic.gdx.physics.bullet.collision.Collision;
+import com.badlogic.gdx.physics.bullet.collision.btBox2dShape;
 import com.badlogic.gdx.physics.bullet.collision.btBoxShape;
 import com.badlogic.gdx.physics.bullet.collision.btCapsuleShape;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
@@ -87,6 +88,7 @@ public class GameScreen extends AbstractScreen implements Screen {
 		assets.load("model/gun.g3db", Model.class);
 		assets.load("model/sphere.g3db", Model.class);
 		assets.load("model/pillar.g3db", Model.class);
+		assets.load("model/crate.g3db", Model.class);
 
 		assets.load("sound/jump.wav", Sound.class);
 		assets.load("sound/shatter.wav", Sound.class);
@@ -138,13 +140,24 @@ public class GameScreen extends AbstractScreen implements Screen {
 
 		Model modelSkybox = assets.get("model/skybox.g3db", Model.class);
 		skybox = new ModelInstance(modelSkybox);
-		
+
 		Model modelPillar = assets.get("model/pillar.g3db", Model.class);
 		gameObjectFactory.put("pillar", new GameObject.Constructor(modelPillar,
 				Bullet.obtainStaticNodeShape(modelPillar.nodes), 0));
 		GameObject pillar = gameObjectFactory.get("pillar").construct();
 		pillar.position(10, 0, 20);
 		instances.add(pillar);
+
+		Model modelCrate = assets.get("model/crate.g3db", Model.class);
+		gameObjectFactory.put("crate", new GameObject.Constructor(modelCrate,
+//				new btBox2dShape(new Vector3(0.5f, 0.5f, 0.5f)), 1f));
+				new btBox2dShape(new Vector3(1, 1, 1)), 1f));
+		GameObject crate = gameObjectFactory.get("crate").construct();
+		crate.body.setCollisionFlags(crate.body.getCollisionFlags()
+				| btCollisionObject.CollisionFlags.CF_CUSTOM_MATERIAL_CALLBACK);
+		crate.body.setContactCallbackFlag(CollisionHandler.OBJECT_FLAG);
+		instances.add(crate);
+		crate.position(5, 10, 5);
 
 		Model modelCompass = buildCompassModel();
 		gameObjectFactory.put("compass", new GameObject.Constructor(
