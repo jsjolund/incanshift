@@ -88,6 +88,7 @@ public class Player implements Disposable {
 	private float climbNormalEpsilonVertical = 0.5f;
 	float canClimbTimeout = 0.1f;
 
+	private Vector3 moveDirectionXZ = new Vector3();
 	private Vector3 velocityXZ = new Vector3();
 	private Vector3 velocityNew = new Vector3();
 
@@ -222,39 +223,38 @@ public class Player implements Disposable {
 		}
 
 		// Climbing logic
+		moveDirectionXZ.set(moveDirection.x, 0, moveDirection.z);
 		if (!climbSurfaceNormal.isZero() && !isJumping) {
 
 			if (controller.actionQueueContains(PlayerAction.WALK)
 					|| controller.actionQueueContains(PlayerAction.RUN)) {
-				
 
-
-				if (velocityXZ.isCollinearOpposite(climbSurfaceNormal,
+				if (moveDirectionXZ.isCollinearOpposite(climbSurfaceNormal,
 						climbNormalEpsilonDirection)) {
 					// Climb upwards
 					isClimbing = true;
-					velocity.set(velocityXZ).nor().scl(0.1f);
-					object.body.setGravity(Vector3.Zero);
-					
-					velocity.y = 4;
 
-				} else if (velocityXZ.isCollinear(climbSurfaceNormal,
+					velocity.set(moveDirectionXZ).nor().scl(1f);
+					velocity.y = GameSettings.PLAYER_CLIMB_SPEED;
+					object.body.setGravity(Vector3.Zero);
+
+				} else if (moveDirectionXZ.isCollinear(climbSurfaceNormal,
 						climbNormalEpsilonDirection)) {
 					// Climb downwards
 					isClimbing = true;
-					velocity.set(velocityXZ).nor().scl(0.1f);
+
+					velocity.setZero();
+					velocity.y = -GameSettings.PLAYER_CLIMB_SPEED;
 					object.body.setGravity(Vector3.Zero);
-					
-					velocity.y = -4;
 				}
 			} else {
 				velocity.setZero();
 			}
-			
+
 		} else {
 			isClimbing = false;
 		}
-		
+
 		if (!isClimbing) {
 			object.body.setGravity(GameSettings.GRAVITY);
 		}

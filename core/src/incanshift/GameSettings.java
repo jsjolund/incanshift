@@ -10,7 +10,7 @@ public class GameSettings {
 	public static final Vector3 GRAVITY = new Vector3(0, -9.81f, 0);
 	public static final float CAMERA_FOV = 60;
 
-	public static final float PLAYER_CLIMB_SPEED = 2f;
+	public static final float PLAYER_CLIMB_SPEED = 1.5f;
 	public static final float PLAYER_WALK_SPEED = 8f;
 	public static final float PLAYER_RUN_SPEED = 12f;
 	public static final float PLAYER_JUMP_FORCE = 3000f;
@@ -21,9 +21,9 @@ public class GameSettings {
 	public static final float PLAYER_RADIUS = 0.5f;
 	public static final float PLAYER_EYE_HEIGHT = 1.8f;
 	public static final Vector3 PLAYER_START_POS = new Vector3(10, 2, -10);
-	
+
 	// TODO: Some values for direction makes the game crash on start...
-	public static final Vector3 PLAYER_START_DIR = new Vector3(-0.5f, 0,- 0.5f);
+	public static final Vector3 PLAYER_START_DIR = new Vector3(0, 0, 0.5f);
 
 	public static final int STRAFE_LEFT = Keys.A;
 	public static final int STRAFE_RIGHT = Keys.D;
