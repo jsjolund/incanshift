@@ -45,7 +45,7 @@ public class CollisionHandler implements Disposable {
 		constraintSolver = new btSequentialImpulseConstraintSolver();
 		dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher, broadphase,
 				constraintSolver, collisionConfig);
-		dynamicsWorld.setGravity(new Vector3(0, GameSettings.GRAVITY, 0));
+		dynamicsWorld.setGravity(GameSettings.GRAVITY);
 
 		debugDrawer = new DebugDrawer();
 		dynamicsWorld.setDebugDrawer(debugDrawer);

@@ -28,6 +28,7 @@ import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.physics.bullet.Bullet;
+import com.badlogic.gdx.physics.bullet.collision.Collision;
 import com.badlogic.gdx.physics.bullet.collision.btBoxShape;
 import com.badlogic.gdx.physics.bullet.collision.btCapsuleShape;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
@@ -202,7 +203,7 @@ public class GameScreen extends AbstractScreen implements Screen {
 
 		player = new Player(game, playerObject, screenCenter, viewport,
 				collisionHandler, sound);
-
+		player.object.body.setActivationState(Collision.DISABLE_DEACTIVATION);
 		collisionHandler.add(playerObject, CollisionHandler.OBJECT_FLAG,
 				CollisionHandler.GROUND_FLAG);
 

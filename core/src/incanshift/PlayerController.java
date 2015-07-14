@@ -136,7 +136,7 @@ class PlayerController implements InputProcessor {
 	}
 
 	public void update() {
-		// Calculate combined moved direction
+		// Calculate combined move direction
 		moveDirection.setZero();
 		PlayerAction action = PlayerAction.STOP;
 
@@ -169,13 +169,13 @@ class PlayerController implements InputProcessor {
 
 		actionQueueAdd(action);
 
-		// Check if we should jump or climb
-		if (keys.containsKey(GameSettings.JUMP) && player.canClimb) {
-			jumpKeyReleased = false;
-			jumpTimerRunning = false;
-			actionQueueAdd(PlayerAction.CLIMB);
-
-		} else if ((keys.containsKey(GameSettings.JUMP) && jumpKeyReleased)) {
+		// if (keys.containsKey(GameSettings.JUMP) && player.canClimb) {
+		// jumpKeyReleased = false;
+		// jumpTimerRunning = false;
+		// actionQueueAdd(PlayerAction.CLIMB);
+		//
+		// } else
+		if ((keys.containsKey(GameSettings.JUMP) && jumpKeyReleased)) {
 			jumpKeyReleased = false;
 			jumpTimerRunning = true;
 			actionQueueAdd(PlayerAction.JUMP);
@@ -185,7 +185,7 @@ class PlayerController implements InputProcessor {
 				public void run() {
 					jumpTimerRunning = false;
 				}
-			}, GameSettings.PLAYER_JUMP_TIME);
+			}, GameSettings.PLAYER_MAX_JUMP_PRESS_TIME);
 
 		} else if (keys.containsKey(GameSettings.JUMP) && jumpTimerRunning) {
 			actionQueueAdd(PlayerAction.JUMP);
