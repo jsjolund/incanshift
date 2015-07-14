@@ -38,6 +38,7 @@ import com.badlogic.gdx.utils.ArrayMap;
 
 public class GameScreen extends AbstractScreen implements Screen {
 
+	String tag = "GameScreen";
 	private Player player;
 
 	private ModelBatch modelBatch;
@@ -89,6 +90,7 @@ public class GameScreen extends AbstractScreen implements Screen {
 		assets.load("model/sphere.g3db", Model.class);
 		assets.load("model/pillar.g3db", Model.class);
 		assets.load("model/crate.g3db", Model.class);
+		assets.load("model/test_scene.g3db", Model.class);
 
 		assets.load("sound/jump.wav", Sound.class);
 		assets.load("sound/shatter.wav", Sound.class);
@@ -125,17 +127,34 @@ public class GameScreen extends AbstractScreen implements Screen {
 		Model modelTemple = assets.get("model/temple.g3db", Model.class);
 		gameObjectFactory.put("temple", new GameObject.Constructor(modelTemple,
 				Bullet.obtainStaticNodeShape(modelTemple.nodes), 0));
+		// instances.add(gameObjectFactory.get("temple").construct());
+		Gdx.app.debug(tag, "loaded temple");
 
 		Model modelGround = assets.get("model/ground.g3db", Model.class);
 		gameObjectFactory.put("ground", new GameObject.Constructor(modelGround,
 				Bullet.obtainStaticNodeShape(modelGround.nodes), 0));
+		instances.add(gameObjectFactory.get("ground").construct());
+		Gdx.app.debug(tag, "loaded ground");
 
 		Model modelLevel = assets.get("model/level.g3db", Model.class);
 		gameObjectFactory.put("level", new GameObject.Constructor(modelLevel,
 				Bullet.obtainStaticNodeShape(modelLevel.nodes), 0));
+		instances.add(gameObjectFactory.get("level").construct());
+		Gdx.app.debug(tag, "loaded level");
+
+		Model modelTestScene = assets.get("model/test_scene.g3db", Model.class);
+		gameObjectFactory.put(
+				"test_scene",
+				new GameObject.Constructor(modelTestScene, Bullet
+						.obtainStaticNodeShape(modelTestScene.nodes), 0));
+		GameObject testscene = gameObjectFactory.get("test_scene").construct();
+		testscene.position(-30, 0, -30);
+		instances.add(testscene);
+		Gdx.app.debug(tag, "loaded test_scene");
 
 		Model modelSkybox = assets.get("model/skybox.g3db", Model.class);
 		skybox = new ModelInstance(modelSkybox);
+		Gdx.app.debug(tag, "loaded skybox");
 
 		// Add a pillar
 		Model modelPillar = assets.get("model/pillar.g3db", Model.class);
@@ -144,6 +163,7 @@ public class GameScreen extends AbstractScreen implements Screen {
 		GameObject pillar = gameObjectFactory.get("pillar").construct();
 		pillar.position(10, 0, 20);
 		instances.add(pillar);
+		Gdx.app.debug(tag, "loaded pillar");
 
 		// Add a 3D compass model
 		Model modelCompass = buildCompassModel();
@@ -153,10 +173,7 @@ public class GameScreen extends AbstractScreen implements Screen {
 		GameObject compass = gameObjectFactory.get("compass").construct();
 		compass.position(10, 0.5f, 10);
 		instances.add(compass);
-
-		instances.add(gameObjectFactory.get("ground").construct());
-		// instances.add(gameObjectFactory.get("temple").construct());
-		instances.add(gameObjectFactory.get("level").construct());
+		Gdx.app.debug(tag, "loaded compass");
 
 		// Add all current game instances to the collision world as ground
 		for (GameObject obj : instances) {
@@ -169,6 +186,7 @@ public class GameScreen extends AbstractScreen implements Screen {
 		Model modelSphere = assets.get("model/sphere.g3db", Model.class);
 		gameObjectFactory.put("sphere", new GameObject.Constructor(modelSphere,
 				Bullet.obtainStaticNodeShape(modelSphere.nodes), 0));
+		Gdx.app.debug(tag, "loaded sphere");
 
 		// Blender sphere coordinates
 		Vector3[] spherePos = { new Vector3(-2, 5, 7), new Vector3(-4, 1, 0),
@@ -200,6 +218,7 @@ public class GameScreen extends AbstractScreen implements Screen {
 		gun.body.setContactCallbackFlag(CollisionHandler.OBJECT_FLAG);
 		collisionHandler.add(gun, CollisionHandler.OBJECT_FLAG,
 				CollisionHandler.GROUND_FLAG);
+		Gdx.app.debug(tag, "loaded gun");
 
 		// Test crate/box
 		Model modelCrate = assets.get("model/crate.g3db", Model.class);
@@ -210,10 +229,11 @@ public class GameScreen extends AbstractScreen implements Screen {
 		instances.add(crate);
 		crate.position(15, 10, 15);
 		crate.movable = true;
-		System.out.println("crate" + crate + " is movable = " + crate.movable);
+		crate.body.setActivationState(Collision.DISABLE_DEACTIVATION);
 		collisionHandler.add(crate, CollisionHandler.OBJECT_FLAG,
 				CollisionHandler.ALL_FLAG);
 		crate.body.setContactCallbackFlag(CollisionHandler.OBJECT_FLAG);
+		Gdx.app.debug(tag, "loaded crate");
 
 		// Player
 		Model modelPlayer = new ModelBuilder().createCapsule(
@@ -243,7 +263,7 @@ public class GameScreen extends AbstractScreen implements Screen {
 				.add(playerObject,
 						CollisionHandler.PLAYER_FLAG,
 						(short) (CollisionHandler.GROUND_FLAG | CollisionHandler.OBJECT_FLAG));
-
+		Gdx.app.debug(tag, "loaded player");
 	}
 
 	private Model buildCompassModel() {
@@ -386,14 +406,19 @@ public class GameScreen extends AbstractScreen implements Screen {
 		// collisionHandler.debugDrawWorld(camera);
 
 		// Draw player coordinates
-		msg = String.format("x=%.2f, y=%.2f, z=%.2f, v=%.2f",
-				player.velocity.x, -player.velocity.z, player.velocity.y
-						- GameSettings.PLAYER_HEIGHT / 2, player.object.body
-						.getLinearVelocity().len());
+		msg = String
+				.format("Blender: x=%.2f, y=%.2f, z=%.2f\nGame: x=%.2f, y=%.2f, z=%.2f, v=%.2f",
+						player.position.x, -player.position.z,
+						player.position.y - GameSettings.PLAYER_HEIGHT / 2,
+
+						player.position.x, player.position.y
+								- GameSettings.PLAYER_HEIGHT / 2,
+						player.position.z, player.object.body
+								.getLinearVelocity().len());
 		spriteBatch.setShader(null);
 		spriteBatch.setProjectionMatrix(uiMatrix);
 		spriteBatch.begin();
-		fontTiny.draw(spriteBatch, msg, 10, 15);
+		fontTiny.draw(spriteBatch, msg, 10, 30);
 		spriteBatch.end();
 
 		// Draw crosshair

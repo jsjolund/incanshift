@@ -199,9 +199,6 @@ public class Player implements Disposable {
 					CollisionHandler.OBJECT_FLAG, 5);
 
 			if (hitObject != null) {
-				hitObject.setActivationState(Collision.DISABLE_DEACTIVATION);
-				hitObject.activate();
-
 				GameObject obj = collisionHandler.getGameObject(hitObject);
 
 				if (obj.movable) {
@@ -212,7 +209,6 @@ public class Player implements Disposable {
 		} else if (controller.actionQueueContains(PlayerAction.USE)
 				&& carried != null) {
 			carried.body.setGravity(GameSettings.GRAVITY);
-			carried.body.setActivationState(Collision.ACTIVE_TAG);
 			carried = null;
 
 		} else if (carried != null) {
@@ -281,51 +277,49 @@ public class Player implements Disposable {
 			isJumping = false;
 		}
 
-		System.out.println(isOnGround);
-
-		// Climbing logic
-		moveDirectionXZ.set(moveDirection.x, 0, moveDirection.z);
-		if (!climbSurfaceNormal.isZero() && !isJumping) {
-
-			if (controller.actionQueueContains(PlayerAction.WALK)
-					|| controller.actionQueueContains(PlayerAction.RUN)) {
-
-				if (moveDirectionXZ.isCollinearOpposite(climbSurfaceNormal,
-						climbNormalEpsilonDirection)) {
-					// Climb upwards
-					isClimbing = true;
-
-					System.out.println("climb up");
-					velocity.set(moveDirectionXZ).nor()
-							.scl(GameSettings.PLAYER_CLIMB_SPEED);
-					velocity.y = GameSettings.PLAYER_CLIMB_SPEED;
-					// object.body.setGravity(Vector3.Zero);
-
-				} else if (moveDirectionXZ.isCollinear(climbSurfaceNormal,
-						climbNormalEpsilonDirection)) {
-					System.out.println("climb down");
-					// Climb downwards
-					isClimbing = true;
-
-					velocity.setZero();
-					velocity.y = -GameSettings.PLAYER_CLIMB_SPEED;
-					// object.body.setGravity(Vector3.Zero);
-				}
-			} else {
-				velocity.set(direction.cpy().nor().scl(1));
-			}
-
-		} else if (isClimbing) {
-			System.out.println("not climbing");
-			isClimbing = false;
-			// if (!isOnGround) {
-			//
-			// Vector3 stopClimbImpulse = direction.cpy().nor().scl(2);
-			// stopClimbImpulse.y = 4;
-			// object.body.applyCentralImpulse(stopClimbImpulse);
-			// }
-			object.body.setGravity(GameSettings.GRAVITY);
-		}
+//		// Climbing logic
+//		moveDirectionXZ.set(moveDirection.x, 0, moveDirection.z);
+//		if (!climbSurfaceNormal.isZero() && !isJumping) {
+//
+//			if (controller.actionQueueContains(PlayerAction.WALK)
+//					|| controller.actionQueueContains(PlayerAction.RUN)) {
+//
+//				if (moveDirectionXZ.isCollinearOpposite(climbSurfaceNormal,
+//						climbNormalEpsilonDirection)) {
+//					// Climb upwards
+//					isClimbing = true;
+//
+//					System.out.println("climb up");
+//					velocity.set(moveDirectionXZ).nor()
+//							.scl(GameSettings.PLAYER_CLIMB_SPEED);
+//					velocity.y = GameSettings.PLAYER_CLIMB_SPEED;
+//					// object.body.setGravity(Vector3.Zero);
+//
+//				} else if (moveDirectionXZ.isCollinear(climbSurfaceNormal,
+//						climbNormalEpsilonDirection)) {
+//					System.out.println("climb down");
+//					// Climb downwards
+//					isClimbing = true;
+//
+//					velocity.setZero();
+//					velocity.y = -GameSettings.PLAYER_CLIMB_SPEED;
+//					// object.body.setGravity(Vector3.Zero);
+//				}
+//			} else {
+//				velocity.set(direction.cpy().nor().scl(1));
+//			}
+//
+//		} else if (isClimbing) {
+//			System.out.println("not climbing");
+//			isClimbing = false;
+//			// if (!isOnGround) {
+//			//
+//			// Vector3 stopClimbImpulse = direction.cpy().nor().scl(2);
+//			// stopClimbImpulse.y = 4;
+//			// object.body.applyCentralImpulse(stopClimbImpulse);
+//			// }
+//			object.body.setGravity(GameSettings.GRAVITY);
+//		}
 
 		// Set the transforms
 		object.body.setLinearVelocity(velocity);
