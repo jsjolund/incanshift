@@ -3,8 +3,10 @@ package incanshift;
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
+import com.badlogic.gdx.physics.bullet.collision.Collision;
 import com.badlogic.gdx.physics.bullet.collision.ContactListener;
 import com.badlogic.gdx.physics.bullet.collision.btManifoldPoint;
+import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.badlogic.gdx.utils.Disposable;
 import com.badlogic.gdx.utils.Timer;
 import com.badlogic.gdx.utils.Timer.Task;
@@ -13,7 +15,9 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 public class Player implements Disposable {
 
 	enum PlayerAction {
-		STOP("stop"), WALK("walk"), RUN("run"), JUMP("jump"), SHOOT("shoot");
+		STOP("stop"), WALK("walk"), RUN("run"),
+
+		JUMP("jump"), SHOOT("shoot"), USE("use");
 
 		private String name;
 
@@ -98,9 +102,13 @@ public class Player implements Disposable {
 	public Vector3 moveDirection = new Vector3();
 	public Vector3 up = new Vector3(Vector3.Y);
 
+	public Vector3 positionCarried = new Vector3();
+
 	private boolean isClimbing = false;
 	private boolean isJumping = false;
 	private Ray ray = new Ray();
+
+	private GameObject carried;
 
 	public boolean newCollision;
 	private float cameraOffsetY = GameSettings.PLAYER_EYE_HEIGHT
@@ -135,7 +143,11 @@ public class Player implements Disposable {
 	private boolean isOnGround() {
 		ray.set(position, up.cpy().scl(-1));
 		float distance = GameSettings.PLAYER_HEIGHT / 2 + 0.5f;
-		return collisionHandler.rayTest(ray, distance) != null;
+		return collisionHandler
+				.rayTest(
+						ray,
+						(short) (CollisionHandler.GROUND_FLAG | CollisionHandler.OBJECT_FLAG),
+						distance) != null;
 	}
 
 	public void update(float delta) {
@@ -167,20 +179,67 @@ public class Player implements Disposable {
 			sound.shoot();
 			Ray ray = viewport.getCamera().getPickRay(screenCenter.x,
 					screenCenter.y);
-			GameObject hitObject = collisionHandler.rayTest(ray, 100);
-			if (hitObject != null && hitObject.removable && hitObject.visible) {
-				hitObject.visible = false;
-				sound.shatter();
+			btRigidBody hitObject = collisionHandler.rayTest(ray,
+					CollisionHandler.OBJECT_FLAG, 100);
+			if (hitObject != null) {
+				GameObject obj = collisionHandler.getGameObject(hitObject);
+				if (obj.removable) {
+					collisionHandler.removeGameObject(obj);
+					sound.shatter();
+				}
 			}
+		}
+
+		// Handle picking up
+		if (controller.actionQueueContains(PlayerAction.USE) && carried == null) {
+
+			Ray ray = viewport.getCamera().getPickRay(screenCenter.x,
+					screenCenter.y);
+			btRigidBody hitObject = collisionHandler.rayTest(ray,
+					CollisionHandler.OBJECT_FLAG, 5);
+
+			if (hitObject != null) {
+				hitObject.setActivationState(Collision.DISABLE_DEACTIVATION);
+				hitObject.activate();
+
+				GameObject obj = collisionHandler.getGameObject(hitObject);
+
+				if (obj.movable) {
+					carried = obj;
+					carried.body.setGravity(Vector3.Zero);
+				}
+			}
+		} else if (controller.actionQueueContains(PlayerAction.USE)
+				&& carried != null) {
+			carried.body.setGravity(GameSettings.GRAVITY);
+			carried.body.setActivationState(Collision.ACTIVE_TAG);
+			carried = null;
+
+		} else if (carried != null) {
+			positionCarried.set(direction).nor().scl(2f).add(position);
+			positionCarried.y += 1.5f;
+
+			float forceGrab = positionCarried.dst(carried.body
+					.getCenterOfMassPosition()) * 1000;
+			Vector3 forceGrabVector = positionCarried.cpy()
+					.sub(carried.body.getCenterOfMassPosition()).nor()
+					.scl(forceGrab);
+			carried.body.setLinearVelocity(carried.body.getLinearVelocity()
+					.scl(0.5f));
+			carried.body.setAngularVelocity(carried.body.getAngularVelocity()
+					.scl(0.5f));
+			carried.body.applyCentralForce(forceGrabVector);
 		}
 
 		// Set move speed
 		float moveSpeed = 0;
 		if (moveMode == PlayerAction.WALK) {
-			moveSpeed = GameSettings.PLAYER_WALK_SPEED;
+			moveSpeed = isOnGround ? GameSettings.PLAYER_WALK_SPEED
+					: GameSettings.PLAYER_WALK_SPEED * 0.5f;
 
 		} else if (moveMode == PlayerAction.RUN) {
-			moveSpeed = GameSettings.PLAYER_RUN_SPEED;
+			moveSpeed = isOnGround ? GameSettings.PLAYER_RUN_SPEED
+					: GameSettings.PLAYER_RUN_SPEED * 0.5f;
 
 		} else if (moveMode == PlayerAction.STOP) {
 			moveSpeed = 0;
@@ -222,6 +281,8 @@ public class Player implements Disposable {
 			isJumping = false;
 		}
 
+		System.out.println(isOnGround);
+
 		// Climbing logic
 		moveDirectionXZ.set(moveDirection.x, 0, moveDirection.z);
 		if (!climbSurfaceNormal.isZero() && !isJumping) {
@@ -234,28 +295,35 @@ public class Player implements Disposable {
 					// Climb upwards
 					isClimbing = true;
 
-					velocity.set(moveDirectionXZ).nor().scl(1f);
+					System.out.println("climb up");
+					velocity.set(moveDirectionXZ).nor()
+							.scl(GameSettings.PLAYER_CLIMB_SPEED);
 					velocity.y = GameSettings.PLAYER_CLIMB_SPEED;
-					object.body.setGravity(Vector3.Zero);
+					// object.body.setGravity(Vector3.Zero);
 
 				} else if (moveDirectionXZ.isCollinear(climbSurfaceNormal,
 						climbNormalEpsilonDirection)) {
+					System.out.println("climb down");
 					// Climb downwards
 					isClimbing = true;
 
 					velocity.setZero();
 					velocity.y = -GameSettings.PLAYER_CLIMB_SPEED;
-					object.body.setGravity(Vector3.Zero);
+					// object.body.setGravity(Vector3.Zero);
 				}
 			} else {
-				velocity.setZero();
+				velocity.set(direction.cpy().nor().scl(1));
 			}
 
-		} else {
+		} else if (isClimbing) {
+			System.out.println("not climbing");
 			isClimbing = false;
-		}
-
-		if (!isClimbing) {
+			// if (!isOnGround) {
+			//
+			// Vector3 stopClimbImpulse = direction.cpy().nor().scl(2);
+			// stopClimbImpulse.y = 4;
+			// object.body.applyCentralImpulse(stopClimbImpulse);
+			// }
 			object.body.setGravity(GameSettings.GRAVITY);
 		}
 

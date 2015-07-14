@@ -134,13 +134,10 @@ public class GameScreen extends AbstractScreen implements Screen {
 		gameObjectFactory.put("level", new GameObject.Constructor(modelLevel,
 				Bullet.obtainStaticNodeShape(modelLevel.nodes), 0));
 
-		Model modelSphere = assets.get("model/sphere.g3db", Model.class);
-		gameObjectFactory.put("sphere", new GameObject.Constructor(modelSphere,
-				Bullet.obtainStaticNodeShape(modelSphere.nodes), 0));
-
 		Model modelSkybox = assets.get("model/skybox.g3db", Model.class);
 		skybox = new ModelInstance(modelSkybox);
 
+		// Add a pillar
 		Model modelPillar = assets.get("model/pillar.g3db", Model.class);
 		gameObjectFactory.put("pillar", new GameObject.Constructor(modelPillar,
 				Bullet.obtainStaticNodeShape(modelPillar.nodes), 0));
@@ -148,17 +145,7 @@ public class GameScreen extends AbstractScreen implements Screen {
 		pillar.position(10, 0, 20);
 		instances.add(pillar);
 
-		Model modelCrate = assets.get("model/crate.g3db", Model.class);
-		gameObjectFactory.put("crate", new GameObject.Constructor(modelCrate,
-//				new btBox2dShape(new Vector3(0.5f, 0.5f, 0.5f)), 1f));
-				new btBox2dShape(new Vector3(1, 1, 1)), 1f));
-		GameObject crate = gameObjectFactory.get("crate").construct();
-		crate.body.setCollisionFlags(crate.body.getCollisionFlags()
-				| btCollisionObject.CollisionFlags.CF_CUSTOM_MATERIAL_CALLBACK);
-		crate.body.setContactCallbackFlag(CollisionHandler.OBJECT_FLAG);
-		instances.add(crate);
-		crate.position(5, 10, 5);
-
+		// Add a 3D compass model
 		Model modelCompass = buildCompassModel();
 		gameObjectFactory.put("compass", new GameObject.Constructor(
 				modelCompass, Bullet.obtainStaticNodeShape(modelCompass.nodes),
@@ -171,6 +158,18 @@ public class GameScreen extends AbstractScreen implements Screen {
 		// instances.add(gameObjectFactory.get("temple").construct());
 		instances.add(gameObjectFactory.get("level").construct());
 
+		// Add all current game instances to the collision world as ground
+		for (GameObject obj : instances) {
+			collisionHandler.add(obj, CollisionHandler.GROUND_FLAG,
+					CollisionHandler.ALL_FLAG);
+			obj.body.setContactCallbackFlag(CollisionHandler.GROUND_FLAG);
+		}
+
+		// Add shootable spheres
+		Model modelSphere = assets.get("model/sphere.g3db", Model.class);
+		gameObjectFactory.put("sphere", new GameObject.Constructor(modelSphere,
+				Bullet.obtainStaticNodeShape(modelSphere.nodes), 0));
+
 		// Blender sphere coordinates
 		Vector3[] spherePos = { new Vector3(-2, 5, 7), new Vector3(-4, 1, 0),
 				new Vector3(2, 1, 0), new Vector3(7, -3, 7),
@@ -182,13 +181,9 @@ public class GameScreen extends AbstractScreen implements Screen {
 			sphere.position(pos);
 			sphere.removable = true;
 			instances.add(sphere);
-		}
-
-		// Add all game instances to the collision world as ground
-		for (GameObject obj : instances) {
-			collisionHandler.add(obj, CollisionHandler.GROUND_FLAG,
+			collisionHandler.add(sphere, CollisionHandler.OBJECT_FLAG,
 					CollisionHandler.ALL_FLAG);
-			obj.body.setContactCallbackFlag(CollisionHandler.GROUND_FLAG);
+			sphere.body.setContactCallbackFlag(CollisionHandler.OBJECT_FLAG);
 		}
 
 		// Gun
@@ -198,12 +193,27 @@ public class GameScreen extends AbstractScreen implements Screen {
 		modelGun.calculateBoundingBox(gunBB);
 		gunBB.getDimensions(gunDim);
 		gameObjectFactory.put("gun", new GameObject.Constructor(modelGun,
-				new btBoxShape(gunDim), 1f));
+				new btBoxShape(gunDim), 5f));
 		gun = gameObjectFactory.get("gun").construct();
 		gun.position(GameSettings.PLAYER_START_POS);
+		gun.body.setFriction(2f);
 		gun.body.setContactCallbackFlag(CollisionHandler.OBJECT_FLAG);
 		collisionHandler.add(gun, CollisionHandler.OBJECT_FLAG,
-				CollisionHandler.NONE_FLAG);
+				CollisionHandler.GROUND_FLAG);
+
+		// Test crate/box
+		Model modelCrate = assets.get("model/crate.g3db", Model.class);
+		gameObjectFactory.put("crate", new GameObject.Constructor(modelCrate,
+				new btBox2dShape(new Vector3(0.5f, 0.5f, 0.5f)), 1f));
+		GameObject crate = gameObjectFactory.get("crate").construct();
+		crate.body.setContactCallbackFlag(CollisionHandler.OBJECT_FLAG);
+		instances.add(crate);
+		crate.position(15, 10, 15);
+		crate.movable = true;
+		System.out.println("crate" + crate + " is movable = " + crate.movable);
+		collisionHandler.add(crate, CollisionHandler.OBJECT_FLAG,
+				CollisionHandler.ALL_FLAG);
+		crate.body.setContactCallbackFlag(CollisionHandler.OBJECT_FLAG);
 
 		// Player
 		Model modelPlayer = new ModelBuilder().createCapsule(
@@ -222,15 +232,17 @@ public class GameScreen extends AbstractScreen implements Screen {
 		playerObject.body.setCollisionFlags(playerObject.body
 				.getCollisionFlags()
 				| btCollisionObject.CollisionFlags.CF_CUSTOM_MATERIAL_CALLBACK);
-		playerObject.body.setContactCallbackFlag(CollisionHandler.OBJECT_FLAG);
+		playerObject.body.setContactCallbackFlag(CollisionHandler.PLAYER_FLAG);
 
 		PlayerSound sound = new PlayerSound(assets);
 
 		player = new Player(game, playerObject, screenCenter, viewport,
 				collisionHandler, sound);
 		player.object.body.setActivationState(Collision.DISABLE_DEACTIVATION);
-		collisionHandler.add(playerObject, CollisionHandler.OBJECT_FLAG,
-				CollisionHandler.GROUND_FLAG);
+		collisionHandler
+				.add(playerObject,
+						CollisionHandler.PLAYER_FLAG,
+						(short) (CollisionHandler.GROUND_FLAG | CollisionHandler.OBJECT_FLAG));
 
 	}
 

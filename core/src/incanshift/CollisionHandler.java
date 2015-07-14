@@ -7,13 +7,13 @@ import com.badlogic.gdx.physics.bullet.DebugDrawer;
 import com.badlogic.gdx.physics.bullet.collision.ClosestRayResultCallback;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionConfiguration;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionDispatcher;
-import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
 import com.badlogic.gdx.physics.bullet.collision.btDbvtBroadphase;
 import com.badlogic.gdx.physics.bullet.collision.btDefaultCollisionConfiguration;
 import com.badlogic.gdx.physics.bullet.collision.btDispatcher;
 import com.badlogic.gdx.physics.bullet.dynamics.btConstraintSolver;
 import com.badlogic.gdx.physics.bullet.dynamics.btDiscreteDynamicsWorld;
 import com.badlogic.gdx.physics.bullet.dynamics.btDynamicsWorld;
+import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.badlogic.gdx.physics.bullet.dynamics.btSequentialImpulseConstraintSolver;
 import com.badlogic.gdx.physics.bullet.linearmath.btIDebugDraw;
 import com.badlogic.gdx.utils.Array;
@@ -23,6 +23,7 @@ public class CollisionHandler implements Disposable {
 
 	// Collision flags
 	final static short NONE_FLAG = 0;
+	final static short PLAYER_FLAG = 1 << 7;
 	final static short GROUND_FLAG = 1 << 8;
 	final static short OBJECT_FLAG = 1 << 9;
 	final static short ALL_FLAG = -1;
@@ -72,28 +73,37 @@ public class CollisionHandler implements Disposable {
 		constraintSolver.dispose();
 	}
 
-	public GameObject rayTest(Ray ray, float maxDistance) {
+	public GameObject getGameObject(btRigidBody co) {
+		GameObject go = null;
+		for (GameObject obj : instances) {
+			if (obj.body.equals(co)) {
+				go = obj;
+				break;
+			}
+		}
+		return go;
+	}
+
+	public btRigidBody rayTest(Ray ray, short mask, float maxDistance) {
+		btRigidBody rb = null;
+
 		Vector3 rayFrom = new Vector3(ray.origin);
 		Vector3 rayTo = new Vector3(ray.direction).scl(maxDistance)
 				.add(rayFrom);
 
 		ClosestRayResultCallback callback = new ClosestRayResultCallback(
 				rayFrom, rayTo);
+		callback.setCollisionFilterMask(mask);
 		dynamicsWorld.rayTest(rayFrom, rayTo, callback);
-
-		btCollisionObject co = callback.getCollisionObject();
-		boolean hasHit = callback.hasHit();
-
-		callback.dispose();
-
-		if (hasHit) {
-			for (GameObject obj : instances) {
-				if (obj.body.equals(co)) {
-					return obj;
-				}
-			}
+		if (callback.hasHit()) {
+			rb = (btRigidBody) callback.getCollisionObject();
 		}
+		callback.dispose();
+		return rb;
+	}
 
-		return null;
+	public void removeGameObject(GameObject obj) {
+		obj.visible = false;
+		dynamicsWorld.removeCollisionObject(obj.body);
 	}
 }

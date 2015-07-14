@@ -52,7 +52,6 @@ class PlayerController implements InputProcessor {
 
 	@Override
 	public boolean keyDown(int keycode) {
-
 		if (keycode == Input.Keys.ESCAPE) {
 			actionQueueClear();
 			actionQueueAdd(PlayerAction.STOP);
@@ -61,7 +60,7 @@ class PlayerController implements InputProcessor {
 			keys.put(keycode, keycode);
 		}
 		if (keycode == GameSettings.RESET) {
-			// TODO
+			player.object.position(GameSettings.PLAYER_START_POS);
 		}
 		if (keycode == GameSettings.RUN) {
 			move = PlayerAction.RUN;
@@ -72,12 +71,16 @@ class PlayerController implements InputProcessor {
 
 	@Override
 	public boolean keyTyped(char character) {
+		if (character == 'e' || character == 'E') {
+			actionQueueAdd(PlayerAction.USE);
+		}
 		return false;
 	}
 
 	@Override
 	public boolean keyUp(int keycode) {
 		keys.remove(keycode, 0);
+
 		if (keycode == GameSettings.JUMP) {
 			jumpKeyReleased = true;
 		}
@@ -158,23 +161,9 @@ class PlayerController implements InputProcessor {
 			moveDirection.add(tmp);
 			action = move;
 		}
-		if (keys.containsKey(GameSettings.UP)) {
-			moveDirection.add(player.up);
-			action = move;
-		}
-		if (keys.containsKey(GameSettings.DOWN)) {
-			moveDirection.sub(player.up);
-			action = move;
-		}
 
 		actionQueueAdd(action);
 
-		// if (keys.containsKey(GameSettings.JUMP) && player.canClimb) {
-		// jumpKeyReleased = false;
-		// jumpTimerRunning = false;
-		// actionQueueAdd(PlayerAction.CLIMB);
-		//
-		// } else
 		if ((keys.containsKey(GameSettings.JUMP) && jumpKeyReleased)) {
 			jumpKeyReleased = false;
 			jumpTimerRunning = true;

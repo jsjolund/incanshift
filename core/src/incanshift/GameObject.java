@@ -55,6 +55,7 @@ class GameObject extends ModelInstance implements Disposable {
 
 	public final btRigidBody body;
 	public boolean removable = false;
+	public boolean movable = false;
 	public boolean visible = true;
 
 	public GameObject(Model model,
@@ -80,15 +81,16 @@ class GameObject extends ModelInstance implements Disposable {
 		calculateTransforms();
 	}
 
-	public void trn(float x, float y, float z) {
+	public void translate(float x, float y, float z) {
 		transform.trn(x, y, z);
 		body.setWorldTransform(transform);
 		calculateTransforms();
 	}
 
-	public void trn(Vector3 translation) {
+	public void translate(Vector3 translation) {
 		transform.trn(translation);
 		body.setWorldTransform(transform);
 		calculateTransforms();
 	}
+
 }
