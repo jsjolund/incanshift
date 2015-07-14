@@ -117,9 +117,7 @@ public class Player implements Disposable {
 		this.sound = sound;
 		this.screenCenter = screenCenter;
 
-		position = new Vector3();
-		moveDirection = new Vector3();
-		direction = new Vector3(Vector3.X);
+		direction = new Vector3(GameSettings.PLAYER_START_DIR);
 
 		playerObject.transform.getTranslation(position);
 		contactListener = new PlayerContactListener();

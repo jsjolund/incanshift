@@ -86,6 +86,7 @@ public class GameScreen extends AbstractScreen implements Screen {
 		assets.load("model/level.g3db", Model.class);
 		assets.load("model/gun.g3db", Model.class);
 		assets.load("model/sphere.g3db", Model.class);
+		assets.load("model/pillar.g3db", Model.class);
 
 		assets.load("sound/jump.wav", Sound.class);
 		assets.load("sound/shatter.wav", Sound.class);
@@ -116,24 +117,34 @@ public class GameScreen extends AbstractScreen implements Screen {
 		// Create game instances
 		modelBatch = new ModelBatch();
 		assets.finishLoading();
-		Model modelTemple = assets.get("model/temple.g3db", Model.class);
-		Model modelGround = assets.get("model/ground.g3db", Model.class);
-		Model modelLevel = assets.get("model/level.g3db", Model.class);
-		Model modelSphere = assets.get("model/sphere.g3db", Model.class);
-		Model modelGun = assets.get("model/gun.g3db", Model.class);
 
 		gameObjectFactory = new ArrayMap<String, GameObject.Constructor>();
+
+		Model modelTemple = assets.get("model/temple.g3db", Model.class);
 		gameObjectFactory.put("temple", new GameObject.Constructor(modelTemple,
 				Bullet.obtainStaticNodeShape(modelTemple.nodes), 0));
+
+		Model modelGround = assets.get("model/ground.g3db", Model.class);
 		gameObjectFactory.put("ground", new GameObject.Constructor(modelGround,
 				Bullet.obtainStaticNodeShape(modelGround.nodes), 0));
+
+		Model modelLevel = assets.get("model/level.g3db", Model.class);
 		gameObjectFactory.put("level", new GameObject.Constructor(modelLevel,
 				Bullet.obtainStaticNodeShape(modelLevel.nodes), 0));
+
+		Model modelSphere = assets.get("model/sphere.g3db", Model.class);
 		gameObjectFactory.put("sphere", new GameObject.Constructor(modelSphere,
 				Bullet.obtainStaticNodeShape(modelSphere.nodes), 0));
 
 		Model modelSkybox = assets.get("model/skybox.g3db", Model.class);
 		skybox = new ModelInstance(modelSkybox);
+		
+		Model modelPillar = assets.get("model/pillar.g3db", Model.class);
+		gameObjectFactory.put("pillar", new GameObject.Constructor(modelPillar,
+				Bullet.obtainStaticNodeShape(modelPillar.nodes), 0));
+		GameObject pillar = gameObjectFactory.get("pillar").construct();
+		pillar.position(10, 0, 20);
+		instances.add(pillar);
 
 		Model modelCompass = buildCompassModel();
 		gameObjectFactory.put("compass", new GameObject.Constructor(
@@ -168,6 +179,7 @@ public class GameScreen extends AbstractScreen implements Screen {
 		}
 
 		// Gun
+		Model modelGun = assets.get("model/gun.g3db", Model.class);
 		BoundingBox gunBB = new BoundingBox();
 		Vector3 gunDim = new Vector3();
 		modelGun.calculateBoundingBox(gunBB);
