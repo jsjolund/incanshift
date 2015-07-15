@@ -17,7 +17,9 @@ public class Player implements Disposable {
 	enum PlayerAction {
 		STOP("stop"), WALK("walk"), RUN("run"),
 
-		JUMP("jump"), SHOOT("shoot"), USE("use");
+		JUMP("jump"), SHOOT("shoot"), USE("use"),
+
+		THROW("throw"), RESET("reset");
 
 		private String name;
 
@@ -151,6 +153,11 @@ public class Player implements Disposable {
 	}
 
 	public void update(float delta) {
+
+		if (controller.actionQueueContains(PlayerAction.RESET)) {
+			game.restartGameScreen();
+		}
+
 		boolean isOnGround = isOnGround();
 
 		// Get user input
@@ -209,6 +216,13 @@ public class Player implements Disposable {
 		} else if (controller.actionQueueContains(PlayerAction.USE)
 				&& carried != null) {
 			carried.body.setGravity(GameSettings.GRAVITY);
+			carried = null;
+
+		} else if (controller.actionQueueContains(PlayerAction.THROW)
+				&& carried != null) {
+			carried.body.setGravity(GameSettings.GRAVITY);
+			Vector3 forcePushVector = direction.cpy().nor().scl(20);
+			carried.body.applyCentralImpulse(forcePushVector);
 			carried = null;
 
 		} else if (carried != null) {
@@ -277,49 +291,49 @@ public class Player implements Disposable {
 			isJumping = false;
 		}
 
-//		// Climbing logic
-//		moveDirectionXZ.set(moveDirection.x, 0, moveDirection.z);
-//		if (!climbSurfaceNormal.isZero() && !isJumping) {
-//
-//			if (controller.actionQueueContains(PlayerAction.WALK)
-//					|| controller.actionQueueContains(PlayerAction.RUN)) {
-//
-//				if (moveDirectionXZ.isCollinearOpposite(climbSurfaceNormal,
-//						climbNormalEpsilonDirection)) {
-//					// Climb upwards
-//					isClimbing = true;
-//
-//					System.out.println("climb up");
-//					velocity.set(moveDirectionXZ).nor()
-//							.scl(GameSettings.PLAYER_CLIMB_SPEED);
-//					velocity.y = GameSettings.PLAYER_CLIMB_SPEED;
-//					// object.body.setGravity(Vector3.Zero);
-//
-//				} else if (moveDirectionXZ.isCollinear(climbSurfaceNormal,
-//						climbNormalEpsilonDirection)) {
-//					System.out.println("climb down");
-//					// Climb downwards
-//					isClimbing = true;
-//
-//					velocity.setZero();
-//					velocity.y = -GameSettings.PLAYER_CLIMB_SPEED;
-//					// object.body.setGravity(Vector3.Zero);
-//				}
-//			} else {
-//				velocity.set(direction.cpy().nor().scl(1));
-//			}
-//
-//		} else if (isClimbing) {
-//			System.out.println("not climbing");
-//			isClimbing = false;
-//			// if (!isOnGround) {
-//			//
-//			// Vector3 stopClimbImpulse = direction.cpy().nor().scl(2);
-//			// stopClimbImpulse.y = 4;
-//			// object.body.applyCentralImpulse(stopClimbImpulse);
-//			// }
-//			object.body.setGravity(GameSettings.GRAVITY);
-//		}
+		// // Climbing logic
+		// moveDirectionXZ.set(moveDirection.x, 0, moveDirection.z);
+		// if (!climbSurfaceNormal.isZero() && !isJumping) {
+		//
+		// if (controller.actionQueueContains(PlayerAction.WALK)
+		// || controller.actionQueueContains(PlayerAction.RUN)) {
+		//
+		// if (moveDirectionXZ.isCollinearOpposite(climbSurfaceNormal,
+		// climbNormalEpsilonDirection)) {
+		// // Climb upwards
+		// isClimbing = true;
+		//
+		// System.out.println("climb up");
+		// velocity.set(moveDirectionXZ).nor()
+		// .scl(GameSettings.PLAYER_CLIMB_SPEED);
+		// velocity.y = GameSettings.PLAYER_CLIMB_SPEED;
+		// // object.body.setGravity(Vector3.Zero);
+		//
+		// } else if (moveDirectionXZ.isCollinear(climbSurfaceNormal,
+		// climbNormalEpsilonDirection)) {
+		// System.out.println("climb down");
+		// // Climb downwards
+		// isClimbing = true;
+		//
+		// velocity.setZero();
+		// velocity.y = -GameSettings.PLAYER_CLIMB_SPEED;
+		// // object.body.setGravity(Vector3.Zero);
+		// }
+		// } else {
+		// velocity.set(direction.cpy().nor().scl(1));
+		// }
+		//
+		// } else if (isClimbing) {
+		// System.out.println("not climbing");
+		// isClimbing = false;
+		// // if (!isOnGround) {
+		// //
+		// // Vector3 stopClimbImpulse = direction.cpy().nor().scl(2);
+		// // stopClimbImpulse.y = 4;
+		// // object.body.applyCentralImpulse(stopClimbImpulse);
+		// // }
+		// object.body.setGravity(GameSettings.GRAVITY);
+		// }
 
 		// Set the transforms
 		object.body.setLinearVelocity(velocity);

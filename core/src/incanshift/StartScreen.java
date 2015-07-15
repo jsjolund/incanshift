@@ -259,11 +259,11 @@ public class StartScreen extends AbstractScreen {
 			int x = 10;
 			int y = h - 2 * yspace * (i + 1);
 
-			fontLarge.setColor(Color.GRAY);
-			GlyphLayout text = fontLarge.draw(spriteBatch, item.toString(), x,
+			sansLarge.setColor(Color.GRAY);
+			GlyphLayout text = sansLarge.draw(spriteBatch, item.toString(), x,
 					y + yspace);
-			fontLarge.setColor(Color.WHITE);
-			fontLarge
+			sansLarge.setColor(Color.WHITE);
+			sansLarge
 					.draw(spriteBatch, item.toString(), x + xspace, y + yspace);
 
 			int tw = (int) text.width;

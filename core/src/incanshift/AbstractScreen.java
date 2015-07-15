@@ -20,9 +20,13 @@ public abstract class AbstractScreen implements Screen {
 	Camera camera;
 
 	SpriteBatch spriteBatch;
-	BitmapFont fontTiny;
-	BitmapFont fontNormal;
-	BitmapFont fontLarge;
+
+	BitmapFont sansTiny;
+	BitmapFont sansNormal;
+	BitmapFont sansLarge;
+	BitmapFont monoTiny;
+	BitmapFont monoNormal;
+	BitmapFont monoLarge;
 
 	IncanShift game;
 	int reqHeight;
@@ -36,14 +40,25 @@ public abstract class AbstractScreen implements Screen {
 		spriteBatch = new SpriteBatch();
 
 		FreeTypeFontGenerator generator = new FreeTypeFontGenerator(
-				Gdx.files.internal("font/font.ttf"));
+				Gdx.files.internal("font/sans.ttf"));
 		FreeTypeFontParameter parameter = new FreeTypeFontParameter();
 		parameter.size = 12;
-		fontTiny = generator.generateFont(parameter);
+		sansTiny = generator.generateFont(parameter);
 		parameter.size = 24;
-		fontNormal = generator.generateFont(parameter);
+		sansNormal = generator.generateFont(parameter);
 		parameter.size = 35;
-		fontLarge = generator.generateFont(parameter);
+		sansLarge = generator.generateFont(parameter);
+		generator.dispose();
+
+		generator = new FreeTypeFontGenerator(
+				Gdx.files.internal("font/mono.ttf"));
+		parameter = new FreeTypeFontParameter();
+		parameter.size = 12;
+		monoTiny = generator.generateFont(parameter);
+		parameter.size = 24;
+		monoNormal = generator.generateFont(parameter);
+		parameter.size = 35;
+		monoLarge = generator.generateFont(parameter);
 		generator.dispose();
 
 		camera = new OrthographicCamera(reqWidth, reqHeight);
@@ -58,7 +73,7 @@ public abstract class AbstractScreen implements Screen {
 	@Override
 	public void dispose() {
 		spriteBatch.dispose();
-		fontTiny.dispose();
+		sansTiny.dispose();
 		game.dispose();
 
 	}

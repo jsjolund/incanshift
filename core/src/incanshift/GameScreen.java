@@ -13,6 +13,7 @@ import com.badlogic.gdx.graphics.PerspectiveCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.Pixmap.Format;
 import com.badlogic.gdx.graphics.VertexAttributes.Usage;
+import com.badlogic.gdx.graphics.g2d.BitmapFontCache;
 import com.badlogic.gdx.graphics.g3d.Environment;
 import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
@@ -70,8 +71,6 @@ public class GameScreen extends AbstractScreen implements Screen {
 	private Vector3 gunLeftRightPosition = new Vector3();
 	private Vector3 gunUpDownPosition = new Vector3();
 
-	private String msg = new String();
-
 	private Vector3 lastCameraDirection = new Vector3();
 	private Vector3 screenCenter = new Vector3();
 
@@ -128,19 +127,19 @@ public class GameScreen extends AbstractScreen implements Screen {
 		gameObjectFactory.put("temple", new GameObject.Constructor(modelTemple,
 				Bullet.obtainStaticNodeShape(modelTemple.nodes), 0));
 		// instances.add(gameObjectFactory.get("temple").construct());
-		Gdx.app.debug(tag, "loaded temple");
+		Gdx.app.debug(tag, "Loaded temple");
 
 		Model modelGround = assets.get("model/ground.g3db", Model.class);
 		gameObjectFactory.put("ground", new GameObject.Constructor(modelGround,
 				Bullet.obtainStaticNodeShape(modelGround.nodes), 0));
 		instances.add(gameObjectFactory.get("ground").construct());
-		Gdx.app.debug(tag, "loaded ground");
+		Gdx.app.debug(tag, "Loaded ground");
 
 		Model modelLevel = assets.get("model/level.g3db", Model.class);
 		gameObjectFactory.put("level", new GameObject.Constructor(modelLevel,
 				Bullet.obtainStaticNodeShape(modelLevel.nodes), 0));
 		instances.add(gameObjectFactory.get("level").construct());
-		Gdx.app.debug(tag, "loaded level");
+		Gdx.app.debug(tag, "Loaded level");
 
 		Model modelTestScene = assets.get("model/test_scene.g3db", Model.class);
 		gameObjectFactory.put(
@@ -148,13 +147,13 @@ public class GameScreen extends AbstractScreen implements Screen {
 				new GameObject.Constructor(modelTestScene, Bullet
 						.obtainStaticNodeShape(modelTestScene.nodes), 0));
 		GameObject testscene = gameObjectFactory.get("test_scene").construct();
-		testscene.position(-30, 0, -30);
+		testscene.position(-30, 1, 30);
 		instances.add(testscene);
-		Gdx.app.debug(tag, "loaded test_scene");
+		Gdx.app.debug(tag, "Loaded test_scene");
 
 		Model modelSkybox = assets.get("model/skybox.g3db", Model.class);
 		skybox = new ModelInstance(modelSkybox);
-		Gdx.app.debug(tag, "loaded skybox");
+		Gdx.app.debug(tag, "Loaded skybox");
 
 		// Add a pillar
 		Model modelPillar = assets.get("model/pillar.g3db", Model.class);
@@ -163,7 +162,7 @@ public class GameScreen extends AbstractScreen implements Screen {
 		GameObject pillar = gameObjectFactory.get("pillar").construct();
 		pillar.position(10, 0, 20);
 		instances.add(pillar);
-		Gdx.app.debug(tag, "loaded pillar");
+		Gdx.app.debug(tag, "Loaded pillar");
 
 		// Add a 3D compass model
 		Model modelCompass = buildCompassModel();
@@ -173,7 +172,7 @@ public class GameScreen extends AbstractScreen implements Screen {
 		GameObject compass = gameObjectFactory.get("compass").construct();
 		compass.position(10, 0.5f, 10);
 		instances.add(compass);
-		Gdx.app.debug(tag, "loaded compass");
+		Gdx.app.debug(tag, "Loaded compass");
 
 		// Add all current game instances to the collision world as ground
 		for (GameObject obj : instances) {
@@ -186,7 +185,7 @@ public class GameScreen extends AbstractScreen implements Screen {
 		Model modelSphere = assets.get("model/sphere.g3db", Model.class);
 		gameObjectFactory.put("sphere", new GameObject.Constructor(modelSphere,
 				Bullet.obtainStaticNodeShape(modelSphere.nodes), 0));
-		Gdx.app.debug(tag, "loaded sphere");
+		Gdx.app.debug(tag, "Loaded sphere");
 
 		// Blender sphere coordinates
 		Vector3[] spherePos = { new Vector3(-2, 5, 7), new Vector3(-4, 1, 0),
@@ -218,7 +217,7 @@ public class GameScreen extends AbstractScreen implements Screen {
 		gun.body.setContactCallbackFlag(CollisionHandler.OBJECT_FLAG);
 		collisionHandler.add(gun, CollisionHandler.OBJECT_FLAG,
 				CollisionHandler.GROUND_FLAG);
-		Gdx.app.debug(tag, "loaded gun");
+		Gdx.app.debug(tag, "Loaded gun");
 
 		// Test crate/box
 		Model modelCrate = assets.get("model/crate.g3db", Model.class);
@@ -233,7 +232,7 @@ public class GameScreen extends AbstractScreen implements Screen {
 		collisionHandler.add(crate, CollisionHandler.OBJECT_FLAG,
 				CollisionHandler.ALL_FLAG);
 		crate.body.setContactCallbackFlag(CollisionHandler.OBJECT_FLAG);
-		Gdx.app.debug(tag, "loaded crate");
+		Gdx.app.debug(tag, "Loaded crate");
 
 		// Player
 		Model modelPlayer = new ModelBuilder().createCapsule(
@@ -263,7 +262,7 @@ public class GameScreen extends AbstractScreen implements Screen {
 				.add(playerObject,
 						CollisionHandler.PLAYER_FLAG,
 						(short) (CollisionHandler.GROUND_FLAG | CollisionHandler.OBJECT_FLAG));
-		Gdx.app.debug(tag, "loaded player");
+		Gdx.app.debug(tag, "Loaded player");
 	}
 
 	private Model buildCompassModel() {
@@ -273,7 +272,7 @@ public class GameScreen extends AbstractScreen implements Screen {
 				.scl(compassScale), null, Usage.Position | Usage.Normal);
 		modelBuilder.begin();
 		Mesh xArrow = arrow.meshes.first().copy(false);
-		xArrow.transform(new Matrix4().rotate(Vector3.X, 90));
+		xArrow.transform(new Matrix4().rotate(Vector3.X, -90));
 		modelBuilder.part("part1", xArrow, GL20.GL_TRIANGLES, new Material(
 				ColorAttribute.createDiffuse(Color.RED)));
 		modelBuilder.node();
@@ -282,7 +281,7 @@ public class GameScreen extends AbstractScreen implements Screen {
 				ColorAttribute.createDiffuse(Color.GREEN)));
 		modelBuilder.node();
 		Mesh zArrow = arrow.meshes.first().copy(false);
-		zArrow.transform(new Matrix4().rotate(Vector3.Z, 90));
+		zArrow.transform(new Matrix4().rotate(Vector3.Z, -90));
 		modelBuilder.part("part3", zArrow, GL20.GL_TRIANGLES, new Material(
 				ColorAttribute.createDiffuse(Color.BLUE)));
 		arrow.dispose();
@@ -368,7 +367,7 @@ public class GameScreen extends AbstractScreen implements Screen {
 		for (GameObject obj : instances)
 			obj.body.getWorldTransform(obj.transform);
 
-		// Render the models
+		// Render the skybox
 		modelBatch.begin(camera);
 		modelBatch.render(skybox);
 		modelBatch.end();
@@ -405,22 +404,6 @@ public class GameScreen extends AbstractScreen implements Screen {
 		// Draw collision debug wireframe
 		// collisionHandler.debugDrawWorld(camera);
 
-		// Draw player coordinates
-		msg = String
-				.format("Blender: x=%.2f, y=%.2f, z=%.2f\nGame: x=%.2f, y=%.2f, z=%.2f, v=%.2f",
-						player.position.x, -player.position.z,
-						player.position.y - GameSettings.PLAYER_HEIGHT / 2,
-
-						player.position.x, player.position.y
-								- GameSettings.PLAYER_HEIGHT / 2,
-						player.position.z, player.object.body
-								.getLinearVelocity().len());
-		spriteBatch.setShader(null);
-		spriteBatch.setProjectionMatrix(uiMatrix);
-		spriteBatch.begin();
-		fontTiny.draw(spriteBatch, msg, 10, 30);
-		spriteBatch.end();
-
 		// Draw crosshair
 		shapeRenderer.setProjectionMatrix(uiMatrix);
 		shapeRenderer.begin(ShapeType.Line);
@@ -439,6 +422,30 @@ public class GameScreen extends AbstractScreen implements Screen {
 				+ GameSettings.CROSSHAIR, yc);
 		shapeRenderer.end();
 
+		// Draw player coordinates
+		BitmapFontCache cache = monoTiny.getCache();
+		cache.clear();
+		cache.setColor(Color.BLACK);
+		float textX = 10;
+		float textY = 20;
+		monoTiny.getData().markupEnabled = true;
+		cache.addText(String.format(
+				"Blender: [BLUE]x=% .2f[]  [RED]y=% .2f[]  [GREEN]z=% .2f[]",
+				player.position.x, -player.position.z, player.position.y
+						- GameSettings.PLAYER_HEIGHT / 2), textX, textY * 2);
+		cache.addText(
+				String.format(
+						"Game:    [BLUE]x=% .2f[]  [RED]y=% .2f[]  [GREEN]z=% .2f[]  [WHITE]v=% .2f",
+						player.position.x, player.position.y
+								- GameSettings.PLAYER_HEIGHT / 2,
+						player.position.z, player.object.body
+								.getLinearVelocity().len()), textX, (textY));
+		monoTiny.getData().markupEnabled = false;
+		spriteBatch.setShader(null);
+		spriteBatch.setProjectionMatrix(uiMatrix);
+		spriteBatch.begin();
+		cache.draw(spriteBatch);
+		spriteBatch.end();
 	}
 
 	@Override

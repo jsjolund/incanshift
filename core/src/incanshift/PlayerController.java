@@ -60,7 +60,7 @@ class PlayerController implements InputProcessor {
 			keys.put(keycode, keycode);
 		}
 		if (keycode == GameSettings.RESET) {
-			player.object.position(GameSettings.PLAYER_START_POS);
+			actionQueueAdd(PlayerAction.RESET);
 		}
 		if (keycode == GameSettings.RUN) {
 			move = PlayerAction.RUN;
@@ -73,6 +73,9 @@ class PlayerController implements InputProcessor {
 	public boolean keyTyped(char character) {
 		if (character == 'e' || character == 'E') {
 			actionQueueAdd(PlayerAction.USE);
+		}
+		if (character == 'q' || character == 'Q') {
+			actionQueueAdd(PlayerAction.THROW);
 		}
 		return false;
 	}
@@ -121,7 +124,7 @@ class PlayerController implements InputProcessor {
 
 	@Override
 	public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-		if (button == Input.Buttons.LEFT) {
+		if (button == GameSettings.SHOOT) {
 			actionQueueAdd(PlayerAction.SHOOT);
 		}
 		return true;
