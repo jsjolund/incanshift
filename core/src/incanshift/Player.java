@@ -120,7 +120,9 @@ public class Player implements Disposable {
 
 	GameObject currentGun;
 	private boolean gunHidden = false;
-	public Vector3 gunHiddenDirection = new Vector3();
+
+	private float gunYoffset = 0;
+	private boolean gunYIncrease = true;
 
 	// Gun positioning
 
@@ -140,13 +142,12 @@ public class Player implements Disposable {
 		return gun;
 	}
 
-	private void updateGun() {
+	private void updateGun(float delta) {
 		GameObject gun = currentGun;
 		if (gun == null) {
 			return;
 		}
 		if (gunHidden) {
-			// Update gun position/rotation relative to camera
 			gunBaseTransform.set(viewport.getCamera().view);
 		} else {
 			gunBaseTransform.set(viewport.getCamera().view).inv();
@@ -158,6 +159,29 @@ public class Player implements Disposable {
 		gunFrontBackPosition.set(direction).nor().scl(0.1f);
 		gunUpDownPosition.set(direction).nor().crs(gunLeftRightPosition)
 				.scl(0.75f);
+
+		if (moveMode == PlayerAction.STOP) {
+			gunYoffset = 0;
+		} else {
+			float gunMoveSpeed = (moveMode == PlayerAction.RUN) ? GameSettings.PLAYER_RUN_SPEED
+					: GameSettings.PLAYER_WALK_SPEED;
+			gunMoveSpeed *= 0.0015;
+			double gunMoveLimitY = 0.005;
+
+			if (gunYoffset > 0) {
+				gunYIncrease = false;
+
+			} else if (gunYoffset < -gunMoveLimitY) {
+				gunYIncrease = true;
+			}
+			if (gunYIncrease) {
+				gunYoffset += delta * gunMoveSpeed;
+			} else {
+				gunYoffset -= delta * gunMoveSpeed*3;
+			}
+		}
+		gunUpDownPosition.y += gunYoffset;
+//		gunFrontBackPosition.x += gunYoffset;
 
 		gun.body.translate(gunLeftRightPosition);
 		gun.body.translate(gunFrontBackPosition);
@@ -230,7 +254,7 @@ public class Player implements Disposable {
 		}
 
 		// Handle shooting
-		if (controller.actionQueueContains(PlayerAction.SHOOT)) {
+		if (controller.actionQueueContains(PlayerAction.SHOOT) && !gunHidden) {
 			sound.shoot();
 			Ray ray = viewport.getCamera().getPickRay(screenCenter.x,
 					screenCenter.y);
@@ -404,7 +428,7 @@ public class Player implements Disposable {
 		camera.up.set(Vector3.Y);
 		camera.update();
 
-		updateGun();
+		updateGun(delta);
 
 		controller.actionQueueClear();
 	}
