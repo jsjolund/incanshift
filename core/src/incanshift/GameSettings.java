@@ -25,7 +25,7 @@ public class GameSettings {
 	public static final Vector3 PLAYER_START_POS = new Vector3(0, 5, 0);
 
 	// TODO: Some values for direction makes the game crash on start...
-	public static final Vector3 PLAYER_START_DIR = new Vector3(1E-5f, 0, 1E-5f);
+	public static final Vector3 PLAYER_START_DIR = (new Vector3(1, 0, 1f)).nor();
 
 	public static final int FORWARD = Keys.W;
 	public static final int STRAFE_LEFT = Keys.A;

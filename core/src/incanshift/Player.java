@@ -1,9 +1,9 @@
 package incanshift;
 
 import com.badlogic.gdx.graphics.Camera;
+import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
-import com.badlogic.gdx.physics.bullet.collision.Collision;
 import com.badlogic.gdx.physics.bullet.collision.ContactListener;
 import com.badlogic.gdx.physics.bullet.collision.btManifoldPoint;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
@@ -94,7 +94,7 @@ public class Player implements Disposable {
 	private float climbNormalEpsilonVertical = 0.5f;
 	float canClimbTimeout = 0.1f;
 
-	private Vector3 moveDirectionXZ = new Vector3();
+	// private Vector3 moveDirectionXZ = new Vector3();
 	private Vector3 velocityXZ = new Vector3();
 	private Vector3 velocityNew = new Vector3();
 
@@ -117,6 +117,54 @@ public class Player implements Disposable {
 			- GameSettings.PLAYER_HEIGHT / 2;
 
 	private PlayerAction moveMode = PlayerAction.STOP;
+
+	GameObject currentGun;
+	private boolean gunHidden = false;
+	public Vector3 gunHiddenDirection = new Vector3();
+
+	// Gun positioning
+
+	private Matrix4 gunBaseTransform = new Matrix4();
+	private Vector3 gunFrontBackPosition = new Vector3();
+	private Vector3 gunLeftRightPosition = new Vector3();
+	private Vector3 gunUpDownPosition = new Vector3();
+
+	public void setGun(GameObject gun) {
+		if (gun != null) {
+			gun.position(position);
+		}
+		this.currentGun = gun;
+	}
+
+	public GameObject getGun(GameObject gun) {
+		return gun;
+	}
+
+	private void updateGun() {
+		GameObject gun = currentGun;
+		if (gun == null) {
+			return;
+		}
+		if (gunHidden) {
+			// Update gun position/rotation relative to camera
+			gunBaseTransform.set(viewport.getCamera().view);
+		} else {
+			gunBaseTransform.set(viewport.getCamera().view).inv();
+		}
+		// Update gun position/rotation relative to camera
+		gun.body.setWorldTransform(gunBaseTransform);
+
+		gunLeftRightPosition.set(direction).crs(Vector3.Y).nor().scl(0.075f);
+		gunFrontBackPosition.set(direction).nor().scl(0.1f);
+		gunUpDownPosition.set(direction).nor().crs(gunLeftRightPosition)
+				.scl(0.75f);
+
+		gun.body.translate(gunLeftRightPosition);
+		gun.body.translate(gunFrontBackPosition);
+		gun.body.translate(gunUpDownPosition);
+		gun.body.setLinearVelocity(object.body.getLinearVelocity());
+		gun.body.getWorldTransform(gun.transform);
+	}
 
 	public Player(IncanShift game, GameObject playerObject,
 			Vector3 screenCenter, Viewport viewport,
@@ -186,8 +234,11 @@ public class Player implements Disposable {
 			sound.shoot();
 			Ray ray = viewport.getCamera().getPickRay(screenCenter.x,
 					screenCenter.y);
-			btRigidBody hitObject = collisionHandler.rayTest(ray,
-					CollisionHandler.OBJECT_FLAG, 100);
+			btRigidBody hitObject = collisionHandler
+					.rayTest(
+							ray,
+							(short) (CollisionHandler.GROUND_FLAG | CollisionHandler.OBJECT_FLAG),
+							100);
 			if (hitObject != null) {
 				GameObject obj = collisionHandler.getGameObject(hitObject);
 				if (obj.removable) {
@@ -209,6 +260,7 @@ public class Player implements Disposable {
 				GameObject obj = collisionHandler.getGameObject(hitObject);
 
 				if (obj.movable) {
+					gunHidden = true;
 					carried = obj;
 					carried.body.setGravity(Vector3.Zero);
 				}
@@ -216,6 +268,7 @@ public class Player implements Disposable {
 		} else if (controller.actionQueueContains(PlayerAction.USE)
 				&& carried != null) {
 			carried.body.setGravity(GameSettings.GRAVITY);
+			gunHidden = false;
 			carried = null;
 
 		} else if (controller.actionQueueContains(PlayerAction.THROW)
@@ -224,6 +277,7 @@ public class Player implements Disposable {
 			Vector3 forcePushVector = direction.cpy().nor().scl(20);
 			carried.body.applyCentralImpulse(forcePushVector);
 			carried = null;
+			gunHidden = false;
 
 		} else if (carried != null) {
 			positionCarried.set(direction).nor().scl(2f).add(position);
@@ -284,7 +338,7 @@ public class Player implements Disposable {
 				sound.jump();
 
 			} else if (isJumping) {
-				object.body.applyCentralForce(new Vector3(Vector3.Y)
+				object.body.applyCentralForce(new Vector3(up)
 						.scl(GameSettings.PLAYER_JUMP_FORCE));
 			}
 		} else {
@@ -349,6 +403,8 @@ public class Player implements Disposable {
 		camera.direction.set(direction);
 		camera.up.set(Vector3.Y);
 		camera.update();
+
+		updateGun();
 
 		controller.actionQueueClear();
 	}

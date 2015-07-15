@@ -64,13 +64,6 @@ public class GameScreen extends AbstractScreen implements Screen {
 	// Collision
 	private CollisionHandler collisionHandler;
 
-	// Gun positioning
-	private GameObject gun;
-	private Matrix4 gunBaseTransform = new Matrix4();
-	private Vector3 gunFrontBackPosition = new Vector3();
-	private Vector3 gunLeftRightPosition = new Vector3();
-	private Vector3 gunUpDownPosition = new Vector3();
-
 	private Vector3 lastCameraDirection = new Vector3();
 	private Vector3 screenCenter = new Vector3();
 
@@ -211,12 +204,12 @@ public class GameScreen extends AbstractScreen implements Screen {
 		gunBB.getDimensions(gunDim);
 		gameObjectFactory.put("gun", new GameObject.Constructor(modelGun,
 				new btBoxShape(gunDim), 5f));
-		gun = gameObjectFactory.get("gun").construct();
-		gun.position(GameSettings.PLAYER_START_POS);
+		GameObject gun = gameObjectFactory.get("gun").construct();
 		gun.body.setFriction(2f);
 		gun.body.setContactCallbackFlag(CollisionHandler.OBJECT_FLAG);
 		collisionHandler.add(gun, CollisionHandler.OBJECT_FLAG,
 				CollisionHandler.GROUND_FLAG);
+		instances.add(gun);
 		Gdx.app.debug(tag, "Loaded gun");
 
 		// Test crate/box
@@ -262,6 +255,7 @@ public class GameScreen extends AbstractScreen implements Screen {
 				.add(playerObject,
 						CollisionHandler.PLAYER_FLAG,
 						(short) (CollisionHandler.GROUND_FLAG | CollisionHandler.OBJECT_FLAG));
+		player.setGun(gun);
 		Gdx.app.debug(tag, "Loaded player");
 	}
 
@@ -271,19 +265,23 @@ public class GameScreen extends AbstractScreen implements Screen {
 		Model arrow = modelBuilder.createArrow(Vector3.Zero, Vector3.Y.cpy()
 				.scl(compassScale), null, Usage.Position | Usage.Normal);
 		modelBuilder.begin();
-		Mesh xArrow = arrow.meshes.first().copy(false);
-		xArrow.transform(new Matrix4().rotate(Vector3.X, -90));
-		modelBuilder.part("part1", xArrow, GL20.GL_TRIANGLES, new Material(
-				ColorAttribute.createDiffuse(Color.RED)));
+
+		Mesh zArrow = arrow.meshes.first().copy(false);
+		zArrow.transform(new Matrix4().rotate(Vector3.X, 90));
+		modelBuilder.part("part1", zArrow, GL20.GL_TRIANGLES, new Material(
+				ColorAttribute.createDiffuse(Color.BLUE)));
+
 		modelBuilder.node();
 		Mesh yArrow = arrow.meshes.first().copy(false);
 		modelBuilder.part("part2", yArrow, GL20.GL_TRIANGLES, new Material(
 				ColorAttribute.createDiffuse(Color.GREEN)));
+
 		modelBuilder.node();
-		Mesh zArrow = arrow.meshes.first().copy(false);
-		zArrow.transform(new Matrix4().rotate(Vector3.Z, -90));
-		modelBuilder.part("part3", zArrow, GL20.GL_TRIANGLES, new Material(
-				ColorAttribute.createDiffuse(Color.BLUE)));
+		Mesh xArrow = arrow.meshes.first().copy(false);
+		xArrow.transform(new Matrix4().rotate(Vector3.Z, -90));
+		modelBuilder.part("part3", xArrow, GL20.GL_TRIANGLES, new Material(
+				ColorAttribute.createDiffuse(Color.RED)));
+
 		arrow.dispose();
 		return modelBuilder.end();
 	}
@@ -349,21 +347,6 @@ public class GameScreen extends AbstractScreen implements Screen {
 		player.update(delta);
 		player.object.body.getWorldTransform(player.object.transform);
 
-		// Update gun position/rotation relative to camera
-		player.direction.nor();
-		gunLeftRightPosition.set(player.direction).crs(Vector3.Y).nor()
-				.scl(0.075f);
-		gunFrontBackPosition.set(player.direction).nor().scl(0.1f);
-		gunUpDownPosition.set(player.direction).nor().crs(gunLeftRightPosition)
-				.scl(0.75f);
-		gunBaseTransform.set(camera.view).inv();
-		gun.body.setWorldTransform(gunBaseTransform);
-		gun.body.translate(gunLeftRightPosition);
-		gun.body.translate(gunFrontBackPosition);
-		gun.body.translate(gunUpDownPosition);
-		gun.body.setLinearVelocity(player.object.body.getLinearVelocity());
-		gun.body.getWorldTransform(gun.transform);
-
 		for (GameObject obj : instances)
 			obj.body.getWorldTransform(obj.transform);
 
@@ -398,7 +381,6 @@ public class GameScreen extends AbstractScreen implements Screen {
 				modelBatch.render(obj, environment);
 			}
 		}
-		modelBatch.render(gun, environment);
 		modelBatch.end();
 
 		// Draw collision debug wireframe
@@ -430,12 +412,12 @@ public class GameScreen extends AbstractScreen implements Screen {
 		float textY = 20;
 		monoTiny.getData().markupEnabled = true;
 		cache.addText(String.format(
-				"Blender: [BLUE]x=% .2f[]  [RED]y=% .2f[]  [GREEN]z=% .2f[]",
+				"Blender: [RED]x=% .2f[]  [GREEN]y=% .2f[]  [BLUE]z=% .2f[]",
 				player.position.x, -player.position.z, player.position.y
 						- GameSettings.PLAYER_HEIGHT / 2), textX, textY * 2);
 		cache.addText(
 				String.format(
-						"Game:    [BLUE]x=% .2f[]  [RED]y=% .2f[]  [GREEN]z=% .2f[]  [WHITE]v=% .2f",
+						"Game:    [RED]x=% .2f[]  [GREEN]y=% .2f[]  [BLUE]z=% .2f[]  [WHITE]v=% .2f",
 						player.position.x, player.position.y
 								- GameSettings.PLAYER_HEIGHT / 2,
 						player.position.z, player.object.body
