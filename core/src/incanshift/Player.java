@@ -208,6 +208,8 @@ public class Player implements Disposable {
 
 		controller = new PlayerController(this);
 	}
+	
+
 
 	@Override
 	public void dispose() {
