@@ -9,7 +9,9 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator.FreeTypeFontParameter;
+import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Scaling;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
@@ -20,7 +22,10 @@ public abstract class AbstractScreen implements Screen {
 	Camera camera;
 
 	SpriteBatch spriteBatch;
-
+	
+	Matrix4 uiMatrix;
+	Vector3 screenCenter = new Vector3();
+	
 	BitmapFont sansTiny;
 	BitmapFont sansNormal;
 	BitmapFont sansLarge;
@@ -67,6 +72,11 @@ public abstract class AbstractScreen implements Screen {
 
 		viewport = new FitViewport(reqWidth, reqHeight, camera);
 		viewport.apply();
+		
+		uiMatrix = camera.combined.cpy();
+		uiMatrix.setToOrtho2D(0, 0, viewport.getScreenWidth(),
+				viewport.getScreenHeight());
+
 
 	}
 
@@ -100,5 +110,11 @@ public abstract class AbstractScreen implements Screen {
 
 		viewport.apply();
 
+		screenCenter.set(width / 2, height / 2, 1);
+		
+		float vw = viewport.getScreenWidth();
+		float vh = viewport.getScreenHeight();
+		uiMatrix = camera.combined.cpy();
+		uiMatrix.setToOrtho2D(0, 0, vw, vh);
 	}
 }

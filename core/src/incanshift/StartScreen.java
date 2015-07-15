@@ -12,7 +12,6 @@ import com.badlogic.gdx.graphics.Pixmap.Format;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.FrameBuffer;
-import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector3;
 
@@ -194,7 +193,6 @@ public class StartScreen extends AbstractScreen {
 	MenuItem selectedItem = MenuItem.START;
 	boolean canResume = false;
 
-	Matrix4 uiMatrix;
 	FrameBuffer fbo = null;
 
 	MenuInputProcessor input;
@@ -212,10 +210,6 @@ public class StartScreen extends AbstractScreen {
 		assets.load("sound/music_menu.ogg", Music.class);
 		assets.load("sound/click.wav", Sound.class);
 		assets.load("sound/enter.wav", Sound.class);
-
-		uiMatrix = camera.combined.cpy();
-		uiMatrix.setToOrtho2D(0, 0, viewport.getScreenWidth(),
-				viewport.getScreenHeight());
 
 		createMenuTextures();
 		input = new MenuInputProcessor();
@@ -350,9 +344,6 @@ public class StartScreen extends AbstractScreen {
 
 		float vw = viewport.getScreenWidth();
 		float vh = viewport.getScreenHeight();
-
-		uiMatrix = camera.combined.cpy();
-		uiMatrix.setToOrtho2D(0, 0, vw, vh);
 
 		for (MenuItem item : MenuItem.values()) {
 			item.resize((int) vw, (int) vh);

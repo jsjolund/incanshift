@@ -3,43 +3,23 @@ package incanshift;
 import com.badlogic.gdx.Application;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.assets.AssetManager;
-import com.badlogic.gdx.audio.Music;
-import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.Mesh;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.Pixmap.Format;
-import com.badlogic.gdx.graphics.VertexAttributes.Usage;
 import com.badlogic.gdx.graphics.g2d.BitmapFontCache;
 import com.badlogic.gdx.graphics.g3d.Environment;
-import com.badlogic.gdx.graphics.g3d.Material;
-import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
-import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
-import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
-import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.math.collision.BoundingBox;
-import com.badlogic.gdx.physics.bullet.Bullet;
-import com.badlogic.gdx.physics.bullet.collision.Collision;
-import com.badlogic.gdx.physics.bullet.collision.btBox2dShape;
-import com.badlogic.gdx.physics.bullet.collision.btBoxShape;
-import com.badlogic.gdx.physics.bullet.collision.btCapsuleShape;
-import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
-import com.badlogic.gdx.utils.Array;
-import com.badlogic.gdx.utils.ArrayMap;
 
 public class GameScreen extends AbstractScreen implements Screen {
 
-	String tag = "GameScreen";
+	final static String tag = "GameScreen";
 
 	private GameWorld world;
 
@@ -56,14 +36,11 @@ public class GameScreen extends AbstractScreen implements Screen {
 	private float sunRadius;
 	private ShapeRenderer shapeRenderer;
 
-	private Matrix4 uiMatrix;
-
 	// Game objects
 	// private Array<GameObject> instances;
 	// private ArrayMap<String, GameObject.Constructor> gameObjectFactory;
 
 	private Vector3 lastCameraDirection = new Vector3();
-	private Vector3 screenCenter = new Vector3();
 
 	public GameScreen(IncanShift game, int reqWidth, int reqHeight) {
 		super(game, reqWidth, reqHeight);
@@ -79,7 +56,7 @@ public class GameScreen extends AbstractScreen implements Screen {
 			pos.set(pos.x, pos.z, -pos.y);
 			world.spawnEnemyMask(pos);
 		}
-		
+
 		world.spawnCrate(new Vector3(15, 10, 15));
 		world.spawnCrate(new Vector3(-15, 20, 15));
 		world.spawnCrate(new Vector3(5, 2, 5));
@@ -110,7 +87,6 @@ public class GameScreen extends AbstractScreen implements Screen {
 		world.dispose();
 
 		modelBatch.dispose();
-
 
 		shaderSun.dispose();
 		sunTexture.dispose();
@@ -236,19 +212,11 @@ public class GameScreen extends AbstractScreen implements Screen {
 
 		super.resize(width, height);
 
-		float vw = viewport.getScreenWidth();
-		float vh = viewport.getScreenHeight();
-
-		screenCenter.set(width / 2, height / 2, 1);
-
-		uiMatrix = camera.combined.cpy();
-		uiMatrix.setToOrtho2D(0, 0, vw, vh);
-
 		camera = new PerspectiveCamera(GameSettings.CAMERA_FOV,
 				viewport.getScreenWidth(), viewport.getScreenHeight());
 		camera.near = 1E-2f;
 		camera.far = 1.5E3f;
-//		camera.far = 10f;
+		// camera.far = 10f;
 		camera.lookAt(lastCameraDirection);
 
 		camera.update(true);
