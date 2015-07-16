@@ -3,34 +3,36 @@ package incanshift;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
-import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.Pixmap.Format;
 import com.badlogic.gdx.graphics.g2d.BitmapFontCache;
 import com.badlogic.gdx.graphics.g3d.Environment;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
-import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.utils.Array;
 
 public class GameScreen extends AbstractScreen {
 
 	final static String tag = "GameScreen";
 
 	private GameWorld world;
-
 	private ModelBatch modelBatch;
 
 	// Lights and stuff
 	private Environment environment;
-	private ShaderProgram shaderSun;
-	private Texture sunTexture;
-	private Vector3 sunPosition;
-	private Vector3 sunPositionProj;
-	private float sunRadius;
 	private ShapeRenderer shapeRenderer;
+
+	// Crosshair coordinates
+	Vector2 chHoriz1 = new Vector2();
+	Vector2 chHoriz2 = new Vector2();
+	Vector2 chVert1 = new Vector2();
+	Vector2 chVert2 = new Vector2();
+
+	Array<Billboard> billboards = new Array<Billboard>();
+	Billboard sun;
 
 	private Vector3 lastCameraDirection = new Vector3();
 
@@ -38,36 +40,41 @@ public class GameScreen extends AbstractScreen {
 		super(game, reqWidth, reqHeight);
 
 		world = new GameWorld(game, viewport, screenCenter);
+
+		// Add some movable boxes
+		world.spawnCrate(new Vector3(15, 10, 15));
+		world.spawnCrate(new Vector3(-15, 20, 15));
+		world.spawnCrate(new Vector3(5, 2, 5));
+
 		// Blender sphere coordinates
 		Vector3[] spherePos = { new Vector3(-2, 5, 7), new Vector3(-4, 1, 0),
 				new Vector3(2, 1, 0), new Vector3(7, -3, 7),
 				new Vector3(-2, -8, 7), new Vector3(0, -8, 7), };
+		// Add the spheres
 		for (Vector3 pos : spherePos) {
 			pos.set(pos.x, pos.z, -pos.y);
 			world.spawnEnemyMask(pos);
 		}
 
-		world.spawnCrate(new Vector3(15, 10, 15));
-		world.spawnCrate(new Vector3(-15, 20, 15));
-		world.spawnCrate(new Vector3(5, 2, 5));
+		// Billboards
+		Vector3 sunPosition = new Vector3(500, 1200, 700);
+		sun = new Billboard(sunPosition, 500f, 500f, "shader/common.vert",
+				"shader/sun.frag");
+		billboards.add(new Billboard(new Vector3(-20, 2, 10), 2, 1,
+				"shader/common.vert", "shader/test.frag"));
+		billboards.add(new Billboard(new Vector3(5, 1, 20), 3, 3,
+				"shader/common.vert", "shader/test.frag"));
 
 		// Various environment graphics stuff
 		shapeRenderer = new ShapeRenderer();
 		environment = new Environment();
-		sunTexture = new Texture(512, 512, Format.RGBA8888);
-		sunPosition = new Vector3(500, 1200, 700);
-		sunPositionProj = sunPosition.cpy();
-		sunRadius = 500000f;
 		environment.set(new ColorAttribute(ColorAttribute.AmbientLight, 0.3f,
 				0.3f, 0.3f, 1f));
 		environment.add(new DirectionalLight().set(Color.WHITE,
 				sunPosition.scl(-1)));
-		loadShaders();
 
-		// Create game instances
 		modelBatch = new ModelBatch();
 
-		Gdx.app.debug(tag, "Loaded player");
 	}
 
 	@Override
@@ -78,9 +85,9 @@ public class GameScreen extends AbstractScreen {
 
 		modelBatch.dispose();
 
-		shaderSun.dispose();
-		sunTexture.dispose();
-
+		for (Billboard b : billboards) {
+			b.dispose();
+		}
 	}
 
 	@Override
@@ -90,87 +97,21 @@ public class GameScreen extends AbstractScreen {
 		world.music(false);
 	}
 
-	private void loadShaders() {
-		String vert = Gdx.files.local("shader/sun.vert").readString();
-		String frag = Gdx.files.local("shader/sun.frag").readString();
-		shaderSun = new ShaderProgram(vert, frag);
-		ShaderProgram.pedantic = false;
-		if (!shaderSun.isCompiled()) {
-			Gdx.app.debug("Shader:", shaderSun.getLog());
-			Gdx.app.exit();
-		}
-		if (shaderSun.getLog().length() != 0) {
-			Gdx.app.debug("Shader:", shaderSun.getLog());
-		}
-	}
-
 	@Override
 	public void pause() {
 		// TODO Auto-generated method stub
 	}
 
-	@Override
-	public void render(float delta) {
-		delta = Math.min(1f / 30f, Gdx.graphics.getDeltaTime());
-		super.render(delta);
-
-		world.update(delta);
-
-		// Render the skybox
-		modelBatch.begin(camera);
-		modelBatch.render(world.skybox);
-		modelBatch.end();
-
-		// Draw the sun
-		spriteBatch.begin();
-		spriteBatch.setProjectionMatrix(uiMatrix);
-		shaderSun.begin();
-		Vector3 s_pos_sun = viewport.project(sunPositionProj.set(sunPosition));
-		s_pos_sun.y = s_pos_sun.y - getViewportHeight() / 2;
-		shaderSun.setUniformf("pos_sun", s_pos_sun);
-		shaderSun.setUniformf("resolution", getViewportWidth(),
-				getViewportHeight());
-		shaderSun.end();
-		float dst = camera.position.dst(sunPosition);
-		spriteBatch.setShader(shaderSun);
-		float sw = sunRadius / dst;
-		float sh = sw;
-		spriteBatch.draw(sunTexture, s_pos_sun.x - sw / 2,
-				s_pos_sun.y - sh / 2, sw, sh);
-		spriteBatch.setShader(null);
-		spriteBatch.end();
-
-		// Render the game level models and player gun
-		modelBatch.begin(camera);
-		for (GameObject obj : world.instances) {
-			if (obj.visible) {
-				modelBatch.render(obj, environment);
-			}
-		}
-		modelBatch.end();
-
-		// Draw collision debug wireframe
-		// collisionHandler.debugDrawWorld(camera);
-
-		// Draw crosshair
-		shapeRenderer.setProjectionMatrix(uiMatrix);
-		shapeRenderer.begin(ShapeType.Line);
+	private void updateCrosshair() {
 		float xc = getViewportWidth() / 2;
 		float yc = getViewportHeight() / 2;
-		shapeRenderer.setColor(Color.GRAY);
-		shapeRenderer.line(xc + 1, yc - GameSettings.CROSSHAIR, xc + 1, yc
-				+ GameSettings.CROSSHAIR);
-		shapeRenderer.line(xc - GameSettings.CROSSHAIR, yc - 1, xc
-				+ GameSettings.CROSSHAIR, yc - 1);
+		chHoriz1.set(xc, yc - GameSettings.CROSSHAIR);
+		chHoriz2.set(xc, yc + GameSettings.CROSSHAIR);
+		chVert1.set(xc - GameSettings.CROSSHAIR, yc);
+		chVert2.set(xc + GameSettings.CROSSHAIR, yc);
+	}
 
-		shapeRenderer.setColor(Color.WHITE);
-		shapeRenderer.line(xc, yc - GameSettings.CROSSHAIR, xc, yc
-				+ GameSettings.CROSSHAIR);
-		shapeRenderer.line(xc - GameSettings.CROSSHAIR, yc, xc
-				+ GameSettings.CROSSHAIR, yc);
-		shapeRenderer.end();
-
-		// Draw player coordinates
+	private BitmapFontCache getPlayerPositionTextCache() {
 		BitmapFontCache cache = monoTiny.getCache();
 		cache.clear();
 		cache.setColor(Color.BLACK);
@@ -190,11 +131,80 @@ public class GameScreen extends AbstractScreen {
 						world.player.position.z, world.player.object.body
 								.getLinearVelocity().len()), textX, (textY));
 		monoTiny.getData().markupEnabled = false;
+		return cache;
+	}
+
+	@Override
+	public void render(float delta) {
+		delta = Math.min(1f / 30f, Gdx.graphics.getDeltaTime());
+		super.render(delta);
+
+		world.update(delta);
+
+		// Render the skybox
+		modelBatch.begin(camera);
+		modelBatch.render(world.skybox);
+		modelBatch.end();
+
+		// Draw sun billboard
+		if (camera.frustum.sphereInFrustum(sun.worldPos, sun.maxWorldRadius())) {
+			spriteBatch.begin();
+			spriteBatch.setProjectionMatrix(uiMatrix);
+			sun.setProjection(viewport);
+			spriteBatch.setShader(sun.shader);
+			spriteBatch.draw(sun.texture,
+					sun.screenPos.x - sun.screenWidth / 2, sun.screenPos.y
+							- sun.screenHeight / 2, sun.screenWidth,
+					sun.screenHeight);
+
+			spriteBatch.setShader(null);
+			spriteBatch.end();
+		}
+
+		// Render the game level models and player gun
+		modelBatch.begin(camera);
+		for (GameObject obj : world.instances) {
+			if (obj.visible) {
+				modelBatch.render(obj, environment);
+			}
+		}
+		modelBatch.end();
+
+		// Draw billboards
+		spriteBatch.begin();
+		spriteBatch.setProjectionMatrix(uiMatrix);
+		for (Billboard b : billboards) {
+
+			if (!camera.frustum.sphereInFrustum(b.worldPos, b.maxWorldRadius())) {
+				continue;
+			}
+			b.setProjection(viewport);
+			spriteBatch.setShader(b.shader);
+			spriteBatch.draw(b.texture, b.screenPos.x - b.screenWidth / 2,
+					b.screenPos.y - b.screenHeight / 2, b.screenWidth,
+					b.screenHeight);
+		}
+		spriteBatch.setShader(null);
+		spriteBatch.end();
+
+		// Draw collision debug wireframe
+		// collisionHandler.debugDrawWorld(camera);
+
+		// Draw crosshair
+		shapeRenderer.setProjectionMatrix(uiMatrix);
+		shapeRenderer.begin(ShapeType.Line);
+		shapeRenderer.setColor(Color.WHITE);
+		shapeRenderer.line(chHoriz1, chHoriz2);
+		shapeRenderer.line(chVert1, chVert2);
+		shapeRenderer.end();
+
+		// Draw player coordinates
 		spriteBatch.setShader(null);
 		spriteBatch.setProjectionMatrix(uiMatrix);
 		spriteBatch.begin();
-		cache.draw(spriteBatch);
+		getPlayerPositionTextCache().draw(spriteBatch);
 		spriteBatch.end();
+
 	}
 
 	@Override
@@ -213,6 +223,7 @@ public class GameScreen extends AbstractScreen {
 
 		viewport.setCamera(camera);
 
+		updateCrosshair();
 	}
 
 	@Override

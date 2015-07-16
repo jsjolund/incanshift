@@ -81,20 +81,20 @@ public abstract class AbstractScreen implements Screen {
 
 	}
 
-	public int getViewportWidth() {
-		return viewport.getScreenWidth();
-	}
-
-	public int getViewportHeight() {
-		return viewport.getScreenHeight();
-	}
-
 	@Override
 	public void dispose() {
 		spriteBatch.dispose();
 		sansTiny.dispose();
 		game.dispose();
 
+	}
+
+	public int getViewportHeight() {
+		return viewport.getScreenHeight();
+	}
+
+	public int getViewportWidth() {
+		return viewport.getScreenWidth();
 	}
 
 	@Override
@@ -126,5 +126,20 @@ public abstract class AbstractScreen implements Screen {
 
 		uiMatrix = camera.combined.cpy();
 		uiMatrix.setToOrtho2D(0, 0, vw, vh);
+	}
+
+	public Vector3 screenPointToViewport(Vector3 screen) {
+		screen.x = screenXtoViewportX(screen.x);
+		screen.y = screenYtoViewportY(screen.y);
+		return screen;
+	}
+
+	public float screenXtoViewportX(float screenX) {
+		return screenX - viewport.getRightGutterWidth();
+	}
+
+	public float screenYtoViewportY(float screenY) {
+		return viewport.getWorldHeight() - viewport.getBottomGutterHeight()
+				- screenY;
 	}
 }

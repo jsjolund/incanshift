@@ -1,6 +1,3 @@
-uniform vec2 resolution;
-uniform vec3 pos_sun;
-
 varying vec4 vColor;
 varying vec2 vTexCoord;
 

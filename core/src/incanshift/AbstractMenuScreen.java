@@ -23,7 +23,6 @@ public abstract class AbstractMenuScreen extends AbstractScreen implements
 
 		Vector3 tmp = new Vector3();
 
-
 		@Override
 		public boolean keyDown(int keycode) {
 			if (keyDownCapture(keycode)) {
@@ -71,9 +70,9 @@ public abstract class AbstractMenuScreen extends AbstractScreen implements
 			if (mouseMovedCapture(screenX, screenY)) {
 				return true;
 			}
-			float vx = screenX - viewport.getRightGutterWidth();
-			float vy = (viewport.getWorldHeight() - screenY)
-					- viewport.getBottomGutterHeight();
+			float vx = screenXtoViewportX(screenX);
+			float vy = screenYtoViewportY(screenY);
+
 			for (MenuItem item : menu) {
 				if (item.selectable && item.getBounds().contains(vx, vy)) {
 					if (item != selectedItem) {
@@ -98,9 +97,8 @@ public abstract class AbstractMenuScreen extends AbstractScreen implements
 			if (touchDownCapture(screenX, screenY)) {
 				return true;
 			}
-			float vx = screenX - viewport.getRightGutterWidth();
-			float vy = (viewport.getWorldHeight() - screenY)
-					- viewport.getBottomGutterHeight();
+			float vx = screenXtoViewportX(screenX);
+			float vy = screenYtoViewportY(screenY);
 
 			for (MenuItem item : menu) {
 				if (item.getBounds().contains(vx, vy)) {
