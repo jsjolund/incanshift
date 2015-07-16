@@ -1,6 +1,8 @@
 package incanshift;
 
 import com.badlogic.gdx.Input.Keys;
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 
 public class SettingsScreen extends AbstractMenuScreen {
 
@@ -20,18 +22,18 @@ public class SettingsScreen extends AbstractMenuScreen {
 		super(game, reqWidth, reqHeight, "sound/music_menu.ogg");
 
 		back = new MenuItem("Back", null, true);
-		keyUse = new MenuItem("Use/Pick Up:", Keys.toString(GameSettings.USE),
+		keyUse = new MenuItem("Use/Pick Up", Keys.toString(GameSettings.USE),
 				true);
-		keyFire = new MenuItem("Fire/Throw:", "Left Mouse", false);
-		keyRun = new MenuItem("Run:", Keys.toString(GameSettings.RUN), true);
-		keyJump = new MenuItem("Jump:", Keys.toString(GameSettings.JUMP), true);
-		keyStrafeLeft = new MenuItem("Strafe Left:",
+		keyFire = new MenuItem("Fire/Throw", "Left Mouse", false);
+		keyRun = new MenuItem("Run", Keys.toString(GameSettings.RUN), true);
+		keyJump = new MenuItem("Jump", Keys.toString(GameSettings.JUMP), true);
+		keyStrafeLeft = new MenuItem("Strafe Left",
 				Keys.toString(GameSettings.STRAFE_LEFT), true);
-		keyStrafeRight = new MenuItem("Strafe Right:",
+		keyStrafeRight = new MenuItem("Strafe Right",
 				Keys.toString(GameSettings.STRAFE_RIGHT), true);
-		keyBackward = new MenuItem("Move Backward:",
+		keyBackward = new MenuItem("Move Backward",
 				Keys.toString(GameSettings.BACKWARD), true);
-		keyForward = new MenuItem("Move Forward:",
+		keyForward = new MenuItem("Move Forward",
 				Keys.toString(GameSettings.FORWARD), true);
 
 		Menu menu = new Menu();
@@ -56,6 +58,8 @@ public class SettingsScreen extends AbstractMenuScreen {
 		} else if (selectedItem.selectable) {
 			itemValueSelected = true;
 			capturing = true;
+			msg = "Press a key for " + selectedItem.name
+					+ ", or Esc to cancel...";
 		}
 
 	}
@@ -95,6 +99,8 @@ public class SettingsScreen extends AbstractMenuScreen {
 			GameSettings.FORWARD = keycode;
 		}
 
+		msg = null;
+
 		// Redraw settings menu
 		selectedItem.value = Keys.toString(keycode);
 		menu.dispose();
@@ -102,6 +108,37 @@ public class SettingsScreen extends AbstractMenuScreen {
 		game.showSettingsScreen();
 
 		return true;
+	}
+
+	float msgXpos = 0;
+	float msgYpos = 30;
+	String msg = null;
+
+	@Override
+	public void render(float delta) {
+		super.render(delta);
+
+		if (msg == null) {
+			return;
+		}
+		spriteBatch.setShader(null);
+		spriteBatch.setProjectionMatrix(uiMatrix);
+		spriteBatch.begin();
+
+		if (msgXpos == 0) {
+			Color transparent = Color.YELLOW.cpy();
+			transparent.a = 0;
+			sansNormal.setColor(transparent);
+		} else {
+			sansNormal.setColor(nameSelectedColor);
+		}
+		GlyphLayout msgGlyph = sansNormal.draw(spriteBatch, msg, msgXpos,
+				msgYpos);
+
+		msgXpos = screenCenter.x - msgGlyph.width / 2;
+
+		spriteBatch.end();
+
 	}
 
 	@Override
