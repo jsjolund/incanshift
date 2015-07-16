@@ -71,26 +71,26 @@ class GameObject extends ModelInstance implements Disposable {
 
 	public void position(float x, float y, float z) {
 		transform.setTranslation(x, y, z);
-		body.setWorldTransform(transform);
 		calculateTransforms();
+		body.setWorldTransform(transform);
 	}
 
 	public void position(Vector3 position) {
 		transform.setTranslation(position);
-		body.setWorldTransform(transform);
 		calculateTransforms();
+		body.setWorldTransform(transform);
 	}
 
 	public void translate(float x, float y, float z) {
 		transform.trn(x, y, z);
-		body.setWorldTransform(transform);
 		calculateTransforms();
+		body.setWorldTransform(transform);
 	}
 
 	public void translate(Vector3 translation) {
 		transform.trn(translation);
-		body.setWorldTransform(transform);
 		calculateTransforms();
+		body.setWorldTransform(transform);
 	}
 
 }

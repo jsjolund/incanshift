@@ -41,21 +41,6 @@ public class GameScreen extends AbstractScreen {
 
 		world = new GameWorld(game, viewport, screenCenter);
 
-		// Add some movable boxes
-		world.spawnCrate(new Vector3(15, 10, 15));
-		world.spawnCrate(new Vector3(-15, 20, 15));
-		world.spawnCrate(new Vector3(5, 2, 5));
-
-		// Blender sphere coordinates
-		Vector3[] spherePos = { new Vector3(-2, 5, 7), new Vector3(-4, 1, 0),
-				new Vector3(2, 1, 0), new Vector3(7, -3, 7),
-				new Vector3(-2, -8, 7), new Vector3(0, -8, 7), };
-		// Add the spheres
-		for (Vector3 pos : spherePos) {
-			pos.set(pos.x, pos.z, -pos.y);
-			world.spawnEnemyMask(pos);
-		}
-
 		// Billboards
 		Vector3 sunPosition = new Vector3(500, 1200, 700);
 		sun = new Billboard(sunPosition, 500f, 500f, "shader/common.vert",

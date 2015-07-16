@@ -21,9 +21,6 @@ public class GameSettings {
 	public static final float PLAYER_HEIGHT = 2f;
 	public static final float PLAYER_RADIUS = 0.5f;
 	public static final float PLAYER_EYE_HEIGHT = 1.8f;
-	
-	// TODO: Broken
-	public static final Vector3 PLAYER_START_POS = new Vector3(0, 5, 10);
 
 	// TODO: Some values for direction makes the game crash on start...
 	public static final Vector3 PLAYER_START_DIR = (new Vector3(1, 0, 1f))
