@@ -66,6 +66,13 @@ public class SettingsScreen extends AbstractMenuScreen {
 			return false;
 		}
 
+		itemValueSelected = false;
+		capturing = false;
+
+		if (keycode == Keys.ESCAPE) {
+			return true;
+		}
+
 		if (selectedItem == keyUse) {
 			GameSettings.USE = keycode;
 		}
@@ -87,9 +94,6 @@ public class SettingsScreen extends AbstractMenuScreen {
 		if (selectedItem == keyForward) {
 			GameSettings.FORWARD = keycode;
 		}
-
-		itemValueSelected = false;
-		capturing = false;
 
 		// Redraw settings menu
 		selectedItem.value = Keys.toString(keycode);
