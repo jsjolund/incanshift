@@ -7,7 +7,7 @@ public class CreditScreen extends AbstractMenuScreen {
 	public CreditScreen(IncanShift game, int reqWidth, int reqHeight) {
 		super(game, reqWidth, reqHeight, "sound/music_credits.ogg");
 
-		back = new MenuItem("Exit", null, true);
+		back = new MenuItem("Back", null, true);
 
 		Menu menu = new Menu();
 		menu.add(back);

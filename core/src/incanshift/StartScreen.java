@@ -25,6 +25,7 @@ public class StartScreen extends AbstractMenuScreen {
 		menu.add(start);
 
 		setMenu(menu, back);
+		selectedItem = start;
 
 	}
 
