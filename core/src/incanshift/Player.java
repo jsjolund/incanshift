@@ -17,9 +17,9 @@ public class Player implements Disposable {
 	enum PlayerAction {
 		STOP("stop"), WALK("walk"), RUN("run"),
 
-		JUMP("jump"), SHOOT("shoot"), USE("use"),
+		JUMP("jump"), FIRE("shoot"), USE("use"),
 
-		THROW("throw"), RESET("reset");
+		RESET("reset");
 
 		private String name;
 
@@ -177,11 +177,11 @@ public class Player implements Disposable {
 			if (gunYIncrease) {
 				gunYoffset += delta * gunMoveSpeed;
 			} else {
-				gunYoffset -= delta * gunMoveSpeed*3;
+				gunYoffset -= delta * gunMoveSpeed * 3;
 			}
 		}
 		gunUpDownPosition.y += gunYoffset;
-//		gunFrontBackPosition.x += gunYoffset;
+		// gunFrontBackPosition.x += gunYoffset;
 
 		gun.body.translate(gunLeftRightPosition);
 		gun.body.translate(gunFrontBackPosition);
@@ -208,8 +208,6 @@ public class Player implements Disposable {
 
 		controller = new PlayerController(this);
 	}
-	
-
 
 	@Override
 	public void dispose() {
@@ -256,7 +254,7 @@ public class Player implements Disposable {
 		}
 
 		// Handle shooting
-		if (controller.actionQueueContains(PlayerAction.SHOOT) && !gunHidden) {
+		if (controller.actionQueueContains(PlayerAction.FIRE) && !gunHidden) {
 			sound.shoot();
 			Ray ray = viewport.getCamera().getPickRay(screenCenter.x,
 					screenCenter.y);
@@ -297,7 +295,7 @@ public class Player implements Disposable {
 			gunHidden = false;
 			carried = null;
 
-		} else if (controller.actionQueueContains(PlayerAction.THROW)
+		} else if (controller.actionQueueContains(PlayerAction.FIRE)
 				&& carried != null) {
 			carried.body.setGravity(GameSettings.GRAVITY);
 			Vector3 forcePushVector = direction.cpy().nor().scl(20);

@@ -2,14 +2,13 @@ package incanshift;
 
 import com.badlogic.gdx.Input.Buttons;
 import com.badlogic.gdx.Input.Keys;
-import com.badlogic.gdx.graphics.g3d.attributes.FloatAttribute;
 import com.badlogic.gdx.math.Vector3;
 
 public class GameSettings {
 
 	public static final int CROSSHAIR = 5;
 	public static final float MOUSE_SENSITIVITY = 0.05f;
-	public static final Vector3 GRAVITY = new Vector3(0, -9.81f*2, 0);
+	public static final Vector3 GRAVITY = new Vector3(0, -9.81f * 2, 0);
 	public static final float CAMERA_FOV = 60;
 
 	public static final float PLAYER_CLIMB_SPEED = 1.5f;
@@ -25,15 +24,18 @@ public class GameSettings {
 	public static final Vector3 PLAYER_START_POS = new Vector3(0, 5, 0);
 
 	// TODO: Some values for direction makes the game crash on start...
-	public static final Vector3 PLAYER_START_DIR = (new Vector3(1, 0, 1f)).nor();
+	public static final Vector3 PLAYER_START_DIR = (new Vector3(1, 0, 1f))
+			.nor();
 
-	public static final int FORWARD = Keys.W;
-	public static final int STRAFE_LEFT = Keys.A;
-	public static final int BACKWARD = Keys.S;
-	public static final int STRAFE_RIGHT = Keys.D;
-	public static final int JUMP = Keys.SPACE;
-	public static final int RUN = Keys.SHIFT_LEFT;
 	public static final int SHOOT = Buttons.LEFT;
-	public static final int RESET = Keys.F5;
+
+	public static int FORWARD = Keys.W;
+	public static int STRAFE_LEFT = Keys.A;
+	public static int BACKWARD = Keys.S;
+	public static int STRAFE_RIGHT = Keys.D;
+	public static int JUMP = Keys.SPACE;
+	public static int RUN = Keys.SHIFT_LEFT;
+	public static int USE = Keys.E;
+	public static int RESET = Keys.F5;
 
 }

@@ -1,5 +1,6 @@
 package incanshift;
 
+import com.badlogic.gdx.Application;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Camera;
@@ -38,6 +39,8 @@ public abstract class AbstractScreen implements Screen {
 	int reqWidth;
 
 	public AbstractScreen(IncanShift game, int reqWidth, int reqHeight) {
+		Gdx.app.setLogLevel(Application.LOG_DEBUG);
+		
 		this.game = game;
 		this.reqHeight = reqHeight;
 		this.reqWidth = reqWidth;

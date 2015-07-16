@@ -1,8 +1,6 @@
 package incanshift;
 
-import com.badlogic.gdx.Application;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
 import com.badlogic.gdx.graphics.Texture;
@@ -17,15 +15,13 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 import com.badlogic.gdx.math.Vector3;
 
-public class GameScreen extends AbstractScreen implements Screen {
+public class GameScreen extends AbstractScreen {
 
 	final static String tag = "GameScreen";
 
 	private GameWorld world;
 
 	private ModelBatch modelBatch;
-
-	// private Music music;
 
 	// Lights and stuff
 	private Environment environment;
@@ -36,16 +32,10 @@ public class GameScreen extends AbstractScreen implements Screen {
 	private float sunRadius;
 	private ShapeRenderer shapeRenderer;
 
-	// Game objects
-	// private Array<GameObject> instances;
-	// private ArrayMap<String, GameObject.Constructor> gameObjectFactory;
-
 	private Vector3 lastCameraDirection = new Vector3();
 
 	public GameScreen(IncanShift game, int reqWidth, int reqHeight) {
 		super(game, reqWidth, reqHeight);
-
-		Gdx.app.setLogLevel(Application.LOG_DEBUG);
 
 		world = new GameWorld(game, viewport, screenCenter);
 		// Blender sphere coordinates
