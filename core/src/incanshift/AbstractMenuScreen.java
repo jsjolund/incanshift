@@ -22,7 +22,7 @@ public abstract class AbstractMenuScreen extends AbstractScreen implements
 	class MenuInputProcessor implements InputProcessor {
 
 		Vector3 tmp = new Vector3();
-		int lastKeycode;
+
 
 		@Override
 		public boolean keyDown(int keycode) {
@@ -132,6 +132,7 @@ public abstract class AbstractMenuScreen extends AbstractScreen implements
 	String musicFile;
 
 	MenuInputProcessor input;
+	int lastKeycode;
 
 	Menu menu;
 	MenuItem selectedItem;
@@ -341,8 +342,8 @@ public abstract class AbstractMenuScreen extends AbstractScreen implements
 	public void resize(int width, int height) {
 		super.resize(width, height);
 
-		float vw = viewport.getScreenWidth();
-		float vh = viewport.getScreenHeight();
+		float vw = getViewportWidth();
+		float vh = getViewportHeight();
 
 		if (menu != null) {
 			menu.resize((int) vw, (int) vh);

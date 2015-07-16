@@ -126,10 +126,10 @@ public class GameScreen extends AbstractScreen {
 		spriteBatch.setProjectionMatrix(uiMatrix);
 		shaderSun.begin();
 		Vector3 s_pos_sun = viewport.project(sunPositionProj.set(sunPosition));
-		s_pos_sun.y = s_pos_sun.y - viewport.getScreenHeight() / 2;
+		s_pos_sun.y = s_pos_sun.y - getViewportHeight() / 2;
 		shaderSun.setUniformf("pos_sun", s_pos_sun);
-		shaderSun.setUniformf("resolution", viewport.getScreenWidth(),
-				viewport.getScreenHeight());
+		shaderSun.setUniformf("resolution", getViewportWidth(),
+				getViewportHeight());
 		shaderSun.end();
 		float dst = camera.position.dst(sunPosition);
 		spriteBatch.setShader(shaderSun);
@@ -155,8 +155,8 @@ public class GameScreen extends AbstractScreen {
 		// Draw crosshair
 		shapeRenderer.setProjectionMatrix(uiMatrix);
 		shapeRenderer.begin(ShapeType.Line);
-		float xc = viewport.getScreenWidth() / 2;
-		float yc = viewport.getScreenHeight() / 2;
+		float xc = getViewportWidth() / 2;
+		float yc = getViewportHeight() / 2;
 		shapeRenderer.setColor(Color.GRAY);
 		shapeRenderer.line(xc + 1, yc - GameSettings.CROSSHAIR, xc + 1, yc
 				+ GameSettings.CROSSHAIR);
@@ -203,7 +203,7 @@ public class GameScreen extends AbstractScreen {
 		super.resize(width, height);
 
 		camera = new PerspectiveCamera(GameSettings.CAMERA_FOV,
-				viewport.getScreenWidth(), viewport.getScreenHeight());
+				getViewportWidth(), getViewportHeight());
 		camera.near = 1E-2f;
 		camera.far = 1.5E3f;
 		// camera.far = 10f;

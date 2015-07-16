@@ -3,103 +3,148 @@ package incanshift;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
+import com.badlogic.gdx.utils.ArrayMap;
+import com.badlogic.gdx.utils.ObjectMap.Entry;
 
 public class SettingsScreen extends AbstractMenuScreen {
 
-	private MenuItem back;
-	private MenuItem keyUse;
-	private MenuItem keyFire;
-	private MenuItem keyRun;
-	private MenuItem keyJump;
-	private MenuItem keyStrafeLeft;
-	private MenuItem keyStrafeRight;
-	private MenuItem keyBackward;
-	private MenuItem keyForward;
+	private MenuItem backItem;
+	private MenuItem keyFireItem;
+	private MenuItem keyUseItem;
+	private MenuItem keyRunItem;
+	private MenuItem keyJumpItem;
+	private MenuItem keyStrafeLeftItem;
+	private MenuItem keyStrafeRightItem;
+	private MenuItem keyBackwardItem;
+	private MenuItem keyForwardItem;
 
 	boolean capturing = false;
+
+	ArrayMap<Integer, MenuItem> keycodeUses = new ArrayMap<Integer, MenuItem>();
 
 	public SettingsScreen(IncanShift game, int reqWidth, int reqHeight) {
 		super(game, reqWidth, reqHeight, "sound/music_menu.ogg");
 
-		back = new MenuItem("Back", null, true);
-		keyUse = new MenuItem("Use/Pick Up", Keys.toString(GameSettings.USE),
+		backItem = new MenuItem("Back", null, true);
+		keyFireItem = new MenuItem("Fire/Throw", "Left Mouse", false);
+
+		int key;
+
+		key = GameSettings.USE;
+		keyUseItem = new MenuItem("Use/Pick Up", Keys.toString(key), true);
+		keycodeUses.put(key, keyUseItem);
+
+		key = GameSettings.RUN;
+		keyRunItem = new MenuItem("Run", Keys.toString(key), true);
+		keycodeUses.put(key, keyRunItem);
+
+		key = GameSettings.JUMP;
+		keyJumpItem = new MenuItem("Jump", Keys.toString(key), true);
+		keycodeUses.put(key, keyJumpItem);
+
+		key = GameSettings.STRAFE_LEFT;
+		keyStrafeLeftItem = new MenuItem("Strafe Left", Keys.toString(key),
 				true);
-		keyFire = new MenuItem("Fire/Throw", "Left Mouse", false);
-		keyRun = new MenuItem("Run", Keys.toString(GameSettings.RUN), true);
-		keyJump = new MenuItem("Jump", Keys.toString(GameSettings.JUMP), true);
-		keyStrafeLeft = new MenuItem("Strafe Left",
-				Keys.toString(GameSettings.STRAFE_LEFT), true);
-		keyStrafeRight = new MenuItem("Strafe Right",
-				Keys.toString(GameSettings.STRAFE_RIGHT), true);
-		keyBackward = new MenuItem("Move Backward",
-				Keys.toString(GameSettings.BACKWARD), true);
-		keyForward = new MenuItem("Move Forward",
-				Keys.toString(GameSettings.FORWARD), true);
+		keycodeUses.put(key, keyStrafeLeftItem);
+
+		key = GameSettings.STRAFE_RIGHT;
+		keyStrafeRightItem = new MenuItem("Strafe Right", Keys.toString(key),
+				true);
+		keycodeUses.put(key, keyStrafeRightItem);
+
+		key = GameSettings.BACKWARD;
+		keyBackwardItem = new MenuItem("Move Backward", Keys.toString(key),
+				true);
+		keycodeUses.put(key, keyBackwardItem);
+
+		key = GameSettings.FORWARD;
+		keyForwardItem = new MenuItem("Move Forward", Keys.toString(key), true);
+		keycodeUses.put(key, keyForwardItem);
 
 		Menu menu = new Menu();
-		menu.add(back);
-		menu.add(keyUse);
-		menu.add(keyRun);
-		menu.add(keyJump);
-		menu.add(keyStrafeLeft);
-		menu.add(keyStrafeRight);
-		menu.add(keyBackward);
-		menu.add(keyForward);
-		menu.add(keyFire);
-
-		setMenu(menu, back);
+		menu.add(backItem);
+		menu.add(keyFireItem);
+		for (Entry<Integer, MenuItem> entry : keycodeUses) {
+			menu.add(entry.value);
+		}
+		setMenu(menu, backItem);
 	}
 
 	public void enterSelected() {
 
-		if (selectedItem == back) {
+		if (selectedItem == backItem) {
 			game.showStartScreen();
 
 		} else if (selectedItem.selectable) {
 			itemValueSelected = true;
 			capturing = true;
-			msg = "Press a key for " + selectedItem.name
-					+ ", or Esc to cancel...";
+			if (msg == null) {
+				msg = "Press a key for " + selectedItem.name
+						+ ", or Esc to cancel...";
+			}
 		}
-
 	}
 
 	@Override
 	boolean keyDownCapture(int keycode) {
+
 		if (!capturing) {
 			return false;
 		}
 
-		itemValueSelected = false;
-		capturing = false;
-
-		if (keycode == Keys.ESCAPE) {
+		if (keycode == lastKeycode) {
 			return true;
 		}
 
-		if (selectedItem == keyUse) {
+		if (keycode == Keys.ESCAPE || keycode == Keys.ENTER) {
+			msg = null;
+			itemValueSelected = false;
+			capturing = false;
+			lastKeycode = 0;
+			return true;
+		}
+
+		if (keycodeUses.containsKey(keycode)) {
+			MenuItem occupying = keycodeUses.get(keycode);
+			if (selectedItem != occupying) {
+				msg = "Key used by " + occupying.name
+						+ ", select new or Esc to cancel...";
+			} else {
+				keyDownCapture(Keys.ESCAPE);
+			}
+			return true;
+		}
+
+		if (selectedItem == keyUseItem) {
 			GameSettings.USE = keycode;
 		}
-		if (selectedItem == keyRun) {
+		if (selectedItem == keyRunItem) {
 			GameSettings.RUN = keycode;
 		}
-		if (selectedItem == keyJump) {
+		if (selectedItem == keyJumpItem) {
 			GameSettings.JUMP = keycode;
 		}
-		if (selectedItem == keyStrafeLeft) {
+		if (selectedItem == keyStrafeLeftItem) {
 			GameSettings.STRAFE_LEFT = keycode;
 		}
-		if (selectedItem == keyStrafeRight) {
+		if (selectedItem == keyStrafeRightItem) {
 			GameSettings.STRAFE_RIGHT = keycode;
 		}
-		if (selectedItem == keyBackward) {
+		if (selectedItem == keyBackwardItem) {
 			GameSettings.BACKWARD = keycode;
 		}
-		if (selectedItem == keyForward) {
+		if (selectedItem == keyForwardItem) {
 			GameSettings.FORWARD = keycode;
 		}
 
 		msg = null;
+
+		itemValueSelected = false;
+		capturing = false;
+
+		keycodeUses.removeKey(keycode);
+		keycodeUses.removeValue(selectedItem, true);
+		keycodeUses.put(keycode, selectedItem);
 
 		// Redraw settings menu
 		selectedItem.value = Keys.toString(keycode);

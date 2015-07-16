@@ -23,10 +23,10 @@ public abstract class AbstractScreen implements Screen {
 	Camera camera;
 
 	SpriteBatch spriteBatch;
-	
+
 	Matrix4 uiMatrix;
 	Vector3 screenCenter = new Vector3();
-	
+
 	BitmapFont sansTiny;
 	BitmapFont sansNormal;
 	BitmapFont sansLarge;
@@ -40,7 +40,7 @@ public abstract class AbstractScreen implements Screen {
 
 	public AbstractScreen(IncanShift game, int reqWidth, int reqHeight) {
 		Gdx.app.setLogLevel(Application.LOG_DEBUG);
-		
+
 		this.game = game;
 		this.reqHeight = reqHeight;
 		this.reqWidth = reqWidth;
@@ -75,12 +75,18 @@ public abstract class AbstractScreen implements Screen {
 
 		viewport = new FitViewport(reqWidth, reqHeight, camera);
 		viewport.apply();
-		
+
 		uiMatrix = camera.combined.cpy();
-		uiMatrix.setToOrtho2D(0, 0, viewport.getScreenWidth(),
-				viewport.getScreenHeight());
+		uiMatrix.setToOrtho2D(0, 0, getViewportWidth(), getViewportHeight());
 
+	}
 
+	public int getViewportWidth() {
+		return viewport.getScreenWidth();
+	}
+
+	public int getViewportHeight() {
+		return viewport.getScreenHeight();
 	}
 
 	@Override
@@ -114,9 +120,10 @@ public abstract class AbstractScreen implements Screen {
 		viewport.apply();
 
 		screenCenter.set(width / 2, height / 2, 1);
-		
-		float vw = viewport.getScreenWidth();
-		float vh = viewport.getScreenHeight();
+
+		float vw = getViewportWidth();
+		float vh = getViewportHeight();
+
 		uiMatrix = camera.combined.cpy();
 		uiMatrix.setToOrtho2D(0, 0, vw, vh);
 	}
