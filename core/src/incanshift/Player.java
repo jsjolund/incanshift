@@ -94,7 +94,6 @@ public class Player implements Disposable {
 	private float climbNormalEpsilonVertical = 0.5f;
 	float canClimbTimeout = 0.1f;
 
-	// private Vector3 moveDirectionXZ = new Vector3();
 	private Vector3 velocityXZ = new Vector3();
 	private Vector3 velocityNew = new Vector3();
 
@@ -125,76 +124,10 @@ public class Player implements Disposable {
 	private boolean gunYIncrease = true;
 
 	// Gun positioning
-
 	private Matrix4 gunBaseTransform = new Matrix4();
 	private Vector3 gunFrontBackPosition = new Vector3();
 	private Vector3 gunLeftRightPosition = new Vector3();
 	private Vector3 gunUpDownPosition = new Vector3();
-
-	public void setGun(GameObject gun) {
-		if (gun != null) {
-			gun.position(position);
-		}
-		this.currentGun = gun;
-	}
-
-	public GameObject getGun(GameObject gun) {
-		return gun;
-	}
-
-	private void updateGun(float delta) {
-		GameObject gun = currentGun;
-		if (gun == null) {
-			return;
-		}
-		if (gunHidden) {
-			gunBaseTransform.set(viewport.getCamera().view);
-		} else {
-			gunBaseTransform.set(viewport.getCamera().view).inv();
-		}
-		// Update gun position/rotation relative to camera
-		gun.body.setWorldTransform(gunBaseTransform);
-
-		// // For gun
-		// gunLeftRightPosition.set(direction).crs(Vector3.Y).nor().scl(0.075f);
-		// gunFrontBackPosition.set(direction).nor().scl(0.15f);
-		// gunUpDownPosition.set(direction).nor().crs(gunLeftRightPosition).scl(0.75f);
-
-		// For blowgun
-		gunLeftRightPosition.set(direction).crs(Vector3.Y).nor().scl(0.075f);
-		gunFrontBackPosition.set(direction).nor().scl(0.25f);
-		gunUpDownPosition.set(direction).nor().crs(gunLeftRightPosition)
-				.scl(0.80f);
-
-		if (moveMode == PlayerAction.STOP) {
-			gunYoffset = 0;
-		} else {
-			float gunMoveSpeed = (moveMode == PlayerAction.RUN) ? GameSettings.PLAYER_RUN_SPEED
-					: GameSettings.PLAYER_WALK_SPEED;
-			gunMoveSpeed *= 0.0015;
-			double gunMoveLimitY = 0.005;
-
-			if (gunYoffset > 0) {
-				gunYIncrease = false;
-
-			} else if (gunYoffset < -gunMoveLimitY) {
-				gunYIncrease = true;
-			}
-			if (gunYIncrease) {
-				gunYoffset += delta * gunMoveSpeed;
-			} else {
-				gunYoffset -= delta * gunMoveSpeed * 3;
-			}
-		}
-		gunUpDownPosition.y += gunYoffset;
-		// gunFrontBackPosition.x += gunYoffset;
-
-		gun.body.translate(gunLeftRightPosition);
-		gun.body.translate(gunFrontBackPosition);
-		gun.body.translate(gunUpDownPosition);
-		gun.body.setLinearVelocity(object.body.getLinearVelocity());
-		gun.body.getWorldTransform(gun.transform);
-	}
 
 	public Player(IncanShift game, GameObject playerObject,
 			Vector3 screenCenter, Viewport viewport,
@@ -220,46 +153,109 @@ public class Player implements Disposable {
 		contactListener.dispose();
 	}
 
-	private boolean isOnGround() {
-		ray.set(position, up.cpy().scl(-1));
-		float distance = GameSettings.PLAYER_HEIGHT / 2 + 0.5f;
-		return collisionHandler
-				.rayTest(
-						ray,
-						(short) (CollisionHandler.GROUND_FLAG | CollisionHandler.OBJECT_FLAG),
-						distance) != null;
+	public GameObject getGun(GameObject gun) {
+		return gun;
 	}
 
-	public void update(float delta) {
+	public void handleClimbing() {
+		// // Climbing logic
+		// moveDirectionXZ.set(moveDirection.x, 0, moveDirection.z);
+		// if (!climbSurfaceNormal.isZero() && !isJumping) {
+		//
+		// if (controller.actionQueueContains(PlayerAction.WALK)
+		// || controller.actionQueueContains(PlayerAction.RUN)) {
+		//
+		// if (moveDirectionXZ.isCollinearOpposite(climbSurfaceNormal,
+		// climbNormalEpsilonDirection)) {
+		// // Climb upwards
+		// isClimbing = true;
+		//
+		// System.out.println("climb up");
+		// velocity.set(moveDirectionXZ).nor()
+		// .scl(GameSettings.PLAYER_CLIMB_SPEED);
+		// velocity.y = GameSettings.PLAYER_CLIMB_SPEED;
+		// // object.body.setGravity(Vector3.Zero);
+		//
+		// } else if (moveDirectionXZ.isCollinear(climbSurfaceNormal,
+		// climbNormalEpsilonDirection)) {
+		// System.out.println("climb down");
+		// // Climb downwards
+		// isClimbing = true;
+		//
+		// velocity.setZero();
+		// velocity.y = -GameSettings.PLAYER_CLIMB_SPEED;
+		// // object.body.setGravity(Vector3.Zero);
+		// }
+		// } else {
+		// velocity.set(direction.cpy().nor().scl(1));
+		// }
+		//
+		// } else if (isClimbing) {
+		// System.out.println("not climbing");
+		// isClimbing = false;
+		// // if (!isOnGround) {
+		// //
+		// // Vector3 stopClimbImpulse = direction.cpy().nor().scl(2);
+		// // stopClimbImpulse.y = 4;
+		// // object.body.applyCentralImpulse(stopClimbImpulse);
+		// // }
+		// object.body.setGravity(GameSettings.GRAVITY);
+		// }
+	}
 
-		if (controller.actionQueueContains(PlayerAction.RESET)) {
-			game.restartGameScreen();
+	private void handleJumping(boolean isOnGround) {
+		if (controller.actionQueueContains(PlayerAction.JUMP) && !isClimbing) {
+
+			if (!isJumping && isOnGround) {
+				isJumping = true;
+				sound.jump();
+
+			} else if (isJumping) {
+				object.body.applyCentralForce(new Vector3(up)
+						.scl(GameSettings.PLAYER_JUMP_FORCE));
+			}
+		} else {
+			isJumping = false;
+		}
+	}
+
+	private void handleMoving(boolean isOnGround) {
+		float moveSpeed = 0;
+		if (moveMode == PlayerAction.WALK) {
+			moveSpeed = isOnGround ? GameSettings.PLAYER_WALK_SPEED
+					: GameSettings.PLAYER_WALK_SPEED * 0.5f;
+
+		} else if (moveMode == PlayerAction.RUN) {
+			moveSpeed = isOnGround ? GameSettings.PLAYER_RUN_SPEED
+					: GameSettings.PLAYER_RUN_SPEED * 0.5f;
+
+		} else if (moveMode == PlayerAction.STOP) {
+			moveSpeed = 0;
 		}
 
-		boolean isOnGround = isOnGround();
-
-		// Get user input
-		controller.update();
-		moveDirection.set(controller.getMoveDirection());
-
-		// React to new movement mode, play sounds
-		if (!isOnGround || controller.actionQueueContains(PlayerAction.STOP)
-				&& moveMode != PlayerAction.STOP) {
-			sound.halt();
-			moveMode = PlayerAction.STOP;
-		}
-		if (isOnGround && controller.actionQueueContains(PlayerAction.WALK)
-				&& moveMode != PlayerAction.WALK) {
-			sound.move(false);
-			moveMode = PlayerAction.WALK;
-		}
-		if (isOnGround && controller.actionQueueContains(PlayerAction.RUN)
-				&& moveMode != PlayerAction.RUN) {
-			sound.move(true);
-			moveMode = PlayerAction.RUN;
+		if (moveDirection.y > 0) {
+			moveDirection.y = 0;
 		}
 
-		// Handle shooting
+		velocity.set(object.body.getLinearVelocity());
+		velocityXZ.set(velocity.x, 0, velocity.z);
+		float currentSpeed = velocityXZ.len();
+
+		// Increase/decrease velocity
+		if (isOnGround) {
+			if (moveSpeed == 0) {
+				velocity.x *= GameSettings.PLAYER_STOP_DOWNSCALE;
+				velocity.z *= GameSettings.PLAYER_STOP_DOWNSCALE;
+			}
+			if (currentSpeed < moveSpeed) {
+				velocityNew.set(moveDirection).nor().scl(moveSpeed);
+
+				velocity.set(velocityNew.x, velocity.y, velocityNew.z);
+			}
+		}
+	}
+
+	private void handleShooting() {
 		if (controller.actionQueueContains(PlayerAction.FIRE) && !gunHidden) {
 			sound.shoot();
 			Ray ray = viewport.getCamera().getPickRay(screenCenter.x,
@@ -277,8 +273,9 @@ public class Player implements Disposable {
 				}
 			}
 		}
+	}
 
-		// Handle picking up
+	private void handleUsing() {
 		if (controller.actionQueueContains(PlayerAction.USE) && carried == null) {
 
 			Ray ray = viewport.getCamera().getPickRay(screenCenter.x,
@@ -324,100 +321,62 @@ public class Player implements Disposable {
 					.scl(0.5f));
 			carried.body.applyCentralForce(forceGrabVector);
 		}
+	}
 
-		// Set move speed
-		float moveSpeed = 0;
-		if (moveMode == PlayerAction.WALK) {
-			moveSpeed = isOnGround ? GameSettings.PLAYER_WALK_SPEED
-					: GameSettings.PLAYER_WALK_SPEED * 0.5f;
+	private boolean isOnGround() {
+		ray.set(position, up.cpy().scl(-1));
+		float distance = GameSettings.PLAYER_HEIGHT / 2 + 0.5f;
+		return collisionHandler
+				.rayTest(
+						ray,
+						(short) (CollisionHandler.GROUND_FLAG | CollisionHandler.OBJECT_FLAG),
+						distance) != null;
+	}
 
-		} else if (moveMode == PlayerAction.RUN) {
-			moveSpeed = isOnGround ? GameSettings.PLAYER_RUN_SPEED
-					: GameSettings.PLAYER_RUN_SPEED * 0.5f;
+	public void setGun(GameObject gun) {
+		if (gun != null) {
+			gun.position(position);
+		}
+		this.currentGun = gun;
+	}
 
-		} else if (moveMode == PlayerAction.STOP) {
-			moveSpeed = 0;
+	public void setMoveMode(boolean isOnGround) {
+		if (!isOnGround || controller.actionQueueContains(PlayerAction.STOP)
+				&& moveMode != PlayerAction.STOP) {
+			sound.halt();
+			moveMode = PlayerAction.STOP;
+		}
+		if (isOnGround && controller.actionQueueContains(PlayerAction.WALK)
+				&& moveMode != PlayerAction.WALK) {
+			sound.move(false);
+			moveMode = PlayerAction.WALK;
+		}
+		if (isOnGround && controller.actionQueueContains(PlayerAction.RUN)
+				&& moveMode != PlayerAction.RUN) {
+			sound.move(true);
+			moveMode = PlayerAction.RUN;
+		}
+	}
+
+	public void update(float delta) {
+
+		if (controller.actionQueueContains(PlayerAction.RESET)) {
+			game.restartGameScreen();
 		}
 
-		if (moveDirection.y > 0) {
-			moveDirection.y = 0;
-		}
+		boolean isOnGround = isOnGround();
 
-		velocity.set(object.body.getLinearVelocity());
-		velocityXZ.set(velocity.x, 0, velocity.z);
-		float currentSpeed = velocityXZ.len();
+		// Get user input
+		controller.update();
+		moveDirection.set(controller.getMoveDirection());
 
-		// Increase/decrease velocity
-		if (isOnGround) {
-			if (moveSpeed == 0) {
-				velocity.x *= GameSettings.PLAYER_STOP_DOWNSCALE;
-				velocity.z *= GameSettings.PLAYER_STOP_DOWNSCALE;
-			}
-			if (currentSpeed < moveSpeed) {
-				velocityNew.set(moveDirection).nor().scl(moveSpeed);
-
-				velocity.set(velocityNew.x, velocity.y, velocityNew.z);
-			}
-		}
-
-		// Jumping logic
-		if (controller.actionQueueContains(PlayerAction.JUMP) && !isClimbing) {
-
-			if (!isJumping && isOnGround) {
-				isJumping = true;
-				sound.jump();
-
-			} else if (isJumping) {
-				object.body.applyCentralForce(new Vector3(up)
-						.scl(GameSettings.PLAYER_JUMP_FORCE));
-			}
-		} else {
-			isJumping = false;
-		}
-
-		// // Climbing logic
-		// moveDirectionXZ.set(moveDirection.x, 0, moveDirection.z);
-		// if (!climbSurfaceNormal.isZero() && !isJumping) {
-		//
-		// if (controller.actionQueueContains(PlayerAction.WALK)
-		// || controller.actionQueueContains(PlayerAction.RUN)) {
-		//
-		// if (moveDirectionXZ.isCollinearOpposite(climbSurfaceNormal,
-		// climbNormalEpsilonDirection)) {
-		// // Climb upwards
-		// isClimbing = true;
-		//
-		// System.out.println("climb up");
-		// velocity.set(moveDirectionXZ).nor()
-		// .scl(GameSettings.PLAYER_CLIMB_SPEED);
-		// velocity.y = GameSettings.PLAYER_CLIMB_SPEED;
-		// // object.body.setGravity(Vector3.Zero);
-		//
-		// } else if (moveDirectionXZ.isCollinear(climbSurfaceNormal,
-		// climbNormalEpsilonDirection)) {
-		// System.out.println("climb down");
-		// // Climb downwards
-		// isClimbing = true;
-		//
-		// velocity.setZero();
-		// velocity.y = -GameSettings.PLAYER_CLIMB_SPEED;
-		// // object.body.setGravity(Vector3.Zero);
-		// }
-		// } else {
-		// velocity.set(direction.cpy().nor().scl(1));
-		// }
-		//
-		// } else if (isClimbing) {
-		// System.out.println("not climbing");
-		// isClimbing = false;
-		// // if (!isOnGround) {
-		// //
-		// // Vector3 stopClimbImpulse = direction.cpy().nor().scl(2);
-		// // stopClimbImpulse.y = 4;
-		// // object.body.applyCentralImpulse(stopClimbImpulse);
-		// // }
-		// object.body.setGravity(GameSettings.GRAVITY);
-		// }
+		// React to input
+		setMoveMode(isOnGround);
+		handleShooting();
+		handleUsing();
+		handleMoving(isOnGround);
+		handleJumping(isOnGround);
+		handleClimbing();
 
 		// Set the transforms
 		object.body.setLinearVelocity(velocity);
@@ -437,5 +396,60 @@ public class Player implements Disposable {
 		updateGun(delta);
 
 		controller.actionQueueClear();
+	}
+
+	private void updateGun(float delta) {
+		GameObject gun = currentGun;
+		if (gun == null) {
+			return;
+		}
+		if (gunHidden) {
+			gunBaseTransform.set(viewport.getCamera().view);
+		} else {
+			gunBaseTransform.set(viewport.getCamera().view).inv();
+		}
+		// Update gun position/rotation relative to camera
+		gun.body.setWorldTransform(gunBaseTransform);
+
+		// // For gun
+		// gunLeftRightPosition.set(direction).crs(Vector3.Y).nor().scl(0.075f);
+		// gunFrontBackPosition.set(direction).nor().scl(0.15f);
+		// gunUpDownPosition.set(direction).nor().crs(gunLeftRightPosition).scl(0.75f);
+
+		// For blowgun
+		gunLeftRightPosition.set(direction).crs(Vector3.Y).nor().scl(0.075f);
+		gunFrontBackPosition.set(direction).nor().scl(0.25f);
+		gunUpDownPosition.set(direction).nor().crs(gunLeftRightPosition)
+				.scl(0.80f);
+
+		// Move the gun around if walking or running
+		if (moveMode == PlayerAction.STOP) {
+			gunYoffset = 0;
+
+		} else {
+			float gunMoveSpeed = (moveMode == PlayerAction.RUN) ? GameSettings.PLAYER_RUN_SPEED
+					: GameSettings.PLAYER_WALK_SPEED;
+			gunMoveSpeed *= 0.0015;
+			double gunMoveLimitY = 0.005;
+
+			if (gunYoffset > 0) {
+				gunYIncrease = false;
+
+			} else if (gunYoffset < -gunMoveLimitY) {
+				gunYIncrease = true;
+			}
+			if (gunYIncrease) {
+				gunYoffset += delta * gunMoveSpeed;
+			} else {
+				gunYoffset -= delta * gunMoveSpeed * 3;
+			}
+		}
+		gunUpDownPosition.y += gunYoffset;
+
+		gun.body.translate(gunLeftRightPosition);
+		gun.body.translate(gunFrontBackPosition);
+		gun.body.translate(gunUpDownPosition);
+		gun.body.setLinearVelocity(object.body.getLinearVelocity());
+		gun.body.getWorldTransform(gun.transform);
 	}
 }
