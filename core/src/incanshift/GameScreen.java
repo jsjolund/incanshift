@@ -2,7 +2,9 @@ package incanshift;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFontCache;
 import com.badlogic.gdx.graphics.g3d.Environment;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
@@ -34,6 +36,9 @@ public class GameScreen extends AbstractScreen {
 	Array<Billboard> billboards = new Array<Billboard>();
 	Billboard sun;
 
+	Color fogColor;
+	float fogDistance;
+
 	private Vector3 lastCameraDirection = new Vector3();
 
 	public GameScreen(IncanShift game, int reqWidth, int reqHeight) {
@@ -41,25 +46,33 @@ public class GameScreen extends AbstractScreen {
 
 		world = new GameWorld(game, viewport, screenCenter);
 
-		// Billboards
-		Vector3 sunPosition = new Vector3(500, 1200, 700);
+		// Various environment graphics stuff
+		shapeRenderer = new ShapeRenderer();
+		environment = new Environment();
+		modelBatch = new ModelBatch();
+
+		// Sun billboard
+		Vector3 sunPosition = new Vector3(500, 800, 700);
 		sun = new Billboard(sunPosition, 500f, 500f, "shader/common.vert",
 				"shader/sun.frag");
+		// Marker billboard
 		billboards.add(new Billboard(new Vector3(-20, 2, 10), 2, 1,
 				"shader/common.vert", "shader/test.frag"));
 		billboards.add(new Billboard(new Vector3(5, 1, 20), 3, 3,
 				"shader/common.vert", "shader/test.frag"));
 
-		// Various environment graphics stuff
-		shapeRenderer = new ShapeRenderer();
-		environment = new Environment();
-		environment.set(new ColorAttribute(ColorAttribute.AmbientLight, 0.3f,
-				0.3f, 0.3f, 1f));
+		setEnvironment(Color.LIGHT_GRAY, 30, sunPosition);
+	}
+
+	void setEnvironment(Color fogColor, float fogDistance, Vector3 sunPosition) {
+		this.fogColor = fogColor;
+		environment.clear();
 		environment.add(new DirectionalLight().set(Color.WHITE,
 				sunPosition.scl(-1)));
-
-		modelBatch = new ModelBatch();
-
+		environment.set(new ColorAttribute(ColorAttribute.AmbientLight, 0.4f,
+				0.4f, 0.4f, 1.f));
+		environment.set(new ColorAttribute(ColorAttribute.Fog, fogColor.r,
+				fogColor.g, fogColor.b, fogColor.a));
 	}
 
 	@Override
@@ -79,7 +92,7 @@ public class GameScreen extends AbstractScreen {
 	public void hide() {
 		lastCameraDirection.set(camera.direction);
 		Gdx.input.setCursorCatched(false);
-		world.music(false);
+		world.music.pause();
 	}
 
 	@Override
@@ -122,9 +135,17 @@ public class GameScreen extends AbstractScreen {
 	@Override
 	public void render(float delta) {
 		delta = Math.min(1f / 30f, Gdx.graphics.getDeltaTime());
-		super.render(delta);
-
 		world.update(delta);
+
+		// Clear the screen
+		Gdx.gl.glClearColor(0, 0, 0, 1);
+		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
+
+		// Draw fog background color
+		shapeRenderer.begin(ShapeType.Filled);
+		shapeRenderer.setColor(fogColor);
+		shapeRenderer.rect(0, 0, getViewportWidth(), getViewportHeight());
+		shapeRenderer.end();
 
 		// Render the skybox
 		modelBatch.begin(camera);
@@ -132,19 +153,16 @@ public class GameScreen extends AbstractScreen {
 		modelBatch.end();
 
 		// Draw sun billboard
-		if (camera.frustum.sphereInFrustum(sun.worldPos, sun.maxWorldRadius())) {
-			spriteBatch.begin();
-			spriteBatch.setProjectionMatrix(uiMatrix);
-			sun.setProjection(viewport);
-			spriteBatch.setShader(sun.shader);
-			spriteBatch.draw(sun.texture,
-					sun.screenPos.x - sun.screenWidth / 2, sun.screenPos.y
-							- sun.screenHeight / 2, sun.screenWidth,
-					sun.screenHeight);
+		spriteBatch.begin();
+		spriteBatch.setProjectionMatrix(uiMatrix);
+		sun.setProjection(viewport);
+		spriteBatch.setShader(sun.shader);
+		spriteBatch.draw(sun.texture, sun.screenPos.x - sun.screenWidth / 2,
+				sun.screenPos.y - sun.screenHeight / 2, sun.screenWidth,
+				sun.screenHeight);
 
-			spriteBatch.setShader(null);
-			spriteBatch.end();
-		}
+		spriteBatch.setShader(null);
+		spriteBatch.end();
 
 		// Render the game level models and player gun
 		modelBatch.begin(camera);
@@ -200,8 +218,8 @@ public class GameScreen extends AbstractScreen {
 		camera = new PerspectiveCamera(GameSettings.CAMERA_FOV,
 				getViewportWidth(), getViewportHeight());
 		camera.near = 1E-2f;
-		camera.far = 1.5E3f;
-		// camera.far = 10f;
+		camera.far = 30f;
+		camera.far = 50f;
 		camera.lookAt(lastCameraDirection);
 
 		camera.update(true);

@@ -121,11 +121,9 @@ public abstract class AbstractScreen implements Screen {
 
 		screenCenter.set(width / 2, height / 2, 1);
 
-		float vw = getViewportWidth();
-		float vh = getViewportHeight();
-
 		uiMatrix = camera.combined.cpy();
-		uiMatrix.setToOrtho2D(0, 0, vw, vh);
+		uiMatrix.setToOrtho2D(0, 0, viewportWidth, viewportHeight);
+
 	}
 
 	public Vector3 screenPointToViewport(Vector3 screen) {

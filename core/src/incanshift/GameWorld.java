@@ -64,6 +64,7 @@ public class GameWorld implements Disposable {
 		assets.load("model/level.g3db", Model.class);
 		assets.load("model/level1.g3db", Model.class);
 		assets.load("model/level2.g3db", Model.class);
+		assets.load("model/inside_level1.g3db", Model.class);
 		assets.load("model/mask.g3db", Model.class);
 		assets.load("model/pillar.g3db", Model.class);
 		assets.load("model/skybox.g3db", Model.class);
@@ -98,7 +99,7 @@ public class GameWorld implements Disposable {
 				CollisionHandler.GROUND_FLAG);
 		player.setGun(blowpipe);
 
-		loadLevelCSV(Gdx.files.internal("model/christoffer.csv").readString());
+		loadLevelCSV(Gdx.files.internal("model/level1.csv").readString());
 	}
 
 	/**
@@ -141,6 +142,10 @@ public class GameWorld implements Disposable {
 						CollisionHandler.GROUND_FLAG, CollisionHandler.ALL_FLAG);
 
 			} else if (name.equals("level2")) {
+				spawn(name, pos, false, false, false,
+						CollisionHandler.GROUND_FLAG, CollisionHandler.ALL_FLAG);
+
+			} else if (name.equals("inside_level1")) {
 				spawn(name, pos, false, false, false,
 						CollisionHandler.GROUND_FLAG, CollisionHandler.ALL_FLAG);
 
@@ -191,6 +196,13 @@ public class GameWorld implements Disposable {
 		Model modelLevel2 = assets.get("model/level2.g3db", Model.class);
 		gameObjectFactory.put("level2", new GameObject.Constructor(modelLevel2,
 				Bullet.obtainStaticNodeShape(modelLevel2.nodes), 0));
+
+		Model modelLevelInside1 = assets.get("model/inside_level1.g3db",
+				Model.class);
+		gameObjectFactory.put(
+				"inside_level1",
+				new GameObject.Constructor(modelLevelInside1, Bullet
+						.obtainStaticNodeShape(modelLevelInside1.nodes), 0));
 
 		Model modelTestScene = assets.get("model/test_scene.g3db", Model.class);
 		gameObjectFactory.put(
@@ -327,12 +339,12 @@ public class GameWorld implements Disposable {
 
 		PlayerSound sound = new PlayerSound(assets);
 
-		Player player = new Player(game, obj, screenCenter, viewport,
-				this, sound);
+		Player player = new Player(game, obj, screenCenter, viewport, this,
+				sound);
 
 		return player;
 	}
-	
+
 	public btRigidBody rayTest(Ray ray, short mask, float maxDistance) {
 		return collisionHandler.rayTest(ray, mask, maxDistance);
 	}
@@ -348,7 +360,7 @@ public class GameWorld implements Disposable {
 			obj.body.getWorldTransform(obj.transform);
 
 	}
-	
+
 	public GameObject getGameObject(btRigidBody co) {
 		GameObject go = null;
 		for (GameObject obj : instances) {
@@ -359,7 +371,7 @@ public class GameWorld implements Disposable {
 		}
 		return go;
 	}
-	
+
 	public void removeGameObject(GameObject obj) {
 		obj.visible = false;
 		collisionHandler.dynamicsWorld.removeCollisionObject(obj.body);
