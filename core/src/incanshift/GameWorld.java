@@ -38,20 +38,70 @@ import com.badlogic.gdx.utils.viewport.Viewport;
  * which was created with the blend file assets/model/map_template.blend.
  */
 public class GameWorld implements Disposable {
-	public Player player;
-	String tag = "GameWorld";
-	public ModelInstance skybox;
+
+	final static String tag = "GameWorld";
 
 	private AssetManager assets;
-	Music music;
-
-	// Game objects
-	public Array<GameObject> instances;
-	// Collision
 	private CollisionHandler collisionHandler;
-
 	private ArrayMap<String, GameObject.Constructor> gameObjectFactory;
 
+	public Array<GameObject> instances;
+	public ModelInstance skybox;
+	public Player player;
+
+	Music music;
+
+	public GameWorld(IncanShift game, Viewport viewport, Vector3 screenCenter) {
+		assets = new AssetManager();
+
+		// Load the 3D models and sounds used by the game
+		assets.load("model/temple.g3db", Model.class);
+		assets.load("model/ground.g3db", Model.class);
+		assets.load("model/skybox.g3db", Model.class);
+		assets.load("model/level.g3db", Model.class);
+		assets.load("model/gun.g3db", Model.class);
+		assets.load("model/mask.g3db", Model.class);
+		assets.load("model/pillar.g3db", Model.class);
+		assets.load("model/box.g3db", Model.class);
+		assets.load("model/test_scene.g3db", Model.class);
+		assets.load("model/blowpipe.g3db", Model.class);
+
+		assets.load("sound/jump.wav", Sound.class);
+		assets.load("sound/shatter.wav", Sound.class);
+		assets.load("sound/shoot.wav", Sound.class);
+		assets.load("sound/run.wav", Sound.class);
+		assets.load("sound/walk.wav", Sound.class);
+		assets.load("sound/climb.wav", Sound.class);
+		assets.load("sound/music_game.ogg", Music.class);
+
+		Bullet.init();
+		instances = new Array<GameObject>();
+		collisionHandler = new CollisionHandler(instances);
+		gameObjectFactory = new ArrayMap<String, GameObject.Constructor>();
+		assets.finishLoading();
+		createFactoryDefs(assets, gameObjectFactory);
+
+		skybox = new ModelInstance(assets.get("model/skybox.g3db", Model.class));
+
+		// Create a player, a gun and load the level from CSV
+		player = spawnPlayer(game, viewport, screenCenter);
+		GameObject gun = spawn("gun", player.position.cpy(), false, false,
+				false, CollisionHandler.OBJECT_FLAG,
+				CollisionHandler.GROUND_FLAG);
+		player.setGun(gun);
+
+		// GameObject blowpipe = spawn("blowpipe", player.position.cpy(), false,
+		// false, false, CollisionHandler.OBJECT_FLAG,
+		// CollisionHandler.GROUND_FLAG);
+
+		loadLevelCSV(Gdx.files.internal("model/map_template.csv").readString());
+	}
+
+	/**
+	 * Read a csv file and create the objects listed in it.
+	 * 
+	 * @param csv
+	 */
 	public void loadLevelCSV(String csv) {
 		String[] lines = csv.split(System.getProperty("line.separator"));
 		for (String line : lines) {
@@ -71,110 +121,41 @@ public class GameWorld implements Disposable {
 			toGameCoords(pos);
 
 			if (name.equals("mask")) {
-				spawnEnemyMask(pos);
-
-			} else if (name.equals("mask")) {
-				spawnEnemyMask(pos);
+				spawn(name, pos, false, true, false,
+						CollisionHandler.OBJECT_FLAG, CollisionHandler.ALL_FLAG);
 
 			} else if (name.equals("box")) {
-				spawnBox(pos);
+				spawn(name, pos, true, false, true,
+						CollisionHandler.OBJECT_FLAG, CollisionHandler.ALL_FLAG);
 
 			} else if (name.equals("level")) {
-				spawnLevel(pos);
+				spawn(name, pos, false, false, false,
+						CollisionHandler.GROUND_FLAG, CollisionHandler.ALL_FLAG);
 
 			} else if (name.equals("ground")) {
-				spawnGround(pos);
+				spawn(name, pos, false, false, false,
+						CollisionHandler.GROUND_FLAG, CollisionHandler.ALL_FLAG);
 
 			} else if (name.equals("start_position")) {
 				player.object.position(pos);
 
 			} else if (gameObjectFactory.containsKey(name)) {
-				Gdx.app.debug(tag, "In manager but not loaded: " + name);
-				
+				Gdx.app.debug(tag, "Found in manager but undefined: " + name);
+
 			} else {
 				Gdx.app.debug(tag, "Not found in manager: " + name);
 			}
 
 		}
+
 	}
 
-	private Vector3 toGameCoords(Vector3 v) {
-		return v.set(v.x, v.z, -v.y);
-	}
-
-	void spawnGround(Vector3 pos) {
-		Gdx.app.debug(tag, "Spawning ground at " + pos);
-		GameObject obj = gameObjectFactory.get("ground").construct();
-		obj.position(pos);
-		instances.add(obj);
-		collisionHandler.add(obj, CollisionHandler.GROUND_FLAG,
-				CollisionHandler.ALL_FLAG);
-		obj.body.setContactCallbackFlag(CollisionHandler.GROUND_FLAG);
-	}
-
-	void spawnLevel(Vector3 pos) {
-		Gdx.app.debug(tag, "Spawning box level " + pos);
-		GameObject obj = gameObjectFactory.get("level").construct();
-		obj.position(pos);
-		instances.add(obj);
-		collisionHandler.add(obj, CollisionHandler.GROUND_FLAG,
-				CollisionHandler.ALL_FLAG);
-		obj.body.setContactCallbackFlag(CollisionHandler.GROUND_FLAG);
-	}
-
-	void spawnEnemyMask(Vector3 pos) {
-		Gdx.app.debug(tag, "Spawning mask at " + pos);
-		GameObject sphere = gameObjectFactory.get("mask").construct();
-		sphere.position(pos);
-		sphere.removable = true;
-		instances.add(sphere);
-		collisionHandler.add(sphere, CollisionHandler.OBJECT_FLAG,
-				CollisionHandler.ALL_FLAG);
-		sphere.body.setContactCallbackFlag(CollisionHandler.OBJECT_FLAG);
-	}
-
-	void spawnBox(Vector3 pos) {
-		Gdx.app.debug(tag, "Spawning box at " + pos);
-		GameObject box = gameObjectFactory.get("box").construct();
-		box.body.setContactCallbackFlag(CollisionHandler.OBJECT_FLAG);
-		instances.add(box);
-		box.position(pos);
-		box.movable = true;
-		box.body.setActivationState(Collision.DISABLE_DEACTIVATION);
-		collisionHandler.add(box, CollisionHandler.OBJECT_FLAG,
-				CollisionHandler.ALL_FLAG);
-		box.body.setContactCallbackFlag(CollisionHandler.OBJECT_FLAG);
-	}
-
-	public GameWorld(IncanShift game, Viewport viewport, Vector3 screenCenter) {
-		assets = new AssetManager();
-
-		assets.load("model/temple.g3db", Model.class);
-		assets.load("model/ground.g3db", Model.class);
-		assets.load("model/skybox.g3db", Model.class);
-		assets.load("model/level.g3db", Model.class);
-		assets.load("model/gun.g3db", Model.class);
-		assets.load("model/mask.g3db", Model.class);
-		assets.load("model/pillar.g3db", Model.class);
-		assets.load("model/box.g3db", Model.class);
-		assets.load("model/test_scene.g3db", Model.class);
-
-		assets.load("sound/jump.wav", Sound.class);
-		assets.load("sound/shatter.wav", Sound.class);
-		assets.load("sound/shoot.wav", Sound.class);
-		assets.load("sound/run.wav", Sound.class);
-		assets.load("sound/walk.wav", Sound.class);
-		assets.load("sound/climb.wav", Sound.class);
-		assets.load("sound/music_game.ogg", Music.class);
-
-		// Collision handler
-		Bullet.init();
-		instances = new Array<GameObject>();
-		collisionHandler = new CollisionHandler(instances);
-
-		assets.finishLoading();
-
-		gameObjectFactory = new ArrayMap<String, GameObject.Constructor>();
+	/**
+	 * Create an object factory blueprint for a 3D model along with an
+	 * appropriate collision shape.
+	 */
+	private static void createFactoryDefs(AssetManager assets,
+			ArrayMap<String, GameObject.Constructor> gameObjectFactory) {
 
 		Model modelTemple = assets.get("model/temple.g3db", Model.class);
 		gameObjectFactory.put("temple", new GameObject.Constructor(modelTemple,
@@ -194,10 +175,6 @@ public class GameWorld implements Disposable {
 				new GameObject.Constructor(modelTestScene, Bullet
 						.obtainStaticNodeShape(modelTestScene.nodes), 0));
 
-		Model modelSkybox = assets.get("model/skybox.g3db", Model.class);
-		skybox = new ModelInstance(modelSkybox);
-		Gdx.app.debug(tag, "Loaded skybox");
-
 		Model modelPillar = assets.get("model/pillar.g3db", Model.class);
 		gameObjectFactory.put("pillar", new GameObject.Constructor(modelPillar,
 				Bullet.obtainStaticNodeShape(modelPillar.nodes), 0));
@@ -215,23 +192,15 @@ public class GameWorld implements Disposable {
 		gameObjectFactory.put("box", new GameObject.Constructor(modelBox,
 				new btBox2dShape(new Vector3(0.5f, 0.5f, 0.5f)), 1f));
 
-		// Gun
 		Model modelGun = assets.get("model/gun.g3db", Model.class);
-		BoundingBox gunBB = new BoundingBox();
-		Vector3 gunDim = new Vector3();
-		modelGun.calculateBoundingBox(gunBB);
-		gunBB.getDimensions(gunDim);
 		gameObjectFactory.put("gun", new GameObject.Constructor(modelGun,
-				new btBoxShape(gunDim), 5f));
-		GameObject gun = gameObjectFactory.get("gun").construct();
-		gun.body.setFriction(2f);
-		gun.body.setContactCallbackFlag(CollisionHandler.OBJECT_FLAG);
-		collisionHandler.add(gun, CollisionHandler.OBJECT_FLAG,
-				CollisionHandler.GROUND_FLAG);
-		instances.add(gun);
-		Gdx.app.debug(tag, "Loaded gun");
+				new btBoxShape(getBoundingBoxDimensions(modelGun)), 5f));
 
-		// Player
+		Model modelBlowpipe = assets.get("model/blowpipe.g3db", Model.class);
+		gameObjectFactory.put("blowpipe", new GameObject.Constructor(
+				modelBlowpipe, new btBoxShape(
+						getBoundingBoxDimensions(modelBlowpipe)), 5f));
+
 		Model modelPlayer = new ModelBuilder().createCapsule(
 				GameSettings.PLAYER_RADIUS, GameSettings.PLAYER_HEIGHT - 2
 						* GameSettings.PLAYER_RADIUS, 4, GL20.GL_TRIANGLES,
@@ -240,28 +209,18 @@ public class GameWorld implements Disposable {
 				new btCapsuleShape(GameSettings.PLAYER_RADIUS,
 						GameSettings.PLAYER_HEIGHT - 2
 								* GameSettings.PLAYER_RADIUS), 100));
-		GameObject playerObject = gameObjectFactory.get("player").construct();
+	}
 
-		playerObject.visible = false;
-		playerObject.body.setAngularFactor(Vector3.Y);
-		playerObject.body.setCollisionFlags(playerObject.body
-				.getCollisionFlags()
-				| btCollisionObject.CollisionFlags.CF_CUSTOM_MATERIAL_CALLBACK);
-		playerObject.body.setContactCallbackFlag(CollisionHandler.PLAYER_FLAG);
+	public static Vector3 getBoundingBoxDimensions(Model model) {
+		BoundingBox bBox = new BoundingBox();
+		Vector3 dim = new Vector3();
+		model.calculateBoundingBox(bBox);
+		bBox.getDimensions(dim);
+		return dim;
+	}
 
-		PlayerSound sound = new PlayerSound(assets);
-
-		player = new Player(game, playerObject, screenCenter, viewport,
-				collisionHandler, sound);
-		player.object.body.setActivationState(Collision.DISABLE_DEACTIVATION);
-		collisionHandler
-				.add(playerObject,
-						CollisionHandler.PLAYER_FLAG,
-						(short) (CollisionHandler.GROUND_FLAG | CollisionHandler.OBJECT_FLAG));
-		Gdx.app.debug(tag, "Player start: " + player.position);
-		player.setGun(gun);
-
-		loadLevelCSV(Gdx.files.internal("model/map_template.csv").readString());
+	private static Vector3 toGameCoords(Vector3 v) {
+		return v.set(v.x, v.z, -v.y);
 	}
 
 	@Override
@@ -278,7 +237,71 @@ public class GameWorld implements Disposable {
 		assets.dispose();
 	}
 
-	private Model buildCompassModel() {
+	public void music(boolean on) {
+		// Play some music
+		music = assets.get("sound/music_game.ogg", Music.class);
+		music.play();
+		music.setVolume(0.3f);
+		music.setLooping(true);
+	}
+
+	public GameObject spawn(String name, Vector3 pos, boolean movable,
+			boolean removable, boolean noDeactivate, short belongsToFlag,
+			short collidesWithFlag) {
+		Gdx.app.debug(tag, String.format("Spawning %s at %s", name, pos));
+		GameObject obj = gameObjectFactory.get(name).construct();
+		obj.position(pos);
+		obj.movable = movable;
+		obj.removable = removable;
+		if (noDeactivate) {
+			obj.body.setActivationState(Collision.DISABLE_DEACTIVATION);
+		}
+		obj.body.setContactCallbackFlag(belongsToFlag);
+		collisionHandler.add(obj, belongsToFlag, collidesWithFlag);
+		instances.add(obj);
+		return obj;
+	}
+
+	public Player spawnPlayer(IncanShift game, Viewport viewport,
+			Vector3 screenCenter) {
+
+		GameObject obj = spawn(
+				"player",
+				new Vector3(),
+				false,
+				false,
+				true,
+				CollisionHandler.PLAYER_FLAG,
+				(short) (CollisionHandler.GROUND_FLAG | CollisionHandler.OBJECT_FLAG));
+
+		instances.removeValue(obj, true);
+
+		obj.visible = false;
+		obj.body.setAngularFactor(Vector3.Y);
+		obj.body.setCollisionFlags(obj.body.getCollisionFlags()
+				| btCollisionObject.CollisionFlags.CF_CUSTOM_MATERIAL_CALLBACK);
+
+		PlayerSound sound = new PlayerSound(assets);
+
+		Player player = new Player(game, obj, screenCenter, viewport,
+				collisionHandler, sound);
+
+		return player;
+	}
+
+	public void update(float delta) {
+		// Update collisions
+		collisionHandler.dynamicsWorld.stepSimulation(delta, 5, 1f / 60f);
+
+		// Update player transform from user input
+		player.update(delta);
+		player.object.body.getWorldTransform(player.object.transform);
+		for (GameObject obj : instances)
+			obj.body.getWorldTransform(obj.transform);
+
+	}
+
+	private static Model buildCompassModel() {
 		float compassScale = 5;
 		ModelBuilder modelBuilder = new ModelBuilder();
 		Model arrow = modelBuilder.createArrow(Vector3.Zero, Vector3.Y.cpy()
@@ -304,25 +327,4 @@ public class GameWorld implements Disposable {
 		arrow.dispose();
 		return modelBuilder.end();
 	}
-
-	public void update(float delta) {
-		// Update collisions
-		collisionHandler.dynamicsWorld.stepSimulation(delta, 5, 1f / 60f);
-
-		// Update player transform from user input
-		player.update(delta);
-		player.object.body.getWorldTransform(player.object.transform);
-		for (GameObject obj : instances)
-			obj.body.getWorldTransform(obj.transform);
-
-	}
-
-	public void music(boolean on) {
-		// Play some music
-		music = assets.get("sound/music_game.ogg", Music.class);
-		music.play();
-		music.setVolume(0.3f);
-		music.setLooping(true);
-	}
-
 }
