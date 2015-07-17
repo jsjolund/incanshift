@@ -53,23 +53,65 @@ public class GameWorld implements Disposable {
 
 	Music music;
 
+	/**
+	 * Spawn a game object from the factory and add it to the world. If not
+	 * defined in factory, load the model from file system and generate a static
+	 * collision shape for it.
+	 * 
+	 * @param name
+	 *            Factory name for the object.
+	 * @param pos
+	 *            Starting position.
+	 * @param movable
+	 *            True if the player can move this object.
+	 * @param removable
+	 *            True if the player can destroy this object.
+	 * @param noDeactivate
+	 *            True if collision simulation should never be suspended for
+	 *            this object.
+	 * @param belongsToFlag
+	 *            Collision flag/mask for the group this object belongs to.
+	 * @param collidesWithFlag
+	 *            Collision flag/mask for the group this object can collide
+	 *            with.
+	 * @return The created game object.
+	 */
+	public GameObject spawn(String name, Vector3 pos, boolean movable,
+			boolean removable, boolean noDeactivate, short belongsToFlag,
+			short collidesWithFlag) {
+
+		if (!gameObjectFactory.containsKey(name)) {
+			String filePath = String.format("model/%s.g3db", name);
+			assets.load(filePath, Model.class);
+			assets.finishLoading();
+			Model model = assets.get(filePath);
+			gameObjectFactory.put(name, new GameObject.Constructor(model,
+					Bullet.obtainStaticNodeShape(model.nodes), 0));
+		}
+
+		GameObject obj = gameObjectFactory.get(name).construct();
+		Gdx.app.debug(tag, String.format("Spawning %s at %s", name, pos));
+		obj.position(pos);
+		obj.movable = movable;
+		obj.removable = removable;
+		if (noDeactivate) {
+			obj.body.setActivationState(Collision.DISABLE_DEACTIVATION);
+		}
+		obj.body.setContactCallbackFlag(belongsToFlag);
+		collisionHandler.add(obj, belongsToFlag, collidesWithFlag);
+		instances.add(obj);
+		return obj;
+	}
+
 	public GameWorld(IncanShift game, Viewport viewport, Vector3 screenCenter) {
 		assets = new AssetManager();
 
 		// Load the 3D models and sounds used by the game
 		assets.load("model/blowpipe.g3db", Model.class);
 		assets.load("model/box.g3db", Model.class);
-		assets.load("model/ground.g3db", Model.class);
 		assets.load("model/gun.g3db", Model.class);
-		assets.load("model/level.g3db", Model.class);
-		assets.load("model/level1.g3db", Model.class);
-		assets.load("model/level2.g3db", Model.class);
-		assets.load("model/inside_level1.g3db", Model.class);
 		assets.load("model/mask.g3db", Model.class);
-		assets.load("model/pillar.g3db", Model.class);
 		assets.load("model/skybox.g3db", Model.class);
-		assets.load("model/temple.g3db", Model.class);
-		assets.load("model/test_scene.g3db", Model.class);
 
 		assets.load("sound/jump.wav", Sound.class);
 		assets.load("sound/shatter.wav", Sound.class);
@@ -99,7 +141,7 @@ public class GameWorld implements Disposable {
 				CollisionHandler.GROUND_FLAG);
 		player.setGun(blowpipe);
 
-		loadLevelCSV(Gdx.files.internal("model/level1.csv").readString());
+		loadLevelCSV(Gdx.files.internal("model/christoffer.csv").readString());
 	}
 
 	/**
@@ -133,37 +175,15 @@ public class GameWorld implements Disposable {
 				spawn(name, pos, true, false, true,
 						CollisionHandler.OBJECT_FLAG, CollisionHandler.ALL_FLAG);
 
-			} else if (name.equals("level")) {
-				spawn(name, pos, false, false, false,
-						CollisionHandler.GROUND_FLAG, CollisionHandler.ALL_FLAG);
-
-			} else if (name.equals("level1")) {
-				spawn(name, pos, false, false, false,
-						CollisionHandler.GROUND_FLAG, CollisionHandler.ALL_FLAG);
-
-			} else if (name.equals("level2")) {
-				spawn(name, pos, false, false, false,
-						CollisionHandler.GROUND_FLAG, CollisionHandler.ALL_FLAG);
-
-			} else if (name.equals("inside_level1")) {
-				spawn(name, pos, false, false, false,
-						CollisionHandler.GROUND_FLAG, CollisionHandler.ALL_FLAG);
-
-			} else if (name.equals("ground")) {
-				spawn(name, pos, false, false, false,
-						CollisionHandler.GROUND_FLAG, CollisionHandler.ALL_FLAG);
-
 			} else if (name.equals("start_position")) {
 				player.object.position(pos);
 
 			} else if (name.equals("tag")) {
 				// Add a billboard
 
-			} else if (gameObjectFactory.containsKey(name)) {
-				Gdx.app.debug(tag, "Found in manager but undefined: " + name);
-
 			} else {
-				Gdx.app.debug(tag, "Not found in manager: " + name);
+				spawn(name, pos, false, false, false,
+						CollisionHandler.GROUND_FLAG, CollisionHandler.ALL_FLAG);
 			}
 
 		}
@@ -177,51 +197,15 @@ public class GameWorld implements Disposable {
 	private static void createFactoryDefs(AssetManager assets,
 			ArrayMap<String, GameObject.Constructor> gameObjectFactory) {
 
-		Model modelTemple = assets.get("model/temple.g3db", Model.class);
-		gameObjectFactory.put("temple", new GameObject.Constructor(modelTemple,
-				Bullet.obtainStaticNodeShape(modelTemple.nodes), 0));
-
-		Model modelGround = assets.get("model/ground.g3db", Model.class);
-		gameObjectFactory.put("ground", new GameObject.Constructor(modelGround,
-				Bullet.obtainStaticNodeShape(modelGround.nodes), 0));
-
-		Model modelLevel = assets.get("model/level.g3db", Model.class);
-		gameObjectFactory.put("level", new GameObject.Constructor(modelLevel,
-				Bullet.obtainStaticNodeShape(modelLevel.nodes), 0));
-
-		Model modelLevel1 = assets.get("model/level1.g3db", Model.class);
-		gameObjectFactory.put("level1", new GameObject.Constructor(modelLevel1,
-				Bullet.obtainStaticNodeShape(modelLevel1.nodes), 0));
-
-		Model modelLevel2 = assets.get("model/level2.g3db", Model.class);
-		gameObjectFactory.put("level2", new GameObject.Constructor(modelLevel2,
-				Bullet.obtainStaticNodeShape(modelLevel2.nodes), 0));
-
-		Model modelLevelInside1 = assets.get("model/inside_level1.g3db",
-				Model.class);
-		gameObjectFactory.put(
-				"inside_level1",
-				new GameObject.Constructor(modelLevelInside1, Bullet
-						.obtainStaticNodeShape(modelLevelInside1.nodes), 0));
-
-		Model modelTestScene = assets.get("model/test_scene.g3db", Model.class);
-		gameObjectFactory.put(
-				"test_scene",
-				new GameObject.Constructor(modelTestScene, Bullet
-						.obtainStaticNodeShape(modelTestScene.nodes), 0));
-
-		Model modelPillar = assets.get("model/pillar.g3db", Model.class);
-		gameObjectFactory.put("pillar", new GameObject.Constructor(modelPillar,
-				Bullet.obtainStaticNodeShape(modelPillar.nodes), 0));
-
 		Model modelCompass = buildCompassModel();
 		gameObjectFactory.put("compass", new GameObject.Constructor(
 				modelCompass, Bullet.obtainStaticNodeShape(modelCompass.nodes),
 				0));
 
-		Model modelSphere = assets.get("model/mask.g3db", Model.class);
-		gameObjectFactory.put("mask", new GameObject.Constructor(modelSphere,
-				Bullet.obtainStaticNodeShape(modelSphere.nodes), 0));
+		Model modelBlowpipe = assets.get("model/blowpipe.g3db", Model.class);
+		gameObjectFactory.put("blowpipe", new GameObject.Constructor(
+				modelBlowpipe, new btBoxShape(
+						getBoundingBoxDimensions(modelBlowpipe)), 5f));
 
 		Model modelBox = assets.get("model/box.g3db", Model.class);
 		gameObjectFactory.put("box", new GameObject.Constructor(modelBox,
@@ -231,10 +215,9 @@ public class GameWorld implements Disposable {
 		gameObjectFactory.put("gun", new GameObject.Constructor(modelGun,
 				new btBoxShape(getBoundingBoxDimensions(modelGun)), 5f));
 
-		Model modelBlowpipe = assets.get("model/blowpipe.g3db", Model.class);
-		gameObjectFactory.put("blowpipe", new GameObject.Constructor(
-				modelBlowpipe, new btBoxShape(
-						getBoundingBoxDimensions(modelBlowpipe)), 5f));
+		Model modelSphere = assets.get("model/mask.g3db", Model.class);
+		gameObjectFactory.put("mask", new GameObject.Constructor(modelSphere,
+				Bullet.obtainStaticNodeShape(modelSphere.nodes), 0));
 
 		Model modelPlayer = new ModelBuilder().createCapsule(
 				GameSettings.PLAYER_RADIUS, GameSettings.PLAYER_HEIGHT - 2
@@ -278,44 +261,6 @@ public class GameWorld implements Disposable {
 		music.play();
 		music.setVolume(0.3f);
 		music.setLooping(true);
-	}
-
-	/**
-	 * Spawn a game object from the factory and add it to the world.
-	 * 
-	 * @param name
-	 *            Factory name for the object.
-	 * @param pos
-	 *            Starting position.
-	 * @param movable
-	 *            True if the player can move this object.
-	 * @param removable
-	 *            True if the player can destroy this object.
-	 * @param noDeactivate
-	 *            True if collision simulation should never be suspended for
-	 *            this object.
-	 * @param belongsToFlag
-	 *            Collision flag/mask for the group this object belongs to.
-	 * @param collidesWithFlag
-	 *            Collision flag/mask for the group this object can collide
-	 *            with.
-	 * @return The created game object.
-	 */
-	public GameObject spawn(String name, Vector3 pos, boolean movable,
-			boolean removable, boolean noDeactivate, short belongsToFlag,
-			short collidesWithFlag) {
-		Gdx.app.debug(tag, String.format("Spawning %s at %s", name, pos));
-		GameObject obj = gameObjectFactory.get(name).construct();
-		obj.position(pos);
-		obj.movable = movable;
-		obj.removable = removable;
-		if (noDeactivate) {
-			obj.body.setActivationState(Collision.DISABLE_DEACTIVATION);
-		}
-		obj.body.setContactCallbackFlag(belongsToFlag);
-		collisionHandler.add(obj, belongsToFlag, collidesWithFlag);
-		instances.add(obj);
-		return obj;
 	}
 
 	public Player spawnPlayer(IncanShift game, Viewport viewport,
