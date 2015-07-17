@@ -16,12 +16,14 @@ import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
+import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.physics.bullet.Bullet;
 import com.badlogic.gdx.physics.bullet.collision.Collision;
 import com.badlogic.gdx.physics.bullet.collision.btBox2dShape;
 import com.badlogic.gdx.physics.bullet.collision.btBoxShape;
 import com.badlogic.gdx.physics.bullet.collision.btCapsuleShape;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
+import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ArrayMap;
 import com.badlogic.gdx.utils.Disposable;
@@ -60,6 +62,8 @@ public class GameWorld implements Disposable {
 		assets.load("model/ground.g3db", Model.class);
 		assets.load("model/gun.g3db", Model.class);
 		assets.load("model/level.g3db", Model.class);
+		assets.load("model/level1.g3db", Model.class);
+		assets.load("model/level2.g3db", Model.class);
 		assets.load("model/mask.g3db", Model.class);
 		assets.load("model/pillar.g3db", Model.class);
 		assets.load("model/skybox.g3db", Model.class);
@@ -76,13 +80,10 @@ public class GameWorld implements Disposable {
 
 		Bullet.init();
 		instances = new Array<GameObject>();
-		collisionHandler = new CollisionHandler(instances);
+		collisionHandler = new CollisionHandler();
 		gameObjectFactory = new ArrayMap<String, GameObject.Constructor>();
-		System.out.println("awef");
 		assets.finishLoading();
-		System.out.println("f");
 		createFactoryDefs(assets, gameObjectFactory);
-		System.out.println("l");
 		skybox = new ModelInstance(assets.get("model/skybox.g3db", Model.class));
 
 		// Create a player, a gun and load the level from CSV
@@ -135,12 +136,23 @@ public class GameWorld implements Disposable {
 				spawn(name, pos, false, false, false,
 						CollisionHandler.GROUND_FLAG, CollisionHandler.ALL_FLAG);
 
+			} else if (name.equals("level1")) {
+				spawn(name, pos, false, false, false,
+						CollisionHandler.GROUND_FLAG, CollisionHandler.ALL_FLAG);
+
+			} else if (name.equals("level2")) {
+				spawn(name, pos, false, false, false,
+						CollisionHandler.GROUND_FLAG, CollisionHandler.ALL_FLAG);
+
 			} else if (name.equals("ground")) {
 				spawn(name, pos, false, false, false,
 						CollisionHandler.GROUND_FLAG, CollisionHandler.ALL_FLAG);
 
 			} else if (name.equals("start_position")) {
 				player.object.position(pos);
+
+			} else if (name.equals("tag")) {
+				// Add a billboard
 
 			} else if (gameObjectFactory.containsKey(name)) {
 				Gdx.app.debug(tag, "Found in manager but undefined: " + name);
@@ -171,6 +183,14 @@ public class GameWorld implements Disposable {
 		Model modelLevel = assets.get("model/level.g3db", Model.class);
 		gameObjectFactory.put("level", new GameObject.Constructor(modelLevel,
 				Bullet.obtainStaticNodeShape(modelLevel.nodes), 0));
+
+		Model modelLevel1 = assets.get("model/level1.g3db", Model.class);
+		gameObjectFactory.put("level1", new GameObject.Constructor(modelLevel1,
+				Bullet.obtainStaticNodeShape(modelLevel1.nodes), 0));
+
+		Model modelLevel2 = assets.get("model/level2.g3db", Model.class);
+		gameObjectFactory.put("level2", new GameObject.Constructor(modelLevel2,
+				Bullet.obtainStaticNodeShape(modelLevel2.nodes), 0));
 
 		Model modelTestScene = assets.get("model/test_scene.g3db", Model.class);
 		gameObjectFactory.put(
@@ -308,9 +328,13 @@ public class GameWorld implements Disposable {
 		PlayerSound sound = new PlayerSound(assets);
 
 		Player player = new Player(game, obj, screenCenter, viewport,
-				collisionHandler, sound);
+				this, sound);
 
 		return player;
+	}
+	
+	public btRigidBody rayTest(Ray ray, short mask, float maxDistance) {
+		return collisionHandler.rayTest(ray, mask, maxDistance);
 	}
 
 	public void update(float delta) {
@@ -323,6 +347,22 @@ public class GameWorld implements Disposable {
 		for (GameObject obj : instances)
 			obj.body.getWorldTransform(obj.transform);
 
+	}
+	
+	public GameObject getGameObject(btRigidBody co) {
+		GameObject go = null;
+		for (GameObject obj : instances) {
+			if (obj.body.equals(co)) {
+				go = obj;
+				break;
+			}
+		}
+		return go;
+	}
+	
+	public void removeGameObject(GameObject obj) {
+		obj.visible = false;
+		collisionHandler.dynamicsWorld.removeCollisionObject(obj.body);
 	}
 
 	/**

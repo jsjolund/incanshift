@@ -85,7 +85,6 @@ public class Player implements Disposable {
 
 	public GameObject object;
 
-	private CollisionHandler collisionHandler;
 	private PlayerContactListener contactListener;
 	public PlayerController controller;
 
@@ -129,12 +128,14 @@ public class Player implements Disposable {
 	private Vector3 gunLeftRightPosition = new Vector3();
 	private Vector3 gunUpDownPosition = new Vector3();
 
+	private GameWorld world;
+
 	public Player(IncanShift game, GameObject playerObject,
-			Vector3 screenCenter, Viewport viewport,
-			CollisionHandler collisionHandler, PlayerSound sound) {
+			Vector3 screenCenter, Viewport viewport, GameWorld world,
+			PlayerSound sound) {
 		this.viewport = viewport;
 		this.game = game;
-		this.collisionHandler = collisionHandler;
+		this.world = world;
 		this.object = playerObject;
 		this.sound = sound;
 		this.screenCenter = screenCenter;
@@ -260,15 +261,15 @@ public class Player implements Disposable {
 			sound.shoot();
 			Ray ray = viewport.getCamera().getPickRay(screenCenter.x,
 					screenCenter.y);
-			btRigidBody hitObject = collisionHandler
+			btRigidBody hitObject = world
 					.rayTest(
 							ray,
 							(short) (CollisionHandler.GROUND_FLAG | CollisionHandler.OBJECT_FLAG),
 							100);
 			if (hitObject != null) {
-				GameObject obj = collisionHandler.getGameObject(hitObject);
+				GameObject obj = world.getGameObject(hitObject);
 				if (obj.removable) {
-					collisionHandler.removeGameObject(obj);
+					world.removeGameObject(obj);
 					sound.shatter();
 				}
 			}
@@ -280,11 +281,11 @@ public class Player implements Disposable {
 
 			Ray ray = viewport.getCamera().getPickRay(screenCenter.x,
 					screenCenter.y);
-			btRigidBody hitObject = collisionHandler.rayTest(ray,
+			btRigidBody hitObject = world.rayTest(ray,
 					CollisionHandler.OBJECT_FLAG, 5);
 
 			if (hitObject != null) {
-				GameObject obj = collisionHandler.getGameObject(hitObject);
+				GameObject obj = world.getGameObject(hitObject);
 
 				if (obj.movable) {
 					gunHidden = true;
@@ -326,7 +327,7 @@ public class Player implements Disposable {
 	private boolean isOnGround() {
 		ray.set(position, up.cpy().scl(-1));
 		float distance = GameSettings.PLAYER_HEIGHT / 2 + 0.5f;
-		return collisionHandler
+		return world
 				.rayTest(
 						ray,
 						(short) (CollisionHandler.GROUND_FLAG | CollisionHandler.OBJECT_FLAG),

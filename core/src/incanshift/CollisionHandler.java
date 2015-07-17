@@ -16,7 +16,6 @@ import com.badlogic.gdx.physics.bullet.dynamics.btDynamicsWorld;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.badlogic.gdx.physics.bullet.dynamics.btSequentialImpulseConstraintSolver;
 import com.badlogic.gdx.physics.bullet.linearmath.btIDebugDraw;
-import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
 
 public class CollisionHandler implements Disposable {
@@ -28,7 +27,6 @@ public class CollisionHandler implements Disposable {
 	final static short OBJECT_FLAG = 1 << 9;
 	final static short ALL_FLAG = -1;
 
-	private Array<GameObject> instances;
 	private btCollisionConfiguration collisionConfig;
 	private btDispatcher dispatcher;
 
@@ -37,8 +35,7 @@ public class CollisionHandler implements Disposable {
 	private btDbvtBroadphase broadphase;
 	private DebugDrawer debugDrawer;
 
-	public CollisionHandler(Array<GameObject> instances) {
-		this.instances = instances;
+	public CollisionHandler() {
 
 		collisionConfig = new btDefaultCollisionConfiguration();
 		dispatcher = new btCollisionDispatcher(collisionConfig);
@@ -73,17 +70,6 @@ public class CollisionHandler implements Disposable {
 		constraintSolver.dispose();
 	}
 
-	public GameObject getGameObject(btRigidBody co) {
-		GameObject go = null;
-		for (GameObject obj : instances) {
-			if (obj.body.equals(co)) {
-				go = obj;
-				break;
-			}
-		}
-		return go;
-	}
-
 	public btRigidBody rayTest(Ray ray, short mask, float maxDistance) {
 		btRigidBody rb = null;
 
@@ -102,8 +88,4 @@ public class CollisionHandler implements Disposable {
 		return rb;
 	}
 
-	public void removeGameObject(GameObject obj) {
-		obj.visible = false;
-		dynamicsWorld.removeCollisionObject(obj.body);
-	}
 }
