@@ -155,10 +155,16 @@ public class Player implements Disposable {
 		// Update gun position/rotation relative to camera
 		gun.body.setWorldTransform(gunBaseTransform);
 
+		// // For gun
+		// gunLeftRightPosition.set(direction).crs(Vector3.Y).nor().scl(0.075f);
+		// gunFrontBackPosition.set(direction).nor().scl(0.15f);
+		// gunUpDownPosition.set(direction).nor().crs(gunLeftRightPosition).scl(0.75f);
+
+		// For blowgun
 		gunLeftRightPosition.set(direction).crs(Vector3.Y).nor().scl(0.075f);
-		gunFrontBackPosition.set(direction).nor().scl(0.1f);
+		gunFrontBackPosition.set(direction).nor().scl(0.25f);
 		gunUpDownPosition.set(direction).nor().crs(gunLeftRightPosition)
-				.scl(0.75f);
+				.scl(0.80f);
 
 		if (moveMode == PlayerAction.STOP) {
 			gunYoffset = 0;

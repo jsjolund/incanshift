@@ -55,16 +55,16 @@ public class GameWorld implements Disposable {
 		assets = new AssetManager();
 
 		// Load the 3D models and sounds used by the game
-		assets.load("model/temple.g3db", Model.class);
+		assets.load("model/blowpipe.g3db", Model.class);
+		assets.load("model/box.g3db", Model.class);
 		assets.load("model/ground.g3db", Model.class);
-		assets.load("model/skybox.g3db", Model.class);
-		assets.load("model/level.g3db", Model.class);
 		assets.load("model/gun.g3db", Model.class);
+		assets.load("model/level.g3db", Model.class);
 		assets.load("model/mask.g3db", Model.class);
 		assets.load("model/pillar.g3db", Model.class);
-		assets.load("model/box.g3db", Model.class);
+		assets.load("model/skybox.g3db", Model.class);
+		assets.load("model/temple.g3db", Model.class);
 		assets.load("model/test_scene.g3db", Model.class);
-		assets.load("model/blowpipe.g3db", Model.class);
 
 		assets.load("sound/jump.wav", Sound.class);
 		assets.load("sound/shatter.wav", Sound.class);
@@ -78,21 +78,24 @@ public class GameWorld implements Disposable {
 		instances = new Array<GameObject>();
 		collisionHandler = new CollisionHandler(instances);
 		gameObjectFactory = new ArrayMap<String, GameObject.Constructor>();
+		System.out.println("awef");
 		assets.finishLoading();
+		System.out.println("f");
 		createFactoryDefs(assets, gameObjectFactory);
-
+		System.out.println("l");
 		skybox = new ModelInstance(assets.get("model/skybox.g3db", Model.class));
 
 		// Create a player, a gun and load the level from CSV
 		player = spawnPlayer(game, viewport, screenCenter);
-		GameObject gun = spawn("gun", player.position.cpy(), false, false,
-				false, CollisionHandler.OBJECT_FLAG,
-				CollisionHandler.GROUND_FLAG);
-		player.setGun(gun);
-
-		// GameObject blowpipe = spawn("blowpipe", player.position.cpy(), false,
-		// false, false, CollisionHandler.OBJECT_FLAG,
+		// GameObject gun = spawn("gun", player.position.cpy(), false, false,
+		// false, CollisionHandler.OBJECT_FLAG,
 		// CollisionHandler.GROUND_FLAG);
+		// player.setGun(gun);
+
+		GameObject blowpipe = spawn("blowpipe", player.position.cpy(), false,
+				false, false, CollisionHandler.OBJECT_FLAG,
+				CollisionHandler.GROUND_FLAG);
+		player.setGun(blowpipe);
 
 		loadLevelCSV(Gdx.files.internal("model/map_template.csv").readString());
 	}
