@@ -98,7 +98,7 @@ public class GameWorld implements Disposable {
 				CollisionHandler.GROUND_FLAG);
 		player.setGun(blowpipe);
 
-		loadLevelCSV(Gdx.files.internal("model/map_template.csv").readString());
+		loadLevelCSV(Gdx.files.internal("model/christoffer.csv").readString());
 	}
 
 	/**
