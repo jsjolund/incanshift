@@ -11,7 +11,7 @@ public class Menu implements Iterable<MenuItem> {
 	static float textVerticalSpacing = 5;
 
 	public void dispose() {
-		items.get(0).texNameSelected.getTexture().dispose();
+		items.get(0).texKeySelected.getTexture().dispose();
 	}
 
 	public MenuItem get(int i) {
@@ -44,8 +44,8 @@ public class Menu implements Iterable<MenuItem> {
 			if (item.value == null) {
 				int xc = width / 2;
 				int yc = height / 2;
-				int tw = item.texNameUnselected.getRegionWidth();
-				int th = item.texNameUnselected.getRegionHeight();
+				int tw = item.texKeyUnselected.getRegionWidth();
+				int th = item.texKeyUnselected.getRegionHeight();
 				float yOffset = yc - (textVerticalSpacing + th) * (size() - 1)
 						/ 2;
 				float x = xc - tw / 2;
@@ -54,8 +54,8 @@ public class Menu implements Iterable<MenuItem> {
 			} else {
 				int xc = width / 2;
 				int yc = height / 2;
-				int tw = item.texNameUnselected.getRegionWidth();
-				int th = item.texNameUnselected.getRegionHeight();
+				int tw = item.texKeyUnselected.getRegionWidth();
+				int th = item.texKeyUnselected.getRegionHeight();
 				float yOffset = yc - (textVerticalSpacing + th) * (size() - 1)
 						/ 2;
 				float x = xc - tw;

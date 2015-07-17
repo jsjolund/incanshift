@@ -5,19 +5,19 @@ import com.badlogic.gdx.math.Rectangle;
 
 public class MenuItem {
 
-	public String name;
+	public String key;
 	public String value;
 	public boolean selectable;
-	
-	TextureRegion texNameUnselected;
-	TextureRegion texNameSelected;
+
+	TextureRegion texKeyUnselected;
+	TextureRegion texKeySelected;
 	TextureRegion texValueUnselected;
 	TextureRegion texValueSelected;
 
 	Rectangle bounds = new Rectangle();
 
 	public MenuItem(String name, String value, boolean selectable) {
-		this.name = name;
+		this.key = name;
 		this.value = value;
 		this.selectable = selectable;
 	}
@@ -26,20 +26,20 @@ public class MenuItem {
 		return bounds;
 	}
 
-	public TextureRegion getNameTex(boolean selected) {
-		return (selected) ? texNameSelected : texNameUnselected;
+	public TextureRegion getKeyTex(boolean selected) {
+		return (selected) ? texKeySelected : texKeyUnselected;
 	}
 
-	public void setNameTex(TextureRegion tex, boolean selected) {
-		if (selected) {
-			this.texNameSelected = tex;
-		} else {
-			this.texNameUnselected = tex;
-		}
-	}
-	
 	public TextureRegion getValueTex(boolean selected) {
 		return (selected) ? texValueSelected : texValueUnselected;
+	}
+
+	public void setKeyTex(TextureRegion tex, boolean selected) {
+		if (selected) {
+			this.texKeySelected = tex;
+		} else {
+			this.texKeyUnselected = tex;
+		}
 	}
 
 	public void setValueTex(TextureRegion tex, boolean selected) {
@@ -53,9 +53,9 @@ public class MenuItem {
 	@Override
 	public String toString() {
 		if (value != null) {
-			return name;
+			return key;
 		}
-		return name;
+		return key;
 	}
 
 }

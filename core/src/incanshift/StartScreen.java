@@ -34,7 +34,7 @@ public class StartScreen extends AbstractMenuScreen {
 			if (!canResume) {
 				canResume = true;
 				menu.dispose();
-				start.name = "Resume";
+				start.key = "Resume";
 				createMenuTextures();
 			}
 			game.showGameScreen();

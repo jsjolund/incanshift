@@ -142,8 +142,8 @@ public abstract class AbstractMenuScreen extends AbstractScreen implements
 
 	Color valueUnselectedColor = Color.LIGHT_GRAY;
 	Color valueSelectedColor = Color.YELLOW;
-	Color nameUnselectedColor = Color.GRAY;
-	Color nameSelectedColor = Color.WHITE;
+	Color keyUnselectedColor = Color.GRAY;
+	Color keySelectedColor = Color.WHITE;
 
 	FrameBuffer fbo = null;
 
@@ -193,85 +193,68 @@ public abstract class AbstractMenuScreen extends AbstractScreen implements
 		spriteBatch.begin();
 
 		for (int i = 0; i < menu.size(); i++) {
+
 			MenuItem item = menu.get(i);
 
-			if (item.value == null) {
-				int yspace = maxCharHeight;
-				int xspace = texWidth / 2;
+			int yspace = maxCharHeight;
+			int xspace = texWidth / 2;
+			int x = 10;
+			int y = texHeight - 2 * yspace * (i + 1);
 
-				int x = 10;
-				int y = texHeight - 2 * yspace * (i + 1);
+			TextureRegion texValueUnselected;
+			TextureRegion texValueSelected;
 
-				sansLarge.setColor(Color.GRAY);
-				GlyphLayout text = sansLarge.draw(spriteBatch, item.name, x, y
-						+ yspace);
+			TextureRegion texKeyUnselected;
+			TextureRegion texKeySelected;
 
-				sansLarge.setColor(Color.WHITE);
-				sansLarge.draw(spriteBatch, item.name, x + xspace, y + yspace);
+			// Value unselected
+			sansLarge.setColor(valueUnselectedColor);
+			String string = item.key + ((item.value == null) ? "" : item.value);
+			GlyphLayout keyValueText = sansLarge.draw(spriteBatch, string, x, y
+					+ yspace);
+			// Value selected
+			sansLarge.setColor(valueSelectedColor);
+			sansLarge.draw(spriteBatch, string, x + xspace, y + yspace);
 
-				int tw = (int) text.width;
-				int th = (int) text.height * 2;
+			int kvw = (int) keyValueText.width;
 
-				TextureRegion texFalse = new TextureRegion(
-						fbo.getColorBufferTexture(), x, y, tw, th);
-				TextureRegion texTrue = new TextureRegion(
-						fbo.getColorBufferTexture(), x + xspace, y, tw, th);
+			// Key unselected
+			sansLarge.setColor(keyUnselectedColor);
+			GlyphLayout keyText = sansLarge.draw(spriteBatch, item.key, x, y
+					+ yspace);
 
-				texFalse.flip(false, true);
-				texTrue.flip(false, true);
-				item.setNameTex(texFalse, false);
-				item.setNameTex(texTrue, true);
+			// Key selected
+			sansLarge.setColor(keySelectedColor);
+			sansLarge.draw(spriteBatch, item.key, x + xspace, y + yspace);
 
-			} else {
+			int kw = (int) keyText.width;
+			int kh = (int) keyText.height * 2;
 
-				int yspace = maxCharHeight;
-				int xspace = texWidth / 2;
+			// Set texture region for value if it exists
+			if (item.value != null) {
+				int vw = kvw - kw;
 
-				int x = 10;
-				int y = texHeight - 2 * yspace * (i + 1);
+				texValueUnselected = new TextureRegion(
+						fbo.getColorBufferTexture(), x + kw, y, vw, kh);
+				texValueSelected = new TextureRegion(
+						fbo.getColorBufferTexture(), x + xspace + kw, y, vw, kh);
 
-				// Value unselected
-				sansLarge.setColor(valueUnselectedColor);
-				GlyphLayout nameValueText = sansLarge.draw(spriteBatch,
-						item.name + item.value, x, y + yspace);
-				int nvw = (int) nameValueText.width;
-				// Value selected
-				sansLarge.setColor(valueSelectedColor);
-				sansLarge.draw(spriteBatch, item.name + item.value, x + xspace,
-						y + yspace);
-
-				// Name unselected
-				sansLarge.setColor(nameUnselectedColor);
-				GlyphLayout nameText = sansLarge.draw(spriteBatch, item.name,
-						x, y + yspace);
-				int nw = (int) nameText.width;
-				int nh = (int) nameText.height * 2;
-				// Name selected
-				sansLarge.setColor(nameSelectedColor);
-				sansLarge.draw(spriteBatch, item.name, x + xspace, y + yspace);
-				int vw = nvw - nw;
-				int vh = nh;
-
-				TextureRegion texValueUnselected = new TextureRegion(
-						fbo.getColorBufferTexture(), x + nw, y, vw, vh);
-				TextureRegion texValueSelected = new TextureRegion(
-						fbo.getColorBufferTexture(), x + xspace + nw, y, vw, vh);
-
-				TextureRegion texNameUnselected = new TextureRegion(
-						fbo.getColorBufferTexture(), x, y, nw, nh);
-				TextureRegion texNameSelected = new TextureRegion(
-						fbo.getColorBufferTexture(), x + xspace, y, nw, nh);
-
-				texNameUnselected.flip(false, true);
-				texNameSelected.flip(false, true);
 				texValueSelected.flip(false, true);
 				texValueUnselected.flip(false, true);
-				item.setNameTex(texNameUnselected, false);
-				item.setNameTex(texNameSelected, true);
+
 				item.setValueTex(texValueUnselected, false);
 				item.setValueTex(texValueSelected, true);
-
 			}
+
+			// Set texture region for key
+			texKeyUnselected = new TextureRegion(fbo.getColorBufferTexture(),
+					x, y, kw, kh);
+			texKeySelected = new TextureRegion(fbo.getColorBufferTexture(), x
+					+ xspace, y, kw, kh);
+			texKeyUnselected.flip(false, true);
+			texKeySelected.flip(false, true);
+			item.setKeyTex(texKeyUnselected, false);
+			item.setKeyTex(texKeySelected, true);
 
 		}
 		spriteBatch.end();
@@ -321,8 +304,8 @@ public abstract class AbstractMenuScreen extends AbstractScreen implements
 				MenuItem item = menu.get(i);
 
 				Rectangle b = item.getBounds();
-				TextureRegion texName = item.getNameTex(item == selectedItem);
-				spriteBatch.draw(texName, b.x, b.y);
+				TextureRegion texKey = item.getKeyTex(item == selectedItem);
+				spriteBatch.draw(texKey, b.x, b.y);
 
 				if (item.value != null) {
 					TextureRegion texValue = item

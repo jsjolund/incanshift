@@ -79,7 +79,7 @@ public class SettingsScreen extends AbstractMenuScreen {
 			itemValueSelected = true;
 			capturing = true;
 			if (msg == null) {
-				msg = "Press a key for " + selectedItem.name
+				msg = "Press a key for " + selectedItem.key
 						+ ", or Esc to cancel...";
 			}
 		}
@@ -107,7 +107,7 @@ public class SettingsScreen extends AbstractMenuScreen {
 		if (keycodeUses.containsKey(keycode)) {
 			MenuItem occupying = keycodeUses.get(keycode);
 			if (selectedItem != occupying) {
-				msg = "Key used by " + occupying.name
+				msg = "Key used by " + occupying.key
 						+ ", select new or Esc to cancel...";
 			} else {
 				keyDownCapture(Keys.ESCAPE);
@@ -175,7 +175,7 @@ public class SettingsScreen extends AbstractMenuScreen {
 			transparent.a = 0;
 			sansNormal.setColor(transparent);
 		} else {
-			sansNormal.setColor(nameSelectedColor);
+			sansNormal.setColor(keySelectedColor);
 		}
 		GlyphLayout msgGlyph = sansNormal.draw(spriteBatch, msg, msgXpos,
 				msgYpos);
