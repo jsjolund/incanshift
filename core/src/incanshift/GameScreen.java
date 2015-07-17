@@ -4,7 +4,6 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFontCache;
 import com.badlogic.gdx.graphics.g3d.Environment;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
@@ -14,6 +13,7 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.utils.Array;
 
 public class GameScreen extends AbstractScreen {
@@ -33,8 +33,10 @@ public class GameScreen extends AbstractScreen {
 	Vector2 chVert1 = new Vector2();
 	Vector2 chVert2 = new Vector2();
 
-	Array<Billboard> billboards = new Array<Billboard>();
 	Billboard sun;
+	Array<Billboard> billboards = new Array<Billboard>();
+	Ray bbTestRay = new Ray();
+	Vector3 bbDirection = new Vector3();
 
 	Color fogColor;
 	float fogDistance;
@@ -56,23 +58,12 @@ public class GameScreen extends AbstractScreen {
 		sun = new Billboard(sunPosition, 500f, 500f, "shader/common.vert",
 				"shader/sun.frag");
 		// Marker billboard
-		billboards.add(new Billboard(new Vector3(-20, 2, 10), 2, 1,
+		billboards.add(new Billboard(new Vector3(-20, 2, 10), 1, 1,
 				"shader/common.vert", "shader/test.frag"));
-		billboards.add(new Billboard(new Vector3(5, 1, 20), 3, 3,
+		billboards.add(new Billboard(new Vector3(5, 1, 20), 1, 1,
 				"shader/common.vert", "shader/test.frag"));
 
 		setEnvironment(Color.LIGHT_GRAY, 30, sunPosition);
-	}
-
-	void setEnvironment(Color fogColor, float fogDistance, Vector3 sunPosition) {
-		this.fogColor = fogColor;
-		environment.clear();
-		environment.add(new DirectionalLight().set(Color.WHITE,
-				sunPosition.scl(-1)));
-		environment.set(new ColorAttribute(ColorAttribute.AmbientLight, 0.4f,
-				0.4f, 0.4f, 1.f));
-		environment.set(new ColorAttribute(ColorAttribute.Fog, fogColor.r,
-				fogColor.g, fogColor.b, fogColor.a));
 	}
 
 	@Override
@@ -86,27 +77,6 @@ public class GameScreen extends AbstractScreen {
 		for (Billboard b : billboards) {
 			b.dispose();
 		}
-	}
-
-	@Override
-	public void hide() {
-		lastCameraDirection.set(camera.direction);
-		Gdx.input.setCursorCatched(false);
-		world.music.pause();
-	}
-
-	@Override
-	public void pause() {
-		// TODO Auto-generated method stub
-	}
-
-	private void updateCrosshair() {
-		float xc = getViewportWidth() / 2;
-		float yc = getViewportHeight() / 2;
-		chHoriz1.set(xc, yc - GameSettings.CROSSHAIR);
-		chHoriz2.set(xc, yc + GameSettings.CROSSHAIR);
-		chVert1.set(xc - GameSettings.CROSSHAIR, yc);
-		chVert2.set(xc + GameSettings.CROSSHAIR, yc);
 	}
 
 	private BitmapFontCache getPlayerPositionTextCache() {
@@ -130,6 +100,18 @@ public class GameScreen extends AbstractScreen {
 								.getLinearVelocity().len()), textX, (textY));
 		monoTiny.getData().markupEnabled = false;
 		return cache;
+	}
+
+	@Override
+	public void hide() {
+		lastCameraDirection.set(camera.direction);
+		Gdx.input.setCursorCatched(false);
+		world.music.pause();
+	}
+
+	@Override
+	public void pause() {
+		// TODO Auto-generated method stub
 	}
 
 	@Override
@@ -181,6 +163,17 @@ public class GameScreen extends AbstractScreen {
 			if (!camera.frustum.sphereInFrustum(b.worldPos, b.maxWorldRadius())) {
 				continue;
 			}
+
+			bbDirection.set(b.worldPos).sub(world.player.position).nor();
+			bbTestRay.set(world.player.position, bbDirection);
+
+			short mask = (short) (CollisionHandler.GROUND_FLAG | CollisionHandler.OBJECT_FLAG);
+			float dst = world.player.position.dst(b.worldPos);
+
+			if (world.rayTest(bbTestRay, mask, dst) != null) {
+				continue;
+			}
+
 			b.setProjection(viewport);
 			spriteBatch.setShader(b.shader);
 			spriteBatch.draw(b.texture, b.screenPos.x - b.screenWidth / 2,
@@ -234,6 +227,17 @@ public class GameScreen extends AbstractScreen {
 		// TODO Auto-generated method stub
 	}
 
+	void setEnvironment(Color fogColor, float fogDistance, Vector3 sunPosition) {
+		this.fogColor = fogColor;
+		environment.clear();
+		environment.add(new DirectionalLight().set(Color.WHITE,
+				sunPosition.scl(-1)));
+		environment.set(new ColorAttribute(ColorAttribute.AmbientLight, 0.4f,
+				0.4f, 0.4f, 1.f));
+		environment.set(new ColorAttribute(ColorAttribute.Fog, fogColor.r,
+				fogColor.g, fogColor.b, fogColor.a));
+	}
+
 	@Override
 	public void show() {
 		Gdx.input.setInputProcessor(world.player.controller);
@@ -241,6 +245,15 @@ public class GameScreen extends AbstractScreen {
 
 		world.music(true);
 
+	}
+
+	private void updateCrosshair() {
+		float xc = getViewportWidth() / 2;
+		float yc = getViewportHeight() / 2;
+		chHoriz1.set(xc, yc - GameSettings.CROSSHAIR);
+		chHoriz2.set(xc, yc + GameSettings.CROSSHAIR);
+		chVert1.set(xc - GameSettings.CROSSHAIR, yc);
+		chVert2.set(xc + GameSettings.CROSSHAIR, yc);
 	}
 
 }
