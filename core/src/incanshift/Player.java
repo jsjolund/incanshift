@@ -19,7 +19,7 @@ public class Player implements Disposable {
 
 		JUMP("jump"), FIRE("shoot"), USE("use"),
 
-		RESET("reset");
+		RESET("reset"), FLY("fly");
 
 		private String name;
 
@@ -104,8 +104,10 @@ public class Player implements Disposable {
 
 	public Vector3 positionCarried = new Vector3();
 
-	private boolean isClimbing = false;
+	public boolean isClimbing = false;
 	private boolean isJumping = false;
+	private boolean isFlying = false;
+
 	private Ray ray = new Ray();
 
 	private GameObject carried;
@@ -234,7 +236,7 @@ public class Player implements Disposable {
 			moveSpeed = 0;
 		}
 
-		if (moveDirection.y > 0) {
+		if (moveDirection.y > 0 && !isFlying) {
 			moveDirection.y = 0;
 		}
 
@@ -247,11 +249,17 @@ public class Player implements Disposable {
 			if (moveSpeed == 0) {
 				velocity.x *= GameSettings.PLAYER_STOP_DOWNSCALE;
 				velocity.z *= GameSettings.PLAYER_STOP_DOWNSCALE;
+				if (isFlying) {
+					velocity.y *= GameSettings.PLAYER_STOP_DOWNSCALE;
+				}
 			}
 			if (currentSpeed < moveSpeed) {
 				velocityNew.set(moveDirection).nor().scl(moveSpeed);
 
 				velocity.set(velocityNew.x, velocity.y, velocityNew.z);
+				if (isFlying) {
+					velocity.set(velocityNew.x, velocityNew.y, velocityNew.z);
+				}
 			}
 		}
 	}
@@ -367,9 +375,23 @@ public class Player implements Disposable {
 
 		boolean isOnGround = isOnGround();
 
+		if (isFlying) {
+			isOnGround = true;
+		}
+
 		// Get user input
 		controller.update();
 		moveDirection.set(controller.getMoveDirection());
+
+		if (controller.actionQueueContains(PlayerAction.FLY)) {
+			if (!isFlying) {
+				isFlying = true;
+				object.body.setGravity(Vector3.Zero);
+			} else {
+				isFlying = false;
+				object.body.setGravity(GameSettings.GRAVITY);
+			}
+		}
 
 		// React to input
 		setMoveMode(isOnGround);

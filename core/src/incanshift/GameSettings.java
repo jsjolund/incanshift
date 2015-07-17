@@ -36,5 +36,7 @@ public class GameSettings {
 	public static int RUN = Keys.SHIFT_LEFT;
 	public static int USE = Keys.E;
 	public static int RESET = Keys.F5;
+	
+	public static int FLY = Keys.F1;
 
 }

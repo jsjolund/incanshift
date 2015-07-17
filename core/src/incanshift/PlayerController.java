@@ -16,6 +16,7 @@ class PlayerController implements InputProcessor {
 	private final IntIntMap keys = new IntIntMap();
 	private final IntIntMap actionQueue = new IntIntMap();
 	private boolean jumpKeyReleased = true;
+	private boolean flyKeyReleased = true;
 	private boolean jumpTimerRunning = true;
 	private final Vector3 moveDirection = new Vector3();
 	private final Vector3 tmp = new Vector3();
@@ -68,6 +69,10 @@ class PlayerController implements InputProcessor {
 		if (keycode == GameSettings.USE) {
 			actionQueueAdd(PlayerAction.USE);
 		}
+		if (keycode == GameSettings.FLY && flyKeyReleased) {
+			flyKeyReleased = false;
+			actionQueueAdd(PlayerAction.FLY);
+		}
 
 		return true;
 	}
@@ -86,6 +91,9 @@ class PlayerController implements InputProcessor {
 		}
 		if (keycode == GameSettings.RUN) {
 			move = PlayerAction.WALK;
+		}
+		if (keycode == GameSettings.FLY) {
+			flyKeyReleased = true;
 		}
 		return false;
 	}
