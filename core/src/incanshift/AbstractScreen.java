@@ -30,6 +30,7 @@ public abstract class AbstractScreen implements Screen {
 	BitmapFont sansTiny;
 	BitmapFont sansNormal;
 	BitmapFont sansLarge;
+	BitmapFont sansHuge;
 	BitmapFont monoTiny;
 	BitmapFont monoNormal;
 	BitmapFont monoLarge;
@@ -56,6 +57,8 @@ public abstract class AbstractScreen implements Screen {
 		sansNormal = generator.generateFont(parameter);
 		parameter.size = 35;
 		sansLarge = generator.generateFont(parameter);
+		parameter.size = 42;
+		sansHuge = generator.generateFont(parameter);
 		generator.dispose();
 
 		generator = new FreeTypeFontGenerator(
