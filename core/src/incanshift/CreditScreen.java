@@ -11,6 +11,7 @@ public class CreditScreen extends AbstractMenuScreen {
 
 		Menu menu = new Menu();
 		menu.add(back);
+		menu.add(new MenuItem("Oscar Lundberg", null, false));
 		menu.add(new MenuItem("Anton Bjuhr", null, false));
 		menu.add(new MenuItem("Joel Sahlin", null, false));
 		menu.add(new MenuItem("Christoffer Lundberg", null, false));
