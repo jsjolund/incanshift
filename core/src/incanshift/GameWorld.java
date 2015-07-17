@@ -98,7 +98,7 @@ public class GameWorld implements Disposable {
 	}
 
 	/**
-	 * Read a csv file and create the objects listed in it.
+	 * Read a CSV file and create the objects listed in it.
 	 * 
 	 * @param csv
 	 */
@@ -118,7 +118,7 @@ public class GameWorld implements Disposable {
 				Gdx.app.debug(tag, "Error when parsing csv file.", e);
 				continue;
 			}
-			toGameCoords(pos);
+			blenderToGameCoords(pos);
 
 			if (name.equals("mask")) {
 				spawn(name, pos, false, true, false,
@@ -151,8 +151,8 @@ public class GameWorld implements Disposable {
 	}
 
 	/**
-	 * Create an object factory blueprint for a 3D model along with an
-	 * appropriate collision shape.
+	 * Object factory blueprint for a 3D model along with an appropriate
+	 * collision shape.
 	 */
 	private static void createFactoryDefs(AssetManager assets,
 			ArrayMap<String, GameObject.Constructor> gameObjectFactory) {
@@ -219,7 +219,7 @@ public class GameWorld implements Disposable {
 		return dim;
 	}
 
-	private static Vector3 toGameCoords(Vector3 v) {
+	private static Vector3 blenderToGameCoords(Vector3 v) {
 		return v.set(v.x, v.z, -v.y);
 	}
 
@@ -245,6 +245,27 @@ public class GameWorld implements Disposable {
 		music.setLooping(true);
 	}
 
+	/**
+	 * Spawn a game object from the factory and add it to the world.
+	 * 
+	 * @param name
+	 *            Factory name for the object.
+	 * @param pos
+	 *            Starting position.
+	 * @param movable
+	 *            True if the player can move this object.
+	 * @param removable
+	 *            True if the player can destroy this object.
+	 * @param noDeactivate
+	 *            True if collision simulation should never be suspended for
+	 *            this object.
+	 * @param belongsToFlag
+	 *            Collision flag/mask for the group this object belongs to.
+	 * @param collidesWithFlag
+	 *            Collision flag/mask for the group this object can collide
+	 *            with.
+	 * @return The created game object.
+	 */
 	public GameObject spawn(String name, Vector3 pos, boolean movable,
 			boolean removable, boolean noDeactivate, short belongsToFlag,
 			short collidesWithFlag) {
@@ -301,6 +322,11 @@ public class GameWorld implements Disposable {
 
 	}
 
+	/**
+	 * Create a model of a 3D compass with arrows along the three axis.
+	 * 
+	 * @return
+	 */
 	private static Model buildCompassModel() {
 		float compassScale = 5;
 		ModelBuilder modelBuilder = new ModelBuilder();
