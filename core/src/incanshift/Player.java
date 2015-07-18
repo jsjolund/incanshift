@@ -277,7 +277,7 @@ public class Player implements Disposable {
 			if (hitObject != null) {
 				GameObject obj = world.getGameObject(hitObject);
 				if (obj.removable) {
-					world.removeGameObject(obj);
+					world.destroy(obj);
 					sound.shatter();
 				}
 			}
@@ -393,11 +393,11 @@ public class Player implements Disposable {
 			}
 		}
 		
-		if (controller.actionQueueContains(PlayerAction.JUMP) || !isOnGround) {
-			object.body.setGravity(GameSettings.GRAVITY.cpy().scl(1));			
-		} else {
-			object.body.setGravity(GameSettings.GRAVITY.cpy().scl(4));
-		}
+//		if (controller.actionQueueContains(PlayerAction.JUMP) || !isOnGround) {
+//			object.body.setGravity(GameSettings.GRAVITY.cpy().scl(1));			
+//		} else {
+//			object.body.setGravity(GameSettings.GRAVITY.cpy().scl(4));
+//		}
 
 		// React to input
 		setMoveMode(true);

@@ -146,7 +146,7 @@ public class GameScreen extends AbstractScreen {
 
 		// Render the skybox
 		modelBatch.begin(camera);
-		modelBatch.render(world.skybox);
+//		modelBatch.render(world.skybox);
 		modelBatch.end();
 
 		// Draw sun billboard

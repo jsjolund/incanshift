@@ -46,6 +46,7 @@ public class GameWorld implements Disposable {
 	final static String tag = "GameWorld";
 
 	Viewport viewport;
+	IncanShift game;
 
 	private AssetManager assets;
 	private CollisionHandler collisionHandler;
@@ -54,7 +55,10 @@ public class GameWorld implements Disposable {
 	public Array<GameObject> instances;
 	public Array<Billboard> billboards;
 
-	public ModelInstance skybox;
+	public String[] levels = { "model/outside_level.csv", "model/level1.csv", "model/level2.csv" };
+	public int currentLevel = 0;
+
+//	public ModelInstance skybox;
 	public Player player;
 
 	public Music music;
@@ -90,7 +94,7 @@ public class GameWorld implements Disposable {
 
 		if (!gameObjectFactory.containsKey(name)) {
 			String filePath = String.format("model/%s.g3db", name);
-			Gdx.app.debug(tag, String.format("Loading model for %s", filePath));
+			Gdx.app.debug(tag, String.format("Creating collision shape for %s", filePath));
 			assets.load(filePath, Model.class);
 			assets.finishLoading();
 			Model model = assets.get(filePath);
@@ -99,6 +103,7 @@ public class GameWorld implements Disposable {
 		}
 
 		GameObject obj = gameObjectFactory.get(name).construct();
+		obj.id = name;
 		Gdx.app.debug(tag, String.format("Spawning %s at %s", name, pos));
 		obj.position(pos);
 		obj.movable = movable;
@@ -117,6 +122,7 @@ public class GameWorld implements Disposable {
 		Gdx.app.debug(tag, String.format("Creating game world"));
 		this.font = font;
 		this.viewport = viewport;
+		this.game = game;
 		assets = new AssetManager();
 
 		// Load the 3D models and sounds used by the game
@@ -125,7 +131,6 @@ public class GameWorld implements Disposable {
 		// assets.load("model/gun.g3db", Model.class);
 		assets.load("model/mask.g3db", Model.class);
 		assets.load("model/skybox.g3db", Model.class);
-		assets.load("model/pelare_v2.g3db", Model.class);
 		assets.load("model/skybox.g3db", Model.class);
 
 		assets.load("sound/jump.wav", Sound.class);
@@ -150,7 +155,7 @@ public class GameWorld implements Disposable {
 		}
 		Gdx.app.debug(tag, String.format("Assets finished loading."));
 		createFactoryDefs(assets, gameObjectFactory);
-		skybox = new ModelInstance(assets.get("model/skybox.g3db", Model.class));
+//		skybox = new ModelInstance(assets.get("model/skybox.g3db", Model.class));
 
 		// Create a player, a gun and load the level from CSV
 		player = spawnPlayer(game, viewport, screenCenter);
@@ -164,7 +169,15 @@ public class GameWorld implements Disposable {
 				CollisionHandler.GROUND_FLAG);
 		player.setGun(blowpipe);
 
-		loadLevelCSV(Gdx.files.internal("model/christoffer.csv").readString());
+		loadLevel(currentLevel);
+	}
+
+	public void loadLevel(int level) {
+		for (GameObject obj : instances) {
+			collisionHandler.dynamicsWorld.removeCollisionObject(obj.body);
+		}
+		instances.clear();
+		loadLevelCSV(levels[level]);
 	}
 
 	/**
@@ -172,12 +185,12 @@ public class GameWorld implements Disposable {
 	 * 
 	 * @param csv
 	 */
-	public void loadLevelCSV(String csv) {
-		Gdx.app.debug(tag, String.format("Loading CSV data"));
-
+	public void loadLevelCSV(String csvPath) {
+		Gdx.app.debug(tag, String.format("Loading CSV data from %s", csvPath));
+		String csv = Gdx.files.internal(csvPath).readString();
+		Gdx.app.debug(tag, String.format("Content: \n%s", csv));
 		String[] lines = csv.split(System.getProperty("line.separator"));
-		spawn("pelare_v2", new Vector3(0, 4, 0), false, false, false,
-				CollisionHandler.GROUND_FLAG, CollisionHandler.ALL_FLAG);
+
 		for (String line : lines) {
 			String name;
 			Vector3 pos = null;
@@ -212,9 +225,7 @@ public class GameWorld implements Disposable {
 				spawn(name, pos, false, false, false,
 						CollisionHandler.GROUND_FLAG, CollisionHandler.ALL_FLAG);
 			}
-
 		}
-
 	}
 
 	public void spawnBillboard(Vector3 pos) {
@@ -260,11 +271,6 @@ public class GameWorld implements Disposable {
 		gameObjectFactory.put("box", new GameObject.Constructor(modelBox,
 				new btBox2dShape(new Vector3(0.5f, 0.5f, 0.5f)), 1f));
 		Gdx.app.debug(tag, "Loaded box model");
-
-		Model modelP = assets.get("model/pelare_v2.g3db", Model.class);
-		gameObjectFactory.put("pelare_v2", new GameObject.Constructor(modelP,
-				Bullet.obtainStaticNodeShape(modelP.nodes), 0));
-		Gdx.app.debug(tag, "Loaded pelare_v2 model");
 
 		// Model modelGun = assets.get("model/gun.g3db", Model.class);
 		// gameObjectFactory.put("gun", new GameObject.Constructor(modelGun,
@@ -325,6 +331,14 @@ public class GameWorld implements Disposable {
 		music.setLooping(true);
 	}
 
+	private int numberSpawned(String id) {
+		int i = 0;
+		for (GameObject obj : instances) {
+			i += obj.id.equals(id) ? 1 : 0;
+		}
+		return i;
+	}
+
 	public Player spawnPlayer(IncanShift game, Viewport viewport,
 			Vector3 screenCenter) {
 
@@ -363,12 +377,21 @@ public class GameWorld implements Disposable {
 		// Update player transform from user input
 		player.update(delta);
 		player.object.body.getWorldTransform(player.object.transform);
-		for (GameObject obj : instances)
+		for (GameObject obj : instances) {
 			obj.body.getWorldTransform(obj.transform);
-
+		}
 		for (Billboard b : billboards) {
 			b.update(viewport.getCamera());
 		}
+
+//		if (numberSpawned("mask") == 0) {
+//			currentLevel++;
+//			if (currentLevel == levels.length) {
+//				currentLevel = 0;
+//			}
+//			loadLevel(currentLevel);
+//			game.resize(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+//		}
 
 	}
 
@@ -377,15 +400,18 @@ public class GameWorld implements Disposable {
 		for (GameObject obj : instances) {
 			if (obj.body.equals(co)) {
 				go = obj;
+				Gdx.app.debug(tag, String.format("Found object id: "+obj.id));
 				break;
 			}
 		}
 		return go;
 	}
 
-	public void removeGameObject(GameObject obj) {
-		obj.visible = false;
+	public void destroy(GameObject obj) {
 		collisionHandler.dynamicsWorld.removeCollisionObject(obj.body);
+		instances.removeValue(obj, true);
+		Gdx.app.debug(tag, String.format("Destroyed %s, %s remaining.", obj.id,
+				numberSpawned(obj.id)));
 	}
 
 	/**

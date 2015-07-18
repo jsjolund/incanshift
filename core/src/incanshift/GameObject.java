@@ -57,6 +57,7 @@ class GameObject extends ModelInstance implements Disposable {
 	public boolean removable = false;
 	public boolean movable = false;
 	public boolean visible = true;
+	public String id;
 
 	public GameObject(Model model,
 			btRigidBody.btRigidBodyConstructionInfo constructionInfo) {
