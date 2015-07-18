@@ -1,65 +1,81 @@
 package incanshift;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Pixmap.Format;
-import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.VertexAttributes.Usage;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.graphics.g3d.Material;
+import com.badlogic.gdx.graphics.g3d.Model;
+import com.badlogic.gdx.graphics.g3d.ModelInstance;
+import com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute;
+import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
+import com.badlogic.gdx.graphics.g3d.utils.MeshPartBuilder;
+import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.graphics.glutils.FrameBuffer;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Disposable;
-import com.badlogic.gdx.utils.viewport.Viewport;
 
+/**
+ * A billboard is a graphical component consisting of a plane which is always
+ * facing the camera. The aspect ratio is always maintained, but the size scales
+ * with viewing distance. Textures and shaders can be used on the plane, and
+ * text can be drawn on the surface.
+ */
 public class Billboard implements Disposable {
 
-	private final static String tag = "Billboard";
+	public final static String tag = "Billboard";
+
+	private static Model createPlaneModel(final float width,
+			final float height, final Material material, final float u1,
+			final float v1, final float u2, final float v2) {
+
+		ModelBuilder modelBuilder = new ModelBuilder();
+		modelBuilder.begin();
+		MeshPartBuilder bPartBuilder = modelBuilder.part("rect",
+				GL20.GL_TRIANGLES, Usage.Position | Usage.Normal
+						| Usage.TextureCoordinates, material);
+		// NOTE ON TEXTURE REGION, MAY FILL OTHER REGIONS, USE GET region.getU()
+		// and so on
+		bPartBuilder.setUVRange(u1, v1, u2, v2);
+		bPartBuilder.rect(-(width * 0.5f), -(height * 0.5f), 0, (width * 0.5f),
+				-(height * 0.5f), 0, (width * 0.5f), (height * 0.5f), 0,
+				-(width * 0.5f), (height * 0.5f), 0, 0, 0, -1);
+
+		return (modelBuilder.end());
+	}
+
+	public ModelInstance modelInstance;
+	private TextureRegion texture;
+	public ShaderProgram shader = null;
+	BlendingAttribute blendAttrib;
 
 	Vector3 worldPos = new Vector3();
 	float worldWidth;
 	float worldHeight;
-
-	Vector3 screenPos = new Vector3();
-	float screenWidth;
-	float screenHeight;
-
-	ShaderProgram shader = null;
-
-	TextureRegion texture;
 
 	int texWidth = 1024;
 	int texHeight = 1024;
 
 	float viewDistance = 0;
 
-	public Billboard(Vector3 worldPos, float worldWidth, float worldHeight,
-			float viewDistance, String vertPath, String fragPath) {
-		this.worldPos.set(worldPos);
-		this.worldWidth = worldWidth;
-		this.worldHeight = worldHeight;
-		this.viewDistance = viewDistance;
-
-		texture = new TextureRegion(new Texture(texWidth, texHeight,
-				Format.RGBA8888));
-
-		String vert = Gdx.files.local(vertPath).readString();
-		String fragSunShader = Gdx.files.local(fragPath).readString();
-		shader = new ShaderProgram(vert, fragSunShader);
-
-		ShaderProgram.pedantic = false;
-
-		if (!shader.isCompiled()) {
-			Gdx.app.debug(tag, shader.getLog());
-			Gdx.app.exit();
-		}
-		if (shader.getLog().length() != 0) {
-			Gdx.app.debug(tag, shader.getLog());
-		}
-	}
-
+	/**
+	 * Draw text on the billboard.
+	 * 
+	 * @param worldPos
+	 * @param worldWidth
+	 * @param worldHeight
+	 * @param viewDistance
+	 * @param msg
+	 * @param textColor
+	 * @param bkgColor
+	 * @param font
+	 */
 	public Billboard(Vector3 worldPos, float worldWidth, float worldHeight,
 			float viewDistance, String msg, Color textColor, Color bkgColor,
 			BitmapFont font) {
@@ -72,13 +88,14 @@ public class Billboard implements Disposable {
 		SpriteBatch spriteBatch = new SpriteBatch();
 		FrameBuffer fbo = null;
 
+		// Draw string on texture
 		try {
 			fbo = new FrameBuffer(Format.RGBA8888, texWidth, texHeight, false);
 		} catch (Exception e) {
+
 			System.out.println("Failed to create framebuffer.");
 			e.printStackTrace();
 		}
-
 		fbo.begin();
 		Gdx.graphics.getGL20().glClearColor(bkgColor.r, bkgColor.g, bkgColor.b,
 				bkgColor.a);
@@ -93,30 +110,38 @@ public class Billboard implements Disposable {
 		texture.flip(false, true);
 		spriteBatch.end();
 		fbo.end();
-	}
 
-	public float maxWorldRadius() {
-		return Math.max(worldWidth / 2, worldHeight / 2);
-	}
+		Material material = new Material();
 
-	public Vector3 setProjection(Viewport viewport) {
-		screenPos.set(viewport.project(worldPos.cpy()));
+		material.set(new TextureAttribute(TextureAttribute.Diffuse, texture));
+		blendAttrib = new BlendingAttribute(1);
+		material.set(blendAttrib);
+		// material.set( new FloatAttribute(FloatAttribute.AlphaTest, 0.5f));
+		Model plane = createPlaneModel(worldWidth, worldHeight, material, 0, 0,
+				1, 1);
 
-		screenPos.x = screenPos.x - viewport.getRightGutterWidth();
-		screenPos.y = screenPos.y - viewport.getBottomGutterHeight();
-
-		float dst = viewport.getCamera().position.dst(worldPos)
-				/ viewport.getScreenHeight();
-
-		screenWidth = worldWidth / dst;
-		screenHeight = worldHeight / dst;
-
-		return screenPos;
+		modelInstance = new ModelInstance(plane);
+		modelInstance.transform.setTranslation(worldPos);
+		modelInstance.calculateTransforms();
 	}
 
 	@Override
 	public void dispose() {
 		texture.getTexture().dispose();
-		shader.dispose();
+		if (shader != null) {
+			shader.dispose();
+		}
+	}
+
+	public void update(Camera camera) {
+		modelInstance.transform.set(camera.view).inv();
+		modelInstance.transform.setTranslation(worldPos);
+		modelInstance.calculateTransforms();
+
+		float dst = worldPos.dst(camera.position);
+		float distanceFade = (viewDistance == 0) ? 1 : 1 - dst / viewDistance;
+
+		blendAttrib.opacity = distanceFade;
+		modelInstance.materials.get(0).set(blendAttrib);
 	}
 }

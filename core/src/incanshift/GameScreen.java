@@ -14,7 +14,6 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
-import com.badlogic.gdx.utils.Array;
 
 public class GameScreen extends AbstractScreen {
 
@@ -33,8 +32,8 @@ public class GameScreen extends AbstractScreen {
 	Vector2 chVert1 = new Vector2();
 	Vector2 chVert2 = new Vector2();
 
-	Billboard sun;
-	Array<Billboard> billboards = new Array<Billboard>();
+	BillboardOverlay sun;
+
 	Ray bbTestRay = new Ray();
 	Vector3 bbDirection = new Vector3();
 
@@ -46,7 +45,7 @@ public class GameScreen extends AbstractScreen {
 	public GameScreen(IncanShift game, int reqWidth, int reqHeight) {
 		super(game, reqWidth, reqHeight);
 
-		world = new GameWorld(game, viewport, screenCenter);
+		world = new GameWorld(game, viewport, screenCenter, sansHuge);
 
 		// Various environment graphics stuff
 		shapeRenderer = new ShapeRenderer();
@@ -55,24 +54,9 @@ public class GameScreen extends AbstractScreen {
 
 		// Sun billboard
 		Vector3 sunPosition = new Vector3(500, 800, 700);
-		sun = new Billboard(sunPosition, 500f, 500f, 0, "shader/common.vert",
-				"shader/sun.frag");
+		sun = new BillboardOverlay(sunPosition, 500f, 500f, 0,
+				"shader/common.vert", "shader/sun.frag");
 		// Marker billboard
-		billboards.add(new Billboard(new Vector3(-20, 2, 10), 1, 1, 0,
-				"shader/common.vert", "shader/test.frag"));
-
-		Color textColor = new Color(Color.WHITE).mul(1f, 1f, 1f, 1f);
-		Color bkgColor = new Color(Color.GRAY).mul(1f, 1f, 1f, 0f);
-		String msg = "Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod\n"
-				+ "tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim\n"
-				+ "veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea\n"
-				+ "commodo consequat. Duis aute irure dolor in reprehenderit in voluptate\n"
-				+ "velit esse cillum dolore eu fugiat nulla pariatur.\n"
-				+ "\n\n"
-				+ "Excepteur sint occaecat cupidatat non proident, sunt in culpa qui\n"
-				+ "officia deserunt mollit anim id est laborum.";
-		billboards.add(new Billboard(new Vector3(7, 0, 9.5f), 4, 4, 10, msg,
-				textColor, bkgColor, sansLarge));
 
 		setEnvironment(Color.LIGHT_GRAY, 75, sunPosition);
 	}
@@ -80,14 +64,9 @@ public class GameScreen extends AbstractScreen {
 	@Override
 	public void dispose() {
 		super.dispose();
-
 		world.dispose();
-
 		modelBatch.dispose();
-
-		for (Billboard b : billboards) {
-			b.dispose();
-		}
+		sun.dispose();
 	}
 
 	private BitmapFontCache getPlayerPositionTextCache() {
@@ -159,51 +138,17 @@ public class GameScreen extends AbstractScreen {
 
 		// Render the game level models and player gun
 		modelBatch.begin(camera);
+		for (Billboard b : world.billboards) {
+			if (b.modelInstance != null) {
+				modelBatch.render(b.modelInstance);
+			}
+		}
 		for (GameObject obj : world.instances) {
 			if (obj.visible) {
 				modelBatch.render(obj, environment);
 			}
 		}
 		modelBatch.end();
-
-		// Billboards
-		spriteBatch.begin();
-		spriteBatch.setProjectionMatrix(uiMatrix);
-		for (Billboard b : billboards) {
-
-			// Check if in frustum
-			if (!camera.frustum.sphereInFrustum(b.worldPos, b.maxWorldRadius())) {
-				continue;
-			}
-
-			// Check if we are in viewing distance
-			float dst = world.player.position.dst(b.worldPos);
-			if (dst > b.viewDistance && b.viewDistance > 0) {
-				continue;
-			}
-
-			// Check if something is blocking the view
-			bbDirection.set(b.worldPos).sub(world.player.position).nor();
-			bbTestRay.set(world.player.position, bbDirection);
-			short mask = (short) (CollisionHandler.GROUND_FLAG | CollisionHandler.OBJECT_FLAG);
-			if (world.rayTest(bbTestRay, mask, dst) != null) {
-				continue;
-			}
-
-			float distanceFade = (b.viewDistance == 0) ? 1 : 1 - dst
-					/ b.viewDistance;
-
-			// Draw the billboard
-			b.setProjection(viewport);
-			spriteBatch.setShader(b.shader);
-			spriteBatch.setColor(1, 1, 1, distanceFade);
-			spriteBatch.draw(b.texture, b.screenPos.x - b.screenWidth / 2,
-					b.screenPos.y - b.screenHeight / 2, b.screenWidth,
-					b.screenHeight);
-			spriteBatch.setColor(1, 1, 1, 1);
-		}
-		spriteBatch.setShader(null);
-		spriteBatch.end();
 
 		// Draw collision debug wireframe
 		// collisionHandler.debugDrawWorld(camera);

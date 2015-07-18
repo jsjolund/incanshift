@@ -8,6 +8,7 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Mesh;
 import com.badlogic.gdx.graphics.VertexAttributes.Usage;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
@@ -43,15 +44,21 @@ public class GameWorld implements Disposable {
 
 	final static String tag = "GameWorld";
 
+	Viewport viewport;
+	
 	private AssetManager assets;
 	private CollisionHandler collisionHandler;
 	private ArrayMap<String, GameObject.Constructor> gameObjectFactory;
 
 	public Array<GameObject> instances;
+	public Array<Billboard> billboards;
+
 	public ModelInstance skybox;
 	public Player player;
 
-	Music music;
+	public Music music;
+
+	private BitmapFont font;
 
 	/**
 	 * Spawn a game object from the factory and add it to the world. If not
@@ -103,7 +110,10 @@ public class GameWorld implements Disposable {
 		return obj;
 	}
 
-	public GameWorld(IncanShift game, Viewport viewport, Vector3 screenCenter) {
+	public GameWorld(IncanShift game, Viewport viewport, Vector3 screenCenter,
+			BitmapFont font) {
+		this.font = font;
+		this.viewport = viewport;
 		assets = new AssetManager();
 
 		// Load the 3D models and sounds used by the game
@@ -123,6 +133,7 @@ public class GameWorld implements Disposable {
 
 		Bullet.init();
 		instances = new Array<GameObject>();
+		billboards = new Array<Billboard>();
 		collisionHandler = new CollisionHandler();
 		gameObjectFactory = new ArrayMap<String, GameObject.Constructor>();
 		assets.finishLoading();
@@ -179,7 +190,7 @@ public class GameWorld implements Disposable {
 				player.object.position(pos);
 
 			} else if (name.equals("tag")) {
-				// Add a billboard
+				spawnBillboard(pos);
 
 			} else {
 				spawn(name, pos, false, false, false,
@@ -188,6 +199,26 @@ public class GameWorld implements Disposable {
 
 		}
 
+	}
+
+	public void spawnBillboard(Vector3 pos) {
+		// billboards.add(new Billboard(new Vector3(-20, 2, 10), 1, 1, 0,
+		// "shader/common.vert", "shader/test.frag"));
+
+		Gdx.app.debug(tag, String.format("Spawning billboard at %s", pos));
+
+		Color textColor = new Color(Color.WHITE).mul(1f, 1f, 1f, 1f);
+		Color bkgColor = new Color(Color.GRAY).mul(1f, 1f, 1f, 0f);
+		String msg = "Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod\n"
+				+ "tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim\n"
+				+ "veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea\n"
+				+ "commodo consequat. Duis aute irure dolor in reprehenderit in voluptate\n"
+				+ "velit esse cillum dolore eu fugiat nulla pariatur.\n"
+				+ "\n\n"
+				+ "Excepteur sint occaecat cupidatat non proident, sunt in culpa qui\n"
+				+ "officia deserunt mollit anim id est laborum.";
+		billboards.add(new Billboard(pos, 4, 4, 10, msg, textColor, bkgColor,
+				font));
 	}
 
 	/**
@@ -253,6 +284,10 @@ public class GameWorld implements Disposable {
 
 		collisionHandler.dispose();
 		assets.dispose();
+
+		for (Billboard b : billboards) {
+			b.dispose();
+		}
 	}
 
 	public void music(boolean on) {
@@ -303,6 +338,10 @@ public class GameWorld implements Disposable {
 		player.object.body.getWorldTransform(player.object.transform);
 		for (GameObject obj : instances)
 			obj.body.getWorldTransform(obj.transform);
+
+		for (Billboard b : billboards) {
+			b.update(viewport.getCamera());
+		}
 
 	}
 
