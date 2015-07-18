@@ -28,6 +28,7 @@ import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ArrayMap;
 import com.badlogic.gdx.utils.Disposable;
+import com.badlogic.gdx.utils.GdxRuntimeException;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
 /*
@@ -45,7 +46,7 @@ public class GameWorld implements Disposable {
 	final static String tag = "GameWorld";
 
 	Viewport viewport;
-	
+
 	private AssetManager assets;
 	private CollisionHandler collisionHandler;
 	private ArrayMap<String, GameObject.Constructor> gameObjectFactory;
@@ -119,10 +120,20 @@ public class GameWorld implements Disposable {
 		assets = new AssetManager();
 
 		// Load the 3D models and sounds used by the game
+		String[] modelPaths = { "model/blowpipe.g3db", "model/box.g3db",
+				"model/mask.g3db", "model/skybox.g3db", "model/pelare_v2.g3db",
+				"model/skybox.g3db" };
+		for (String path : modelPaths) {
+			if (!Gdx.files.local(path).exists()) {
+				Gdx.app.debug(tag, String.format("File not found: %s", path));
+			}
+		}
 		assets.load("model/blowpipe.g3db", Model.class);
 		assets.load("model/box.g3db", Model.class);
-//		assets.load("model/gun.g3db", Model.class);
+		// assets.load("model/gun.g3db", Model.class);
 		assets.load("model/mask.g3db", Model.class);
+		assets.load("model/skybox.g3db", Model.class);
+		assets.load("model/pelare_v2.g3db", Model.class);
 		assets.load("model/skybox.g3db", Model.class);
 
 		assets.load("sound/jump.wav", Sound.class);
@@ -133,14 +144,18 @@ public class GameWorld implements Disposable {
 		assets.load("sound/climb.wav", Sound.class);
 		assets.load("sound/music_game.ogg", Music.class);
 
-		
 		Bullet.init();
 		instances = new Array<GameObject>();
 		billboards = new Array<Billboard>();
 		collisionHandler = new CollisionHandler();
 		gameObjectFactory = new ArrayMap<String, GameObject.Constructor>();
-		
-		assets.finishLoading();
+
+		Gdx.app.debug(tag, String.format("Trying to load assets"));
+		try {
+			assets.finishLoading();			
+		} catch (GdxRuntimeException e) {
+			Gdx.app.debug(tag, "Could not load assets ", e);
+		}
 		Gdx.app.debug(tag, String.format("Assets finished loading"));
 		createFactoryDefs(assets, gameObjectFactory);
 		skybox = new ModelInstance(assets.get("model/skybox.g3db", Model.class));
@@ -166,7 +181,11 @@ public class GameWorld implements Disposable {
 	 * @param csv
 	 */
 	public void loadLevelCSV(String csv) {
+		Gdx.app.debug(tag, String.format("Loading CSV data"));
+
 		String[] lines = csv.split(System.getProperty("line.separator"));
+		spawn("pelare_v2", new Vector3(0, 4, 0), false, false, false,
+				CollisionHandler.GROUND_FLAG, CollisionHandler.ALL_FLAG);
 		for (String line : lines) {
 			String name;
 			Vector3 pos = null;
@@ -238,7 +257,7 @@ public class GameWorld implements Disposable {
 				modelCompass, Bullet.obtainStaticNodeShape(modelCompass.nodes),
 				0));
 		Gdx.app.debug(tag, "Loaded compass model");
-		
+
 		Model modelBlowpipe = assets.get("model/blowpipe.g3db", Model.class);
 		gameObjectFactory.put("blowpipe", new GameObject.Constructor(
 				modelBlowpipe, new btBoxShape(
@@ -250,10 +269,15 @@ public class GameWorld implements Disposable {
 				new btBox2dShape(new Vector3(0.5f, 0.5f, 0.5f)), 1f));
 		Gdx.app.debug(tag, "Loaded box model");
 
-//		Model modelGun = assets.get("model/gun.g3db", Model.class);
-//		gameObjectFactory.put("gun", new GameObject.Constructor(modelGun,
-//				new btBoxShape(getBoundingBoxDimensions(modelGun)), 5f));
-//		Gdx.app.debug(tag, "Loaded gun model");
+		Model modelP = assets.get("model/pelare_v2.g3db", Model.class);
+		gameObjectFactory.put("pelare_v2", new GameObject.Constructor(modelP,
+				Bullet.obtainStaticNodeShape(modelP.nodes), 0));
+		Gdx.app.debug(tag, "Loaded pelare_v2 model");
+
+		// Model modelGun = assets.get("model/gun.g3db", Model.class);
+		// gameObjectFactory.put("gun", new GameObject.Constructor(modelGun,
+		// new btBoxShape(getBoundingBoxDimensions(modelGun)), 5f));
+		// Gdx.app.debug(tag, "Loaded gun model");
 
 		Model modelSphere = assets.get("model/mask.g3db", Model.class);
 		gameObjectFactory.put("mask", new GameObject.Constructor(modelSphere,
