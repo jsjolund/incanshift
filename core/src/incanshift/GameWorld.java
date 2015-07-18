@@ -120,14 +120,6 @@ public class GameWorld implements Disposable {
 		assets = new AssetManager();
 
 		// Load the 3D models and sounds used by the game
-		String[] modelPaths = { "model/blowpipe.g3db", "model/box.g3db",
-				"model/mask.g3db", "model/skybox.g3db", "model/pelare_v2.g3db",
-				"model/skybox.g3db" };
-		for (String path : modelPaths) {
-			if (!Gdx.files.local(path).exists()) {
-				Gdx.app.debug(tag, String.format("File not found: %s", path));
-			}
-		}
 		assets.load("model/blowpipe.g3db", Model.class);
 		assets.load("model/box.g3db", Model.class);
 		// assets.load("model/gun.g3db", Model.class);
@@ -150,13 +142,13 @@ public class GameWorld implements Disposable {
 		collisionHandler = new CollisionHandler();
 		gameObjectFactory = new ArrayMap<String, GameObject.Constructor>();
 
-		Gdx.app.debug(tag, String.format("Trying to load assets"));
+		Gdx.app.debug(tag, String.format("Trying to load assets..."));
 		try {
-			assets.finishLoading();			
+			assets.finishLoading();
 		} catch (GdxRuntimeException e) {
-			Gdx.app.debug(tag, "Could not load assets ", e);
+			Gdx.app.debug(tag, "Could not load assets, ", e);
 		}
-		Gdx.app.debug(tag, String.format("Assets finished loading"));
+		Gdx.app.debug(tag, String.format("Assets finished loading."));
 		createFactoryDefs(assets, gameObjectFactory);
 		skybox = new ModelInstance(assets.get("model/skybox.g3db", Model.class));
 
@@ -329,7 +321,7 @@ public class GameWorld implements Disposable {
 		// Play some music
 		music = assets.get("sound/music_game.ogg", Music.class);
 		music.play();
-		music.setVolume(0.3f);
+		music.setVolume(0.3f * GameSettings.MUSIC_VOLUME);
 		music.setLooping(true);
 	}
 

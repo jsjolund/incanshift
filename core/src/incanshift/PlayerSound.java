@@ -30,7 +30,7 @@ public class PlayerSound {
 	}
 
 	public void shatter() {
-		soundShatter.play(1.0f);
+		soundShatter.play(1.0f * GameSettings.SOUND_VOLUME);
 	}
 
 	public void halt() {
@@ -41,22 +41,23 @@ public class PlayerSound {
 	}
 
 	public void jump() {
-		soundJump.play(0.5f);
+		soundJump.play(0.5f * GameSettings.SOUND_VOLUME);
 	}
 
 	public void move(boolean run) {
 		soundMove.stop(soundMoveId);
-		soundMoveId = (run) ? soundRun.loop(4.0f) : soundWalk.loop(4.0f);
+		soundMoveId = (run) ? soundRun.loop(4.0f * GameSettings.SOUND_VOLUME)
+				: soundWalk.loop(4.0f * GameSettings.SOUND_VOLUME);
 	}
 
 	public void shoot() {
-		soundShoot.play(0.5f);
+		soundShoot.play(0.5f * GameSettings.SOUND_VOLUME);
 	}
 
 	public void climb() {
 		soundMove.stop(soundMoveId);
 		if (soundClimbId == -1) {
-			soundClimbId = soundClimb.loop(1.0f);
+			soundClimbId = soundClimb.loop(1.0f * GameSettings.SOUND_VOLUME);
 		}
 	}
 }

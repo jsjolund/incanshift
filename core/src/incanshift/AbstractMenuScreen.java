@@ -31,15 +31,15 @@ public abstract class AbstractMenuScreen extends AbstractScreen implements
 			if (keycode == GameSettings.FORWARD || keycode == Input.Keys.UP
 					&& keycode != lastKeycode) {
 				selectedItem = menu.getUp(selectedItem);
-				soundClick.play();
+				soundClick.play(GameSettings.SOUND_VOLUME);
 			}
 			if (keycode == GameSettings.BACKWARD || keycode == Input.Keys.DOWN
 					&& keycode != lastKeycode) {
 				selectedItem = menu.getDown(selectedItem);
-				soundClick.play();
+				soundClick.play(GameSettings.SOUND_VOLUME);
 			}
 			if (keycode == Input.Keys.SPACE || keycode == Input.Keys.ENTER) {
-				soundEnter.play();
+				soundEnter.play(GameSettings.SOUND_VOLUME);
 				enterSelected();
 			}
 			if (keycode == Input.Keys.ESCAPE) {
@@ -76,7 +76,7 @@ public abstract class AbstractMenuScreen extends AbstractScreen implements
 			for (MenuItem item : menu) {
 				if (item.selectable && item.getBounds().contains(vx, vy)) {
 					if (item != selectedItem) {
-						soundClick.play();
+						soundClick.play(GameSettings.SOUND_VOLUME);
 					}
 					selectedItem = item;
 					break;
@@ -102,7 +102,7 @@ public abstract class AbstractMenuScreen extends AbstractScreen implements
 
 			for (MenuItem item : menu) {
 				if (item.getBounds().contains(vx, vy)) {
-					soundEnter.play();
+					soundEnter.play(GameSettings.SOUND_VOLUME);
 					enterSelected();
 					break;
 				}
@@ -313,7 +313,6 @@ public abstract class AbstractMenuScreen extends AbstractScreen implements
 									&& itemValueSelected);
 					spriteBatch.draw(texValue, b.x + b.width + 20, b.y);
 				}
-
 			}
 		}
 		spriteBatch.end();
@@ -350,7 +349,7 @@ public abstract class AbstractMenuScreen extends AbstractScreen implements
 		Gdx.input.setInputProcessor(input);
 		music = assets.get(musicFile, Music.class);
 		music.play();
-		music.setVolume(1f);
+		music.setVolume(1f * GameSettings.MUSIC_VOLUME);
 		music.setLooping(true);
 
 	}

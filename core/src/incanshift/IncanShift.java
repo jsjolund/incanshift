@@ -13,11 +13,15 @@ public class IncanShift extends Game {
 	private GameScreen gameScreen;
 	private CreditScreen creditScreen;
 	private SettingsScreen settingsScreen;
+	
 
 	@Override
 	public void create() {
 		game = this;
 
+		GameSettings.MUSIC_VOLUME = 0;
+		GameSettings.SOUND_VOLUME = 0;
+		
 		startScreen = new StartScreen(game, reqWidth, reqHeight);
 		setScreen(startScreen);
 	}

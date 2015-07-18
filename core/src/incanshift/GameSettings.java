@@ -38,5 +38,8 @@ public class GameSettings {
 	public static int RESET = Keys.F5;
 	
 	public static int FLY = Keys.F1;
+	
+	public static float SOUND_VOLUME = 1f;
+	public static float MUSIC_VOLUME = 1f;
 
 }
