@@ -4,16 +4,18 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.Pixmap.Format;
 import com.badlogic.gdx.graphics.g2d.BitmapFontCache;
 import com.badlogic.gdx.graphics.g3d.Environment;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
+import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.math.collision.Ray;
 
 public class GameScreen extends AbstractScreen {
 
@@ -27,18 +29,22 @@ public class GameScreen extends AbstractScreen {
 	private ShapeRenderer shapeRenderer;
 
 	// Crosshair coordinates
-	Vector2 chHoriz1 = new Vector2();
-	Vector2 chHoriz2 = new Vector2();
-	Vector2 chVert1 = new Vector2();
-	Vector2 chVert2 = new Vector2();
+	private Vector2 chHoriz1 = new Vector2();
+	private Vector2 chHoriz2 = new Vector2();
+	private Vector2 chVert1 = new Vector2();
+	private Vector2 chVert2 = new Vector2();
 
-	BillboardOverlay sun;
+	private BillboardOverlay sun;
 
-	Ray bbTestRay = new Ray();
-	Vector3 bbDirection = new Vector3();
+	private Color fogColor;
+	private float fogDistance;
 
-	Color fogColor;
-	float fogDistance;
+	private boolean overlayIsOn = true;
+	private Texture overlay;
+	private ShaderProgram overlayShader;
+	private Color overlayColor = Color.BLACK;
+	private float overlayRadius = 0.9f;
+	private float overlaySoftness = 0.8f;
 
 	private Vector3 lastCameraDirection = new Vector3();
 
@@ -56,9 +62,10 @@ public class GameScreen extends AbstractScreen {
 		Vector3 sunPosition = new Vector3(500, 800, 700);
 		sun = new BillboardOverlay(sunPosition, 500f, 500f, 0,
 				"shader/common.vert", "shader/sun.frag");
-		// Marker billboard
 
 		setEnvironment(Color.LIGHT_GRAY, 75, sunPosition);
+
+		overlayShader = loadShader("shader/common.vert", "shader/vignette.frag");
 	}
 
 	@Override
@@ -67,6 +74,8 @@ public class GameScreen extends AbstractScreen {
 		world.dispose();
 		modelBatch.dispose();
 		sun.dispose();
+		overlay.dispose();
+		overlayShader.dispose();
 	}
 
 	private BitmapFontCache getPlayerPositionTextCache() {
@@ -76,14 +85,15 @@ public class GameScreen extends AbstractScreen {
 		float textX = 10;
 		float textY = 20;
 		monoTiny.getData().markupEnabled = true;
-		cache.addText(String.format(
-				"Blender: [RED]x=% .2f[]  [GREEN]y=% .2f[]  [BLUE]z=% .2f[]",
-				world.player.position.x, -world.player.position.z,
-				world.player.position.y - GameSettings.PLAYER_HEIGHT / 2),
-				textX, textY * 2);
 		cache.addText(
 				String.format(
-						"Game:    [RED]x=% .2f[]  [GREEN]y=% .2f[]  [BLUE]z=% .2f[]  [WHITE]v=% .2f",
+						"[WHITE]Blender:[] [RED]x=% .2f[]  [GREEN]y=% .2f[]  [BLUE]z=% .2f[]",
+						world.player.position.x, -world.player.position.z,
+						world.player.position.y - GameSettings.PLAYER_HEIGHT
+								/ 2), textX, textY * 2);
+		cache.addText(
+				String.format(
+						"[WHITE]Game:[]    [RED]x=% .2f[]  [GREEN]y=% .2f[]  [BLUE]z=% .2f[]  [WHITE]v=% .2f",
 						world.player.position.x, world.player.position.y
 								- GameSettings.PLAYER_HEIGHT / 2,
 						world.player.position.z, world.player.object.body
@@ -104,6 +114,21 @@ public class GameScreen extends AbstractScreen {
 		// TODO Auto-generated method stub
 	}
 
+	private ShaderProgram loadShader(String vertPath, String fragPath) {
+		String vert = Gdx.files.local(vertPath).readString();
+		String frag = Gdx.files.local(fragPath).readString();
+		ShaderProgram shader = new ShaderProgram(vert, frag);
+		ShaderProgram.pedantic = false;
+		if (!shader.isCompiled()) {
+			Gdx.app.debug("Shader", shader.getLog());
+			Gdx.app.exit();
+		}
+		if (shader.getLog().length() != 0) {
+			Gdx.app.debug("Shader", shader.getLog());
+		}
+		return shader;
+	}
+
 	@Override
 	public void render(float delta) {
 		delta = Math.min(1f / 30f, Gdx.graphics.getDeltaTime());
@@ -113,7 +138,7 @@ public class GameScreen extends AbstractScreen {
 		Gdx.gl.glClearColor(0, 0, 0, 1);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
 
-		// Draw fog background color
+		// Fog background color
 		shapeRenderer.begin(ShapeType.Filled);
 		shapeRenderer.setColor(fogColor);
 		shapeRenderer.rect(0, 0, getViewportWidth(), getViewportHeight());
@@ -153,20 +178,35 @@ public class GameScreen extends AbstractScreen {
 		// Draw collision debug wireframe
 		// collisionHandler.debugDrawWorld(camera);
 
-		// Draw crosshair
-		shapeRenderer.setProjectionMatrix(uiMatrix);
-		shapeRenderer.begin(ShapeType.Line);
-		shapeRenderer.setColor(Color.WHITE);
-		shapeRenderer.line(chHoriz1, chHoriz2);
-		shapeRenderer.line(chVert1, chVert2);
-		shapeRenderer.end();
-
+		// Overlay shading
+		if (overlayIsOn) {
+			spriteBatch.begin();
+			overlayShader.begin();
+			overlayShader.setUniformf("resolution", getViewportWidth(),
+					getViewportHeight());
+			overlayShader.setUniformf("radius", overlayRadius);
+			overlayShader.setUniformf("softness", overlaySoftness);
+			overlayShader.setUniformf("color", overlayColor);
+			overlayShader.end();
+			spriteBatch.setShader(overlayShader);
+			spriteBatch.draw(overlay, 0, 0);
+			spriteBatch.end();
+		}
+		
 		// Draw player coordinates
 		spriteBatch.setShader(null);
 		spriteBatch.setProjectionMatrix(uiMatrix);
 		spriteBatch.begin();
 		getPlayerPositionTextCache().draw(spriteBatch);
 		spriteBatch.end();
+
+		// Crosshair
+		shapeRenderer.setProjectionMatrix(uiMatrix);
+		shapeRenderer.begin(ShapeType.Line);
+		shapeRenderer.setColor(Color.WHITE);
+		shapeRenderer.line(chHoriz1, chHoriz2);
+		shapeRenderer.line(chVert1, chVert2);
+		shapeRenderer.end();
 
 	}
 
@@ -185,6 +225,9 @@ public class GameScreen extends AbstractScreen {
 		viewport.setCamera(camera);
 
 		updateCrosshair();
+
+		overlay = new Texture(getViewportWidth(), getViewportHeight(),
+				Format.RGBA8888);
 	}
 
 	@Override
