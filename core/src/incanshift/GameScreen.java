@@ -44,7 +44,7 @@ public class GameScreen extends AbstractScreen {
 	private ShaderProgram overlayShader;
 	private Color overlayColor = Color.BLACK;
 	private float overlayRadius = 0.9f;
-	private float overlaySoftness = 0.8f;
+	private float overlaySoftness = 0.5f;
 
 	private Vector3 lastCameraDirection = new Vector3();
 
@@ -192,7 +192,7 @@ public class GameScreen extends AbstractScreen {
 			spriteBatch.draw(overlay, 0, 0);
 			spriteBatch.end();
 		}
-		
+
 		// Draw player coordinates
 		spriteBatch.setShader(null);
 		spriteBatch.setProjectionMatrix(uiMatrix);

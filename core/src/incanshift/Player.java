@@ -392,12 +392,18 @@ public class Player implements Disposable {
 				object.body.setGravity(GameSettings.GRAVITY);
 			}
 		}
+		
+		if (controller.actionQueueContains(PlayerAction.JUMP) || !isOnGround) {
+			object.body.setGravity(GameSettings.GRAVITY.cpy().scl(1));			
+		} else {
+			object.body.setGravity(GameSettings.GRAVITY.cpy().scl(4));
+		}
 
 		// React to input
-		setMoveMode(isOnGround);
+		setMoveMode(true);
 		handleShooting();
 		handleUsing();
-		handleMoving(isOnGround);
+		handleMoving(true);
 		handleJumping(isOnGround);
 		handleClimbing();
 

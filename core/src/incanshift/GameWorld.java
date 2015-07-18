@@ -89,6 +89,7 @@ public class GameWorld implements Disposable {
 
 		if (!gameObjectFactory.containsKey(name)) {
 			String filePath = String.format("model/%s.g3db", name);
+			Gdx.app.debug(tag, String.format("Loading model for %s", filePath));
 			assets.load(filePath, Model.class);
 			assets.finishLoading();
 			Model model = assets.get(filePath);
@@ -112,6 +113,7 @@ public class GameWorld implements Disposable {
 
 	public GameWorld(IncanShift game, Viewport viewport, Vector3 screenCenter,
 			BitmapFont font) {
+		Gdx.app.debug(tag, String.format("Creating game world"));
 		this.font = font;
 		this.viewport = viewport;
 		assets = new AssetManager();
@@ -119,7 +121,7 @@ public class GameWorld implements Disposable {
 		// Load the 3D models and sounds used by the game
 		assets.load("model/blowpipe.g3db", Model.class);
 		assets.load("model/box.g3db", Model.class);
-		assets.load("model/gun.g3db", Model.class);
+//		assets.load("model/gun.g3db", Model.class);
 		assets.load("model/mask.g3db", Model.class);
 		assets.load("model/skybox.g3db", Model.class);
 
@@ -131,12 +133,15 @@ public class GameWorld implements Disposable {
 		assets.load("sound/climb.wav", Sound.class);
 		assets.load("sound/music_game.ogg", Music.class);
 
+		
 		Bullet.init();
 		instances = new Array<GameObject>();
 		billboards = new Array<Billboard>();
 		collisionHandler = new CollisionHandler();
 		gameObjectFactory = new ArrayMap<String, GameObject.Constructor>();
+		
 		assets.finishLoading();
+		Gdx.app.debug(tag, String.format("Assets finished loading"));
 		createFactoryDefs(assets, gameObjectFactory);
 		skybox = new ModelInstance(assets.get("model/skybox.g3db", Model.class));
 
@@ -232,23 +237,28 @@ public class GameWorld implements Disposable {
 		gameObjectFactory.put("compass", new GameObject.Constructor(
 				modelCompass, Bullet.obtainStaticNodeShape(modelCompass.nodes),
 				0));
-
+		Gdx.app.debug(tag, "Loaded compass model");
+		
 		Model modelBlowpipe = assets.get("model/blowpipe.g3db", Model.class);
 		gameObjectFactory.put("blowpipe", new GameObject.Constructor(
 				modelBlowpipe, new btBoxShape(
 						getBoundingBoxDimensions(modelBlowpipe)), 5f));
+		Gdx.app.debug(tag, "Loaded blowpipe model");
 
 		Model modelBox = assets.get("model/box.g3db", Model.class);
 		gameObjectFactory.put("box", new GameObject.Constructor(modelBox,
 				new btBox2dShape(new Vector3(0.5f, 0.5f, 0.5f)), 1f));
+		Gdx.app.debug(tag, "Loaded box model");
 
-		Model modelGun = assets.get("model/gun.g3db", Model.class);
-		gameObjectFactory.put("gun", new GameObject.Constructor(modelGun,
-				new btBoxShape(getBoundingBoxDimensions(modelGun)), 5f));
+//		Model modelGun = assets.get("model/gun.g3db", Model.class);
+//		gameObjectFactory.put("gun", new GameObject.Constructor(modelGun,
+//				new btBoxShape(getBoundingBoxDimensions(modelGun)), 5f));
+//		Gdx.app.debug(tag, "Loaded gun model");
 
 		Model modelSphere = assets.get("model/mask.g3db", Model.class);
 		gameObjectFactory.put("mask", new GameObject.Constructor(modelSphere,
 				Bullet.obtainStaticNodeShape(modelSphere.nodes), 0));
+		Gdx.app.debug(tag, "Loaded mask model");
 
 		Model modelPlayer = new ModelBuilder().createCapsule(
 				GameSettings.PLAYER_RADIUS, GameSettings.PLAYER_HEIGHT - 2
@@ -258,6 +268,7 @@ public class GameWorld implements Disposable {
 				new btCapsuleShape(GameSettings.PLAYER_RADIUS,
 						GameSettings.PLAYER_HEIGHT - 2
 								* GameSettings.PLAYER_RADIUS), 100));
+		Gdx.app.debug(tag, "Loaded player model");
 	}
 
 	public static Vector3 getBoundingBoxDimensions(Model model) {
