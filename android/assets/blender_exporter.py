@@ -40,21 +40,29 @@ def main():
 			csv += objrow
 			text_file.write(objrow)
 			
+			# Export unique object to .obj
 			if len(names) > 1 or name in excludeNames:
 				continue
 			
-			# Export unique object to .obj
 			loc = obj.location
-			oldLoc = loc.copy()
+			e_rot = obj.rotation_euler
+			old_loc = loc.copy()
+			old_e_rot = e_rot.copy()
 			loc.zero()
+			e_rot.zero()
+			
 			obj.select = True
 			scene.objects.active = obj
 			fn = os.path.join(basedir, name)
 			bpy.ops.export_scene.obj(filepath=fn + ".obj", use_selection=True)
 			obj.select = False
-			loc.x = oldLoc.x
-			loc.y = oldLoc.y
-			loc.z = oldLoc.z
+		
+			loc.x = old_loc.x
+			loc.y = old_loc.y
+			loc.z = old_loc.z
+			e_rot.x = old_e_rot.x
+			e_rot.y = old_e_rot.y
+			e_rot.z = old_e_rot.z
 
 	text_file.close()
 
