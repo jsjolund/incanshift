@@ -47,7 +47,7 @@ public class GameScreen extends AbstractScreen {
 	Vector3 sunPosition = new Vector3(500, 800, 700);
 
 	private Color fogColor = Color.BLACK;
-	private float fogDistance = 35E10f;
+	private float fogDistance = 50;
 
 	private boolean overlayIsOn = true;
 	private Texture overlay;

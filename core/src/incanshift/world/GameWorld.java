@@ -40,6 +40,8 @@ import com.badlogic.gdx.utils.ArrayMap;
 import com.badlogic.gdx.utils.Disposable;
 import com.badlogic.gdx.utils.GdxRuntimeException;
 import com.badlogic.gdx.utils.ObjectMap.Entry;
+import com.badlogic.gdx.utils.Timer;
+import com.badlogic.gdx.utils.Timer.Task;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
 /*
@@ -490,24 +492,35 @@ public class GameWorld implements Disposable {
 
 	private void shatter(Vector3 pos) {
 		Vector3 lin_vel = new Vector3();
-
-		for (int i = 0; i < 20; i++) {
+		final Array<GameObject> shards = new Array<GameObject>();
+		for (int i = 0; i < 25; i++) {
 			GameObject obj = spawn("shard", pos, new Vector3(), true, false,
 					false, CollisionHandler.OBJECT_FLAG,
 					CollisionHandler.ALL_FLAG);
 			obj.body.setAngularFactor(Vector3.X);
-			obj.body.setLinearVelocity(randAndNor(lin_vel).scl(20));
+			obj.body.setLinearVelocity(randAndNor(lin_vel).scl(50));
+			shards.add(obj);
 		}
+		Timer.schedule(new Task() {
+
+			@Override
+			public void run() {
+				for (GameObject obj : shards) {
+					destroy(obj);
+				}
+			}
+		}, 2);
 	}
 
 	public void destroy(GameObject obj) {
 		collisionHandler.dynamicsWorld.removeCollisionObject(obj.body);
 		instances.get(obj.id).removeValue(obj, true);
-		Gdx.app.debug(tag, String.format("Destroyed %s, %s remaining.", obj.id,
-				numberSpawned(obj.id)));
+		obj.dispose();
+		Vector3 pos = new Vector3();
+		obj.transform.getTranslation(pos);
+		Gdx.app.debug(tag, String.format("Destroyed %s at %s, %s remaining.",
+				obj.id, pos, numberSpawned(obj.id)));
 		if (obj.id.equals("mask")) {
-			Vector3 pos = new Vector3();
-			obj.transform.getTranslation(pos);
 			shatter(pos);
 		}
 	}
