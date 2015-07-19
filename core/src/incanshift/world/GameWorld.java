@@ -10,6 +10,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.audio.Sound;
+import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Mesh;
@@ -221,6 +222,8 @@ public class GameWorld implements Disposable {
 		Gdx.app.debug(tag, String.format("Content: \n%s", csv));
 		String[] lines = csv.split(System.getProperty("line.separator"));
 
+		Array<Vector3> billboardPos = new Array<Vector3>();
+
 		for (String line : lines) {
 			String name;
 			Vector3 pos = new Vector3();
@@ -253,33 +256,47 @@ public class GameWorld implements Disposable {
 				player.object.position(pos);
 
 			} else if (name.equals("text_tag")) {
-				spawnBillboard(pos);
+				billboardPos.add(pos);
 
 			} else {
 				spawn(name, pos, rot, false, false, false,
 						CollisionHandler.GROUND_FLAG, CollisionHandler.ALL_FLAG);
 			}
 		}
+		spawnBillboards(billboardPos, Gdx.files.internal("text/billboards.txt"));
+	}
+
+	public void spawnBillboards(Array<Vector3> pos, FileHandle textFile) {
+		Color textColor = new Color(Color.WHITE).mul(1f, 1f, 1f, 1f);
+		Color bkgColor = new Color(Color.GRAY).mul(1f, 1f, 1f, 0f);
+
+		String text = textFile.readString();
+		String[] lines = text.split(System.getProperty("line.separator"));
+		Array<String> sections = new Array<String>();
+
+		String msg = "";
+		for (String line : lines) {
+			if (line.equals("#") && msg.length() != 0) {
+				sections.add(msg);
+				msg = "";
+			} else if (!line.equals("#") && msg.length() != 0) {
+				msg += String.format("\n%s", line);
+			} else if (!line.equals("#")) {
+				msg += String.format("%s", line);
+			}
+		}
+		for (int i = 0; i < Math.min(pos.size, sections.size); i++) {
+			Gdx.app.debug(tag,
+					String.format("Spawning billboard at %s", pos.get(i)));
+			billboards.add(new Billboard(pos.get(i), 4f, 4f, 10f, msg,
+					textColor, bkgColor, font));
+		}
+
 	}
 
 	public void spawnBillboard(Vector3 pos) {
 		// billboards.add(new Billboard(new Vector3(-20, 2, 10), 1, 1, 0,
 		// "shader/common.vert", "shader/test.frag"));
-
-		Gdx.app.debug(tag, String.format("Spawning billboard at %s", pos));
-
-		Color textColor = new Color(Color.WHITE).mul(1f, 1f, 1f, 1f);
-		Color bkgColor = new Color(Color.GRAY).mul(1f, 1f, 1f, 0f);
-		String msg = "Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod\n"
-				+ "tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim\n"
-				+ "veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea\n"
-				+ "commodo consequat. Duis aute irure dolor in reprehenderit in voluptate\n"
-				+ "velit esse cillum dolore eu fugiat nulla pariatur.\n"
-				+ "\n\n"
-				+ "Excepteur sint occaecat cupidatat non proident, sunt in culpa qui\n"
-				+ "officia deserunt mollit anim id est laborum.";
-		billboards.add(new Billboard(pos, 4, 4, 10, msg, textColor, bkgColor,
-				font));
 	}
 
 	/**

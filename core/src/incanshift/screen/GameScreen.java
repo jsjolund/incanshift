@@ -61,7 +61,7 @@ public class GameScreen extends AbstractScreen {
 	public GameScreen(IncanShift game, int reqWidth, int reqHeight) {
 		super(game, reqWidth, reqHeight);
 
-		world = new GameWorld(game, viewport, screenCenter, sansHuge);
+		world = new GameWorld(game, viewport, screenCenter, sansLarge);
 
 		// Various environment graphics stuff
 		shapeRenderer = new ShapeRenderer();
