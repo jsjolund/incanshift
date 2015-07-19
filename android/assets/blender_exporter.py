@@ -14,6 +14,9 @@ import os
 import math
 import subprocess
 
+performFbxConv = true;
+performObjConv = true;
+
 excludeNames = ['start_position', 'text_tag']
 excludeTypes = [bpy.types.Camera, bpy.types.PointLamp]
 
@@ -41,7 +44,7 @@ def main():
 			text_file.write(objrow)
 			
 			# Export unique object to .obj
-			if len(names) > 1 or name in excludeNames:
+			if (len(names) > 1) or (name in excludeNames) or (not performObjConv):
 				continue
 			
 			loc = obj.location
@@ -65,18 +68,19 @@ def main():
 			e_rot.z = old_e_rot.z
 
 	text_file.close()
-
-	print("\nConverting .obj and .mtl to .g3db:")
-	for subdir, dirs, files in os.walk(basedir):
-		for filename in files:
-			file_no_ext, file_ext = os.path.splitext(filename)
-			if file_ext == '.obj':
-				objfile_path = os.path.join(basedir, filename)
-				mtlfile_path = os.path.join(basedir, file_no_ext+".mtl")
-				subprocess.call(["fbx-conv", objfile_path])
-				os.remove(objfile_path)
-				os.remove(mtlfile_path)
-				print("\nRemoved:\n{}\n{}\n".format(objfile_path, mtlfile_path))
+	
+	if performFbxConv and performObjConv:
+		print("\nConverting .obj and .mtl to .g3db:")
+		for subdir, dirs, files in os.walk(basedir):
+			for filename in files:
+				file_no_ext, file_ext = os.path.splitext(filename)
+				if file_ext == '.obj':
+					objfile_path = os.path.join(basedir, filename)
+					mtlfile_path = os.path.join(basedir, file_no_ext+".mtl")
+					subprocess.call(["fbx-conv", objfile_path])
+					os.remove(objfile_path)
+					os.remove(mtlfile_path)
+					print("\nRemoved:\n{}\n{}\n".format(objfile_path, mtlfile_path))
 
 	print("Wrote to to {}.csv".format(fn))
 	print(csv)
