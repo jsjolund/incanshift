@@ -16,6 +16,8 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.ObjectMap.Entry;
 
 public class GameScreen extends AbstractScreen {
 
@@ -35,9 +37,10 @@ public class GameScreen extends AbstractScreen {
 	private Vector2 chVert2 = new Vector2();
 
 	private BillboardOverlay sun;
+	Vector3 sunPosition = new Vector3(500, 800, 700);
 
-	private Color fogColor;
-	private float fogDistance;
+	private Color fogColor = Color.BLACK;
+	private float fogDistance = 35;
 
 	private boolean overlayIsOn = true;
 	private Texture overlay;
@@ -59,11 +62,11 @@ public class GameScreen extends AbstractScreen {
 		modelBatch = new ModelBatch();
 
 		// Sun billboard
-		Vector3 sunPosition = new Vector3(500, 800, 700);
+
 		sun = new BillboardOverlay(sunPosition, 500f, 500f, 0,
 				"shader/common.vert", "shader/sun.frag");
 
-		setEnvironment(Color.LIGHT_GRAY, 75, sunPosition);
+		setEnvironment(fogColor, fogDistance, sunPosition);
 
 		overlayShader = loadShader("shader/common.vert", "shader/vignette.frag");
 	}
@@ -146,7 +149,7 @@ public class GameScreen extends AbstractScreen {
 
 		// Render the skybox
 		modelBatch.begin(camera);
-//		modelBatch.render(world.skybox);
+		modelBatch.render(world.skybox);
 		modelBatch.end();
 
 		// Draw sun billboard
@@ -168,11 +171,13 @@ public class GameScreen extends AbstractScreen {
 				modelBatch.render(b.modelInstance);
 			}
 		}
-		for (GameObject obj : world.instances) {
-			if (obj.visible) {
+
+		for (Entry<String, Array<GameObject>> entry : world.instances) {
+			for (GameObject obj : entry.value) {
 				modelBatch.render(obj, environment);
 			}
 		}
+
 		modelBatch.end();
 
 		// Draw collision debug wireframe

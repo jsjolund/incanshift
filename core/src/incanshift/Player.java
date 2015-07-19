@@ -392,12 +392,13 @@ public class Player implements Disposable {
 				object.body.setGravity(GameSettings.GRAVITY);
 			}
 		}
-		
-//		if (controller.actionQueueContains(PlayerAction.JUMP) || !isOnGround) {
-//			object.body.setGravity(GameSettings.GRAVITY.cpy().scl(1));			
-//		} else {
-//			object.body.setGravity(GameSettings.GRAVITY.cpy().scl(4));
-//		}
+
+		// if (controller.actionQueueContains(PlayerAction.JUMP) || !isOnGround)
+		// {
+		// object.body.setGravity(GameSettings.GRAVITY.cpy().scl(1));
+		// } else {
+		// object.body.setGravity(GameSettings.GRAVITY.cpy().scl(4));
+		// }
 
 		// React to input
 		setMoveMode(true);
@@ -437,6 +438,7 @@ public class Player implements Disposable {
 		} else {
 			gunBaseTransform.set(viewport.getCamera().view).inv();
 		}
+		gunBaseTransform.rotate(Vector3.Y, 30);
 		// Update gun position/rotation relative to camera
 		gun.body.setWorldTransform(gunBaseTransform);
 
@@ -447,9 +449,10 @@ public class Player implements Disposable {
 
 		// For blowgun
 		gunLeftRightPosition.set(direction).crs(Vector3.Y).nor().scl(0.075f);
-		gunFrontBackPosition.set(direction).nor().scl(0.25f);
+		gunFrontBackPosition.set(direction).nor().scl(0.3f);
 		gunUpDownPosition.set(direction).nor().crs(gunLeftRightPosition)
 				.scl(0.80f);
+		
 
 		// Move the gun around if walking or running
 		if (moveMode == PlayerAction.STOP) {
@@ -475,6 +478,8 @@ public class Player implements Disposable {
 		}
 		gunUpDownPosition.y += gunYoffset;
 
+
+		
 		gun.body.translate(gunLeftRightPosition);
 		gun.body.translate(gunFrontBackPosition);
 		gun.body.translate(gunUpDownPosition);
