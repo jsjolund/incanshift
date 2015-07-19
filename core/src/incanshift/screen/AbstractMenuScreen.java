@@ -1,4 +1,9 @@
-package incanshift;
+package incanshift.screen;
+
+import incanshift.IncanShift;
+import incanshift.screen.menu.Menu;
+import incanshift.screen.menu.MenuItem;
+import incanshift.world.GameSettings;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;

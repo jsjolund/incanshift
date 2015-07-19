@@ -1,4 +1,4 @@
-package incanshift;
+package incanshift.screen.menu;
 
 import java.util.Iterator;
 
@@ -66,7 +66,7 @@ public class Menu implements Iterable<MenuItem> {
 	}
 
 	@Override
-	public Iterator<incanshift.MenuItem> iterator() {
+	public Iterator<incanshift.screen.menu.MenuItem> iterator() {
 		// TODO Auto-generated method stub
 		return items.iterator();
 	}

@@ -1,4 +1,6 @@
-package incanshift;
+package incanshift.screen;
+
+import incanshift.IncanShift;
 
 import com.badlogic.gdx.Application;
 import com.badlogic.gdx.Gdx;

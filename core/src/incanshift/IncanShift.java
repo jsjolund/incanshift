@@ -1,5 +1,11 @@
 package incanshift;
 
+import incanshift.screen.CreditScreen;
+import incanshift.screen.GameScreen;
+import incanshift.screen.SettingsScreen;
+import incanshift.screen.StartScreen;
+import incanshift.world.GameSettings;
+
 import com.badlogic.gdx.Game;
 
 public class IncanShift extends Game {

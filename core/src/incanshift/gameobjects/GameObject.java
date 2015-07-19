@@ -1,4 +1,4 @@
-package incanshift;
+package incanshift.gameobjects;
 
 import com.badlogic.gdx.graphics.VertexAttributes.Usage;
 import com.badlogic.gdx.graphics.g3d.Material;
@@ -13,12 +13,12 @@ import com.badlogic.gdx.utils.Disposable;
 /**
  * A game object consisting of a model, collision body and some additional data
  */
-class GameObject extends ModelInstance implements Disposable {
+public class GameObject extends ModelInstance implements Disposable {
 
 	/**
 	 * Constructor class for game objects
 	 */
-	static class Constructor implements Disposable {
+	public static class Constructor implements Disposable {
 
 		public final Model model;
 		public final btCollisionShape shape;

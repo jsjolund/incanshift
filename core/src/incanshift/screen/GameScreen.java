@@ -1,4 +1,11 @@
-package incanshift;
+package incanshift.screen;
+
+import incanshift.IncanShift;
+import incanshift.gameobjects.Billboard;
+import incanshift.gameobjects.BillboardOverlay;
+import incanshift.gameobjects.GameObject;
+import incanshift.world.GameSettings;
+import incanshift.world.GameWorld;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;

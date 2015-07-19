@@ -1,4 +1,10 @@
-package incanshift;
+package incanshift.player;
+
+import incanshift.IncanShift;
+import incanshift.gameobjects.GameObject;
+import incanshift.world.CollisionHandler;
+import incanshift.world.GameSettings;
+import incanshift.world.GameWorld;
 
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.math.Matrix4;

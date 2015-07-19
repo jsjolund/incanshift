@@ -1,4 +1,6 @@
-package incanshift;
+package incanshift.world;
+
+import incanshift.gameobjects.GameObject;
 
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.math.Vector3;
@@ -21,11 +23,11 @@ import com.badlogic.gdx.utils.Disposable;
 public class CollisionHandler implements Disposable {
 
 	// Collision flags
-	final static short NONE_FLAG = 0;
-	final static short PLAYER_FLAG = 1 << 7;
-	final static short GROUND_FLAG = 1 << 8;
-	final static short OBJECT_FLAG = 1 << 9;
-	final static short ALL_FLAG = -1;
+	public final static short NONE_FLAG = 0;
+	public final static short PLAYER_FLAG = 1 << 7;
+	public final static short GROUND_FLAG = 1 << 8;
+	public final static short OBJECT_FLAG = 1 << 9;
+	public final static short ALL_FLAG = -1;
 
 	private btCollisionConfiguration collisionConfig;
 	private btDispatcher dispatcher;

@@ -1,4 +1,6 @@
-package incanshift;
+package incanshift.player;
+
+import incanshift.world.GameSettings;
 
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.audio.Sound;

@@ -1,4 +1,10 @@
-package incanshift;
+package incanshift.world;
+
+import incanshift.IncanShift;
+import incanshift.gameobjects.Billboard;
+import incanshift.gameobjects.GameObject;
+import incanshift.player.Player;
+import incanshift.player.PlayerSound;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetManager;
@@ -185,9 +191,9 @@ public class GameWorld implements Disposable {
 		obj.id = name;
 		Gdx.app.debug(tag, String.format("Spawning %s at %s", name, pos));
 
-		obj.transform.rotate(Vector3.Y, rot.z);
+		obj.transform.rotate(Vector3.Y, rot.y);
 		obj.transform.rotate(Vector3.X, rot.x);
-		obj.transform.rotate(Vector3.Z, -rot.y);
+		obj.transform.rotate(Vector3.Z, rot.z);
 		obj.transform.setTranslation(pos);
 		obj.body.setWorldTransform(obj.transform);
 
@@ -232,8 +238,8 @@ public class GameWorld implements Disposable {
 				Gdx.app.debug(tag, "Error when parsing csv file.", e);
 				continue;
 			}
+			blenderToGameCoords(rot);
 			blenderToGameCoords(pos);
-			// blenderToGameCoords(rot);
 
 			if (name.equals("mask")) {
 				spawn(name, pos, rot, false, true, false,

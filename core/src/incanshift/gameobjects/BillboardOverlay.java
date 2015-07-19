@@ -1,4 +1,4 @@
-package incanshift;
+package incanshift.gameobjects;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
@@ -26,9 +26,9 @@ public class BillboardOverlay implements Disposable {
 	int texWidth = 1024;
 	int texHeight = 1024;
 
-	Vector3 screenPos = new Vector3();
-	float screenWidth;
-	float screenHeight;
+	public Vector3 screenPos = new Vector3();
+	public float screenWidth;
+	public float screenHeight;
 
 	float viewDistance = 0;
 

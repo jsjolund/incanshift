@@ -1,4 +1,8 @@
-package incanshift;
+package incanshift.screen;
+
+import incanshift.IncanShift;
+import incanshift.screen.menu.Menu;
+import incanshift.screen.menu.MenuItem;
 
 import com.badlogic.gdx.Gdx;
 

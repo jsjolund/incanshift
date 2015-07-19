@@ -1,4 +1,4 @@
-package incanshift;
+package incanshift.screen.menu;
 
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Rectangle;

@@ -1,4 +1,4 @@
-package incanshift;
+package incanshift.world;
 
 import com.badlogic.gdx.Input.Buttons;
 import com.badlogic.gdx.Input.Keys;

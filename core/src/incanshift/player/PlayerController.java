@@ -1,6 +1,7 @@
-package incanshift;
+package incanshift.player;
 
-import incanshift.Player.PlayerAction;
+import incanshift.player.Player.PlayerAction;
+import incanshift.world.GameSettings;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
