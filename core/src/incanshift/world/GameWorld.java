@@ -1,5 +1,7 @@
 package incanshift.world;
 
+import java.util.Random;
+
 import incanshift.IncanShift;
 import incanshift.gameobjects.Billboard;
 import incanshift.gameobjects.GameObject;
@@ -31,6 +33,7 @@ import com.badlogic.gdx.physics.bullet.collision.btBox2dShape;
 import com.badlogic.gdx.physics.bullet.collision.btBoxShape;
 import com.badlogic.gdx.physics.bullet.collision.btCapsuleShape;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
+import com.badlogic.gdx.physics.bullet.collision.btConeShape;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ArrayMap;
@@ -57,7 +60,7 @@ public class GameWorld implements Disposable {
 	IncanShift game;
 
 	private AssetManager assets;
-	private CollisionHandler collisionHandler;
+	public CollisionHandler collisionHandler;
 
 	private ArrayMap<String, GameObject.Constructor> gameObjectFactory;
 	public ArrayMap<String, Array<GameObject>> instances;
@@ -96,7 +99,7 @@ public class GameWorld implements Disposable {
 		// assets.load("model/gun.g3db", Model.class);
 		assets.load("model/mask.g3db", Model.class);
 		assets.load("model/skybox.g3db", Model.class);
-		assets.load("model/skybox.g3db", Model.class);
+		assets.load("model/shard.g3db", Model.class);
 
 		assets.load("sound/jump.wav", Sound.class);
 		assets.load("sound/shatter.wav", Sound.class);
@@ -294,10 +297,10 @@ public class GameWorld implements Disposable {
 
 	}
 
-	public void spawnBillboard(Vector3 pos) {
-		// billboards.add(new Billboard(new Vector3(-20, 2, 10), 1, 1, 0,
-		// "shader/common.vert", "shader/test.frag"));
-	}
+	// public void spawnBillboard(Vector3 pos) {
+	// billboards.add(new Billboard(new Vector3(-20, 2, 10), 1, 1, 0,
+	// "shader/common.vert", "shader/test.frag"));
+	// }
 
 	/**
 	 * Object factory blueprint for a 3D model along with an appropriate
@@ -342,6 +345,12 @@ public class GameWorld implements Disposable {
 						GameSettings.PLAYER_HEIGHT - 2
 								* GameSettings.PLAYER_RADIUS), 100));
 		Gdx.app.debug(tag, "Loaded player model");
+
+		Model modelShard = assets.get("model/shard.g3db", Model.class);
+		gameObjectFactory.put("shard", new GameObject.Constructor(modelShard,
+				new btConeShape(0.2f, 0.4f), 1));
+
+		Gdx.app.debug(tag, "Loaded shard model");
 	}
 
 	public static Vector3 getBoundingBoxDimensions(Model model) {
@@ -429,6 +438,7 @@ public class GameWorld implements Disposable {
 		// Update player transform from user input
 		player.update(delta);
 		player.object.body.getWorldTransform(player.object.transform);
+
 		for (Entry<String, Array<GameObject>> entry : instances) {
 			for (GameObject obj : entry.value) {
 				obj.body.getWorldTransform(obj.transform);
@@ -465,11 +475,41 @@ public class GameWorld implements Disposable {
 		return go;
 	}
 
+	private Vector3 randAndNor(Vector3 v) {
+		Random rand = new Random();
+		float sign;
+		sign = (rand.nextFloat() > 0.5) ? -1 : 1;
+		v.x = rand.nextFloat() * sign;
+		sign = (rand.nextFloat() > 0.5) ? -1 : 1;
+		v.y = rand.nextFloat() * sign;
+		sign = (rand.nextFloat() > 0.5) ? -1 : 1;
+		v.z = rand.nextFloat() * sign;
+		v.nor();
+		return v;
+	}
+
+	private void shatter(Vector3 pos) {
+		Vector3 lin_vel = new Vector3();
+
+		for (int i = 0; i < 20; i++) {
+			GameObject obj = spawn("shard", pos, new Vector3(), true, false,
+					false, CollisionHandler.OBJECT_FLAG,
+					CollisionHandler.ALL_FLAG);
+			obj.body.setAngularFactor(Vector3.X);
+			obj.body.setLinearVelocity(randAndNor(lin_vel).scl(20));
+		}
+	}
+
 	public void destroy(GameObject obj) {
 		collisionHandler.dynamicsWorld.removeCollisionObject(obj.body);
 		instances.get(obj.id).removeValue(obj, true);
 		Gdx.app.debug(tag, String.format("Destroyed %s, %s remaining.", obj.id,
 				numberSpawned(obj.id)));
+		if (obj.id.equals("mask")) {
+			Vector3 pos = new Vector3();
+			obj.transform.getTranslation(pos);
+			shatter(pos);
+		}
 	}
 
 	/**

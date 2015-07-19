@@ -25,8 +25,8 @@ public class IncanShift extends Game {
 	public void create() {
 		game = this;
 
-		GameSettings.MUSIC_VOLUME = 0;
-		GameSettings.SOUND_VOLUME = 0;
+		GameSettings.MUSIC_VOLUME = 1;
+		GameSettings.SOUND_VOLUME = 1;
 		
 		startScreen = new StartScreen(game, reqWidth, reqHeight);
 		setScreen(startScreen);

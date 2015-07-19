@@ -82,6 +82,7 @@ public class Player implements Disposable {
 
 	}
 
+	final static String tag = "Player";
 	private PlayerSound sound;
 
 	public IncanShift game;
@@ -270,16 +271,30 @@ public class Player implements Disposable {
 		}
 	}
 
+	private boolean isOnGround() {
+		ray.set(position, up.cpy().scl(-1));
+		float distance = GameSettings.PLAYER_HEIGHT / 2 + 0.5f;
+		return world
+				.rayTest(
+						ray,
+						(short) (CollisionHandler.GROUND_FLAG | CollisionHandler.OBJECT_FLAG),
+						distance) != null;
+	}
+
 	private void handleShooting() {
 		if (controller.actionQueueContains(PlayerAction.FIRE) && !gunHidden) {
 			sound.shoot();
-			Ray ray = viewport.getCamera().getPickRay(screenCenter.x,
-					screenCenter.y);
+
+			ray.set(viewport.getCamera().position,
+					viewport.getCamera().direction);
+			float distance = 100;
+
 			btRigidBody hitObject = world
 					.rayTest(
 							ray,
 							(short) (CollisionHandler.GROUND_FLAG | CollisionHandler.OBJECT_FLAG),
-							100);
+							distance);
+
 			if (hitObject != null) {
 				GameObject obj = world.getGameObject(hitObject);
 				if (obj.removable) {
@@ -336,16 +351,6 @@ public class Player implements Disposable {
 					.scl(0.5f));
 			carried.body.applyCentralForce(forceGrabVector);
 		}
-	}
-
-	private boolean isOnGround() {
-		ray.set(position, up.cpy().scl(-1));
-		float distance = GameSettings.PLAYER_HEIGHT / 2 + 0.5f;
-		return world
-				.rayTest(
-						ray,
-						(short) (CollisionHandler.GROUND_FLAG | CollisionHandler.OBJECT_FLAG),
-						distance) != null;
 	}
 
 	public void setGun(GameObject gun) {
@@ -458,7 +463,6 @@ public class Player implements Disposable {
 		gunFrontBackPosition.set(direction).nor().scl(0.3f);
 		gunUpDownPosition.set(direction).nor().crs(gunLeftRightPosition)
 				.scl(0.80f);
-		
 
 		// Move the gun around if walking or running
 		if (moveMode == PlayerAction.STOP) {
@@ -484,8 +488,6 @@ public class Player implements Disposable {
 		}
 		gunUpDownPosition.y += gunYoffset;
 
-
-		
 		gun.body.translate(gunLeftRightPosition);
 		gun.body.translate(gunFrontBackPosition);
 		gun.body.translate(gunUpDownPosition);
