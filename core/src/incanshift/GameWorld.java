@@ -14,7 +14,6 @@ import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
-import com.badlogic.gdx.maps.Map;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
@@ -56,12 +55,9 @@ public class GameWorld implements Disposable {
 	private ArrayMap<String, GameObject.Constructor> gameObjectFactory;
 	public ArrayMap<String, Array<GameObject>> instances;
 
-	// public Array<GameObject> instances;
 	public Array<Billboard> billboards;
 
-	public String[] levels = { 
-			"model/outside_level.csv", 
-			"model/level1.csv",
+	public String[] levels = { "model/outside_level.csv", "model/level1.csv",
 			"model/level2.csv" };
 	public int currentLevel = 0;
 
@@ -71,61 +67,6 @@ public class GameWorld implements Disposable {
 	public Music music;
 
 	private BitmapFont font;
-
-	/**
-	 * Spawn a game object from the factory and add it to the world. If not
-	 * defined in factory, load the model from file system and generate a static
-	 * collision shape for it.
-	 * 
-	 * @param name
-	 *            Factory name for the object.
-	 * @param pos
-	 *            Starting position.
-	 * @param movable
-	 *            True if the player can move this object.
-	 * @param removable
-	 *            True if the player can destroy this object.
-	 * @param noDeactivate
-	 *            True if collision simulation should never be suspended for
-	 *            this object.
-	 * @param belongsToFlag
-	 *            Collision flag/mask for the group this object belongs to.
-	 * @param collidesWithFlag
-	 *            Collision flag/mask for the group this object can collide
-	 *            with.
-	 * @return The created game object.
-	 */
-	public GameObject spawn(String name, Vector3 pos, boolean movable,
-			boolean removable, boolean noDeactivate, short belongsToFlag,
-			short collidesWithFlag) {
-
-		if (!gameObjectFactory.containsKey(name)) {
-			String filePath = String.format("model/%s.g3db", name);
-			Gdx.app.debug(tag,
-					String.format("Creating collision shape for %s", filePath));
-			assets.load(filePath, Model.class);
-			assets.finishLoading();
-			Model model = assets.get(filePath);
-			gameObjectFactory.put(name, new GameObject.Constructor(model,
-					Bullet.obtainStaticNodeShape(model.nodes), 0));
-		}
-
-		GameObject obj = gameObjectFactory.get(name).construct();
-		obj.id = name;
-		Gdx.app.debug(tag, String.format("Spawning %s at %s", name, pos));
-		obj.position(pos);
-		obj.movable = movable;
-		obj.removable = removable;
-		if (noDeactivate) {
-			obj.body.setActivationState(Collision.DISABLE_DEACTIVATION);
-		}
-		obj.body.setContactCallbackFlag(belongsToFlag);
-		collisionHandler.add(obj, belongsToFlag, collidesWithFlag);
-
-		addInstance(obj);
-
-		return obj;
-	}
 
 	private void addInstance(GameObject obj) {
 		if (!instances.containsKey(obj.id)) {
@@ -182,12 +123,12 @@ public class GameWorld implements Disposable {
 		// player.setGun(gun);
 
 		loadLevel(currentLevel);
-		
-		GameObject blowpipe = spawn("blowpipe", player.position.cpy(), false,
-				false, false, CollisionHandler.OBJECT_FLAG,
-				CollisionHandler.GROUND_FLAG);
-//		player.setGun(blowpipe);
-//		addInstance(blowpipe);
+
+		// GameObject blowpipe = spawn("blowpipe", player.position.cpy(),
+		// new Vector3(), false, false, false,
+		// CollisionHandler.OBJECT_FLAG, CollisionHandler.GROUND_FLAG);
+		// player.setGun(blowpipe);
+		// addInstance(blowpipe);
 	}
 
 	public void loadLevel(int level) {
@@ -198,6 +139,69 @@ public class GameWorld implements Disposable {
 		}
 		instances.clear();
 		loadLevelCSV(levels[level]);
+	}
+
+	/**
+	 * Spawn a game object from the factory and add it to the world. If not
+	 * defined in factory, load the model from file system and generate a static
+	 * collision shape for it.
+	 * 
+	 * @param name
+	 *            Factory name for the object.
+	 * @param pos
+	 *            Object position.
+	 * @param rot
+	 *            Object rotation.
+	 * @param movable
+	 *            True if the player can move this object.
+	 * @param removable
+	 *            True if the player can destroy this object.
+	 * @param noDeactivate
+	 *            True if collision simulation should never be suspended for
+	 *            this object.
+	 * @param belongsToFlag
+	 *            Collision flag/mask for the group this object belongs to.
+	 * @param collidesWithFlag
+	 *            Collision flag/mask for the group this object can collide
+	 *            with.
+	 * @return The created game object.
+	 */
+	public GameObject spawn(String name, Vector3 pos, Vector3 rot,
+			boolean movable, boolean removable, boolean noDeactivate,
+			short belongsToFlag, short collidesWithFlag) {
+
+		if (!gameObjectFactory.containsKey(name)) {
+			String filePath = String.format("model/%s.g3db", name);
+			Gdx.app.debug(tag,
+					String.format("Creating collision shape for %s", filePath));
+			assets.load(filePath, Model.class);
+			assets.finishLoading();
+			Model model = assets.get(filePath);
+			gameObjectFactory.put(name, new GameObject.Constructor(model,
+					Bullet.obtainStaticNodeShape(model.nodes), 0));
+		}
+
+		GameObject obj = gameObjectFactory.get(name).construct();
+		obj.id = name;
+		Gdx.app.debug(tag, String.format("Spawning %s at %s", name, pos));
+
+		obj.transform.rotate(Vector3.Y, rot.z);
+		obj.transform.rotate(Vector3.X, rot.x);
+		obj.transform.rotate(Vector3.Z, -rot.y);
+		obj.transform.setTranslation(pos);
+		obj.body.setWorldTransform(obj.transform);
+
+		obj.movable = movable;
+		obj.removable = removable;
+		if (noDeactivate) {
+			obj.body.setActivationState(Collision.DISABLE_DEACTIVATION);
+		}
+		obj.body.setContactCallbackFlag(belongsToFlag);
+		collisionHandler.add(obj, belongsToFlag, collidesWithFlag);
+
+		addInstance(obj);
+
+		return obj;
 	}
 
 	/**
@@ -213,26 +217,30 @@ public class GameWorld implements Disposable {
 
 		for (String line : lines) {
 			String name;
-			Vector3 pos = null;
+			Vector3 pos = new Vector3();
+			Vector3 rot = new Vector3();
 			try {
 				String[] values = line.split(";");
 				name = values[0];
-				float x = Float.parseFloat(values[1]);
-				float y = Float.parseFloat(values[2]);
-				float z = Float.parseFloat(values[3]);
-				pos = new Vector3(x, y, z);
+				pos.set(Float.parseFloat(values[1]),
+						Float.parseFloat(values[2]),
+						Float.parseFloat(values[3]));
+				rot.set(Float.parseFloat(values[4]),
+						Float.parseFloat(values[5]),
+						Float.parseFloat(values[6]));
 			} catch (Exception e) {
 				Gdx.app.debug(tag, "Error when parsing csv file.", e);
 				continue;
 			}
 			blenderToGameCoords(pos);
+			// blenderToGameCoords(rot);
 
 			if (name.equals("mask")) {
-				spawn(name, pos, false, true, false,
+				spawn(name, pos, rot, false, true, false,
 						CollisionHandler.OBJECT_FLAG, CollisionHandler.ALL_FLAG);
 
 			} else if (name.equals("box")) {
-				spawn(name, pos, true, false, true,
+				spawn(name, pos, rot, true, false, true,
 						CollisionHandler.OBJECT_FLAG, CollisionHandler.ALL_FLAG);
 
 			} else if (name.equals("start_position")) {
@@ -242,7 +250,7 @@ public class GameWorld implements Disposable {
 				spawnBillboard(pos);
 
 			} else {
-				spawn(name, pos, false, false, false,
+				spawn(name, pos, rot, false, false, false,
 						CollisionHandler.GROUND_FLAG, CollisionHandler.ALL_FLAG);
 			}
 		}
@@ -312,8 +320,6 @@ public class GameWorld implements Disposable {
 								* GameSettings.PLAYER_RADIUS), 100));
 		Gdx.app.debug(tag, "Loaded player model");
 	}
-	
-	
 
 	public static Vector3 getBoundingBoxDimensions(Model model) {
 		BoundingBox bBox = new BoundingBox();
@@ -346,7 +352,7 @@ public class GameWorld implements Disposable {
 		for (Billboard b : billboards) {
 			b.dispose();
 		}
-		
+
 		player.dispose();
 	}
 
@@ -368,6 +374,7 @@ public class GameWorld implements Disposable {
 		GameObject obj = spawn(
 				"player",
 				new Vector3(),
+				new Vector3(),
 				false,
 				false,
 				true,
@@ -375,7 +382,7 @@ public class GameWorld implements Disposable {
 				(short) (CollisionHandler.GROUND_FLAG | CollisionHandler.OBJECT_FLAG));
 
 		instances.removeKey("player");
-		
+
 		obj.body.setAngularFactor(Vector3.Y);
 		obj.body.setCollisionFlags(obj.body.getCollisionFlags()
 				| btCollisionObject.CollisionFlags.CF_CUSTOM_MATERIAL_CALLBACK);
