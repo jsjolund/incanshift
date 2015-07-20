@@ -6,6 +6,7 @@ import incanshift.IncanShift;
 import incanshift.gameobjects.Billboard;
 import incanshift.gameobjects.EnvTag;
 import incanshift.gameobjects.GameObject;
+import incanshift.gameobjects.TextParser;
 import incanshift.player.Player;
 import incanshift.player.PlayerSound;
 
@@ -13,7 +14,6 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.audio.Sound;
-import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Mesh;
@@ -244,21 +244,26 @@ public class GameWorld implements Disposable {
 		Gdx.app.debug(tag, String.format("Content: \n%s", csv));
 		String[] lines = csv.split(System.getProperty("line.separator"));
 
-		Array<Vector3> billboardPos = new Array<Vector3>();
+		// Array<Vector3> billboardPos = new Array<Vector3>();
+
+		ArrayMap<String, Array<String>> textMap = TextParser.parse(Gdx.files
+				.internal("text/billboards.txt"));
 
 		for (String line : lines) {
-			String name;
+			String tagName;
+			int tagIndex;
 			Vector3 pos = new Vector3();
 			Vector3 rot = new Vector3();
 			try {
 				String[] values = line.split(";");
-				name = values[0];
-				pos.set(Float.parseFloat(values[1]),
-						Float.parseFloat(values[2]),
-						Float.parseFloat(values[3]));
-				rot.set(Float.parseFloat(values[4]),
-						Float.parseFloat(values[5]),
-						Float.parseFloat(values[6]));
+				tagName = values[0];
+				tagIndex = Integer.parseInt(values[1]);
+				pos.set(Float.parseFloat(values[2]),
+						Float.parseFloat(values[3]),
+						Float.parseFloat(values[4]));
+				rot.set(Float.parseFloat(values[5]),
+						Float.parseFloat(values[6]),
+						Float.parseFloat(values[7]));
 			} catch (Exception e) {
 				Gdx.app.debug(tag, "Error when parsing csv file.", e);
 				continue;
@@ -266,66 +271,52 @@ public class GameWorld implements Disposable {
 			blenderToGameCoords(rot);
 			blenderToGameCoords(pos);
 
-			if (name.equals("mask")) {
-				spawn(name, pos, rot, false, true, false,
+			if (tagName.equals("mask")) {
+				spawn(tagName, pos, rot, false, true, false,
 						CollisionHandler.OBJECT_FLAG, CollisionHandler.ALL_FLAG);
 
-			} else if (name.equals("box")) {
-				spawn(name, pos, rot, true, false, true,
+			} else if (tagName.equals("box")) {
+				spawn(tagName, pos, rot, true, false, true,
 						CollisionHandler.OBJECT_FLAG, CollisionHandler.ALL_FLAG);
 
-			} else if (name.equals("start_position")) {
+			} else if (tagName.equals("start_position")) {
 				player.object.position(pos);
 
-			} else if (name.equals("text_tag")) {
-				billboardPos.add(pos);
+			} else if (tagName.startsWith("text_tag")) {
+				String textTagName = tagName.split("_")[2];
+				if (!textMap.containsKey(textTagName)
+						|| textMap.get(textTagName).size - 1 < tagIndex) {
+					Gdx.app.debug(tag, String.format(
+							"Could not find text for %s index %s", textTagName,
+							tagIndex));
+				} else {
+					String textTagText = textMap.get(textTagName).get(tagIndex);
+					spawnBillboard(pos, textTagText);
+				}
 
-			} else if (name.equals("fog_tag")) {
+			} else if (tagName.equals("fog_tag")) {
 				envTags.add(new EnvTag(pos, 80, 40, Color.DARK_GRAY, 30));
 
-			} else if (name.equals("sun_tag")) {
+			} else if (tagName.equals("sun_tag")) {
 				envTags.add(new EnvTag(pos, 60, 30, Color.WHITE, 30));
 
 			} else {
-				spawn(name, pos, rot, false, false, false,
+				spawn(tagName, pos, rot, false, false, false,
 						CollisionHandler.GROUND_FLAG, CollisionHandler.ALL_FLAG);
 			}
 		}
-		spawnBillboards(billboardPos, Gdx.files.internal("text/billboards.txt"));
+
 	}
 
-	public void spawnBillboards(Array<Vector3> pos, FileHandle textFile) {
+	public void spawnBillboard(Vector3 pos, String text) {
 		Color textColor = new Color(Color.WHITE).mul(1f, 1f, 1f, 1f);
 		Color bkgColor = new Color(Color.GRAY).mul(1f, 1f, 1f, 0f);
 
-		String text = textFile.readString();
-		String[] lines = text.split(System.getProperty("line.separator"));
-		Array<String> sections = new Array<String>();
-
-		String msg = "";
-		for (String line : lines) {
-			if (line.equals("#") && msg.length() != 0) {
-				sections.add(msg);
-				msg = "";
-			} else if (!line.equals("#") && msg.length() != 0) {
-				msg += String.format("\n%s", line);
-			} else if (!line.equals("#")) {
-				msg += String.format("%s", line);
-			}
-		}
-		for (int i = 0; i < Math.min(pos.size, sections.size); i++) {
-			Gdx.app.debug(tag,
-					String.format("Spawning billboard at %s", pos.get(i)));
-			billboards.add(new Billboard(pos.get(i), 4f, 4f, 10f, msg,
-					textColor, bkgColor, font));
-		}
+		Gdx.app.debug(tag, String.format("Spawning billboard at %s", pos));
+		billboards.add(new Billboard(pos, 4f, 4f, 10f, text, textColor,
+				bkgColor, font));
 
 	}
-
-	// public void spawnBillboard(Vector3 pos) {
-	// billboards.add(new Billboard(new Vector3(-20, 2, 10), 1, 1, 0,
-	// "shader/common.vert", "shader/test.frag"));
-	// }
 
 	/**
 	 * Object factory blueprint for a 3D model along with an appropriate

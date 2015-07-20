@@ -1,31 +1,45 @@
-Far far away, behind the word mountains, far from the
-countries Vokalia and Consonantia, there live
-the blind texts.
+#intro.0
+”We, the human race, will be known through out time by the traces that we leave behind."
+- Dakota
+#intro.1
+"How the children of tomorrow will interpenetrate these traces however, is beyond our comprehension."
+- Christoffer Lundberg
 
-Separated they live in Bookmarksgrove right at the 
-coast of the Semantics, a large language ocean.
-#
-A small river named Duden flows by their place and
-supplies it with the necessary regelialia.
-#
-It is a paradisematic country, in which roasted parts
-of sentences fly into your mouth.
+#﻿chiuateteo.0
+You are no god, and yet, I recognize your face... Have you been... resurrected?
+#﻿chiuateteo.1
+You, who used to be of such great service to the jaguar god... what could possibly have killed you?
+#﻿chiuateteo.2
+We, the Chiuateteo, are messengers from the kingdom of death, and servants of Tetzcatlipoca, the Jaguar god, to whom this holy site is dedicated.
+#﻿chiuateteo.3
+Why did you return here?
+#﻿chiuateteo.4
+A man that have resurrected must be a powerful man. Tetzcatlipoca might give you a second chance.
+#﻿chiuateteo.5
+All the people have disappeared. Poof! Gone! Just like that! And without man, there is no one to speak the names of the gods.
+#﻿chiuateteo.6
+You appear to be lost.
+#﻿chiuateteo.7
+The rivalry between Tetzcatlipoca and Quetzcoatl is finally at its end.
 
-Even the all-powerful Pointing has no control about
-the blind texts it is an almost unorthographic life
-One day however a small line of blind text by the
-name of Lorem Ipsum decided to leave for the far World
-of Grammar.
-#
-The Big Oxmox advised her not to do so, because there
-were thousands of bad Commas, wild Question Marks and
-devious Semikoli, but the Little Blind Text didn’t
-listen.
-#
-She packed her seven versalia, put her initial into the
-belt and made herself on the way.
-#
-When she reached the first hills of the Italic Mountains,
-she had a last view back on the skyline of her hometown
-Bookmarksgrove, the headline of Alphabet Village and the
-subline of her own road, the Line Lane.
+#player.0
+Where am I? What is this place?
+#player.1
+What god does this land belong to?
+#player.2
+This place feels strangely familiar. Yet... so different.
+#player.3
+That mask... I feel like I have used it before. In some kind of ritual or maybe... was it a different mask?
+#player.4
+Was I... a servant of the jaguar god?!
+
+#glyphs.0
+Ever since the creation of the worlds, a persistent rivalry between Quetzcoatl and Tezcatlipoca has layed as the foundation for many conflicts of man.
+#glyphs.1
+Some blue masks are symbols of the jaguar god, Tezcatlipoca. Others are of the feathered serpent, Quetzcoatl.
+Learn to see the differance between the masks, and you may change the destiny of all mankind for eternity.
+#glyphs.2
+To enter his sanctuary, Kukulcan requires a sacrifice of blood. We praise him with our blood! We honor him with our blood! We give thanks to him with our blood! To him, the feathered serpent, Quetzcoatl, Kukulcan, to our master we willingly give our blood!
+
+#gods.0
+

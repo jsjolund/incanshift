@@ -29,22 +29,35 @@ def main():
 		raise Exception("Blend file is not saved")
 	fn = os.path.join(basedir, filename + ".csv")
 	text_file = open(fn, "w")
-	csv = "\nname;loc.x;loc.y;loc.z;rot.x;rot.y;rot.z\n"
+	csv = "\nname;index;loc.x;loc.y;loc.z;rot.x;rot.y;rot.z\n"
 	print("\nExporting models:")
 	for obj in bpy.data.objects:
 		if type(obj.data) not in excludeTypes:
 			# Construct and write a row for the object in the CSV file
 			names = str(obj.name).split(".")
 			name = names[0]
+			if (len(names) > 1):
+				index = int(names[1])
+			else:
+				index = 0
 			euler_rotation = obj.rotation_euler
 			rot = [math.degrees(a) for a in euler_rotation]
 			loc = obj.location
-			objrow = "{};{:.2f};{:.2f};{:.2f};{:.2f};{:.2f};{:.2f}\n".format(name, loc.x, loc.y, loc.z, rot[0], rot[1], rot[2])
+			objrow = "{};{:};{:.2f};{:.2f};{:.2f};{:.2f};{:.2f};{:.2f}\n".format(name, int(index), loc.x, loc.y, loc.z, rot[0], rot[1], rot[2])
 			csv += objrow
 			text_file.write(objrow)
 			
-			# Export unique object to .obj
-			if (len(names) > 1) or (name in excludeNames) or (not performObjConv):
+			# Export unique object to .obj.
+			if (index != 0) or (not performObjConv):
+				continue
+			excludeObject = False;
+			# Check if name starts with a string to be excluded.
+			for excludeName in excludeNames:
+				if name.startswith(excludeName):
+					print("Ignoring "+name)
+					excludeObject = True
+					break;
+			if excludeObject:
 				continue
 			
 			loc = obj.location
