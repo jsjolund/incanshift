@@ -57,6 +57,7 @@ class PlayerController implements InputProcessor {
 		if (keycode == Input.Keys.ESCAPE) {
 			actionQueueClear();
 			actionQueueAdd(PlayerAction.STOP);
+			player.game.getScreenshot();
 			player.game.showStartScreen();
 		} else {
 			keys.put(keycode, keycode);

@@ -1,5 +1,7 @@
 package incanshift.screen;
 
+import java.nio.ByteBuffer;
+
 import incanshift.IncanShift;
 
 import com.badlogic.gdx.Application;
@@ -8,6 +10,7 @@ import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
@@ -16,6 +19,7 @@ import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Scaling;
+import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
@@ -84,6 +88,33 @@ public abstract class AbstractScreen implements Screen {
 		uiMatrix = camera.combined.cpy();
 		uiMatrix.setToOrtho2D(0, 0, getViewportWidth(), getViewportHeight());
 
+	}
+
+	public Pixmap viewportScreenshot() {
+		return getScreenshot(0, 0, getViewportWidth(), getViewportHeight(),
+				false);
+
+	}
+
+	public static Pixmap getScreenshot(int x, int y, int w, int h, boolean yDown) {
+		final Pixmap pixmap = ScreenUtils.getFrameBufferPixmap(x, y, w, h);
+
+		if (yDown) {
+			// Flip the pixmap upside down
+			ByteBuffer pixels = pixmap.getPixels();
+			int numBytes = w * h * 4;
+			byte[] lines = new byte[numBytes];
+			int numBytesPerLine = w * 4;
+			for (int i = 0; i < h; i++) {
+				pixels.position((h - i - 1) * numBytesPerLine);
+				pixels.get(lines, i * numBytesPerLine, numBytesPerLine);
+			}
+			pixels.clear();
+			pixels.put(lines);
+			pixels.clear();
+		}
+
+		return pixmap;
 	}
 
 	@Override

@@ -13,7 +13,9 @@ import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Pixmap.Format;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.FrameBuffer;
@@ -133,6 +135,7 @@ public abstract class AbstractMenuScreen extends AbstractScreen implements
 	AssetManager assets;
 	Music music;
 	String musicFile;
+	Texture bkgTex;
 
 	MenuInputProcessor input;
 	int lastKeycode;
@@ -147,7 +150,7 @@ public abstract class AbstractMenuScreen extends AbstractScreen implements
 
 	Color valueUnselectedColor = Color.LIGHT_GRAY;
 	Color valueSelectedColor = Color.YELLOW;
-	Color keyUnselectedColor = Color.GRAY;
+	Color keyUnselectedColor = Color.LIGHT_GRAY;
 	Color keySelectedColor = Color.WHITE;
 
 	FrameBuffer fbo = null;
@@ -168,6 +171,10 @@ public abstract class AbstractMenuScreen extends AbstractScreen implements
 		assets.finishLoading();
 		soundClick = assets.get("sound/click.wav", Sound.class);
 		soundEnter = assets.get("sound/enter.wav", Sound.class);
+	}
+
+	public void setBackgroundImage(Pixmap pixmap) {
+		bkgTex = new Texture(pixmap);
 	}
 
 	/**
@@ -298,11 +305,13 @@ public abstract class AbstractMenuScreen extends AbstractScreen implements
 	@Override
 	public void render(float delta) {
 		super.render(delta);
-
 		spriteBatch.setShader(null);
 		spriteBatch.setProjectionMatrix(uiMatrix);
-
 		spriteBatch.begin();
+
+		if (bkgTex != null) {
+			spriteBatch.draw(bkgTex, 0, 0);
+		}
 
 		if (menu != null) {
 			for (int i = 0; i < menu.size(); i++) {

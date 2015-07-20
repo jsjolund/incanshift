@@ -1,5 +1,6 @@
 package incanshift;
 
+import incanshift.screen.AbstractScreen;
 import incanshift.screen.CreditScreen;
 import incanshift.screen.GameScreen;
 import incanshift.screen.SettingsScreen;
@@ -7,6 +8,7 @@ import incanshift.screen.StartScreen;
 import incanshift.world.GameSettings;
 
 import com.badlogic.gdx.Game;
+import com.badlogic.gdx.graphics.Pixmap;
 
 public class IncanShift extends Game {
 
@@ -15,11 +17,14 @@ public class IncanShift extends Game {
 
 	private IncanShift game;
 
+	private AbstractScreen currentScreen;
+
 	private StartScreen startScreen;
 	private GameScreen gameScreen;
 	private CreditScreen creditScreen;
 	private SettingsScreen settingsScreen;
-	
+
+	Pixmap scrot;
 
 	@Override
 	public void create() {
@@ -27,25 +32,44 @@ public class IncanShift extends Game {
 
 		GameSettings.MUSIC_VOLUME = 1;
 		GameSettings.SOUND_VOLUME = 1;
-		
+
 		startScreen = new StartScreen(game, reqWidth, reqHeight);
+		currentScreen = startScreen;
 		setScreen(startScreen);
 	}
 
+	public void getScreenshot() {
+		scrot = AbstractScreen.getScreenshot(0, 0,
+				currentScreen.getViewportWidth(),
+				currentScreen.getViewportHeight(), true);
+	}
+
 	public void showStartScreen() {
+		currentScreen = startScreen;
+		if (scrot != null) {
+			startScreen.setBackgroundImage(scrot);
+		}
 		setScreen(startScreen);
+	}
+
+	public void showStartScreen(Pixmap bkg) {
+		currentScreen = startScreen;
+		startScreen.setBackgroundImage(bkg);
+		setScreen(startScreen);
+
 	}
 
 	public void showGameScreen() {
 		if (gameScreen == null) {
 			gameScreen = new GameScreen(game, reqWidth, reqHeight);
 		}
+		currentScreen = gameScreen;
 		setScreen(gameScreen);
 	}
-	
 
 	public void restartGameScreen() {
 		gameScreen = new GameScreen(game, reqWidth, reqHeight);
+		currentScreen = gameScreen;
 		setScreen(gameScreen);
 	}
 
@@ -53,13 +77,15 @@ public class IncanShift extends Game {
 		if (creditScreen == null) {
 			creditScreen = new CreditScreen(game, reqWidth, reqHeight);
 		}
+		currentScreen = creditScreen;
 		setScreen(creditScreen);
 	}
-	
+
 	public void showSettingsScreen() {
 		if (settingsScreen == null) {
 			settingsScreen = new SettingsScreen(game, reqWidth, reqHeight);
 		}
+		currentScreen = settingsScreen;
 		setScreen(settingsScreen);
 	}
 }
