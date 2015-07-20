@@ -3,6 +3,7 @@ package incanshift.screen;
 import incanshift.IncanShift;
 import incanshift.gameobjects.Billboard;
 import incanshift.gameobjects.BillboardOverlay;
+import incanshift.gameobjects.EnvTag;
 import incanshift.gameobjects.GameObject;
 import incanshift.world.GameSettings;
 import incanshift.world.GameWorld;
@@ -43,13 +44,17 @@ public class GameScreen extends AbstractScreen {
 	private Vector2 chVert1 = new Vector2();
 	private Vector2 chVert2 = new Vector2();
 
+	private float normalViewDistance = 1E3f;
+	private float viewDistance;
+
 	private BillboardOverlay sun;
 	Vector3 sunPosition = new Vector3(500, 800, 700);
 
-	private Color fogColor = Color.BLACK;
-	private float fogDistance = 50;
+	private Color skyColor = new Color(0.28f, 0.56f, 0.83f, 1);
 
-	private boolean overlayIsOn = true;
+	private Color currentColor;
+
+	private boolean overlayIsOn = false;
 	private Texture overlay;
 	private ShaderProgram overlayShader;
 	private Color overlayColor = Color.BLACK;
@@ -73,7 +78,7 @@ public class GameScreen extends AbstractScreen {
 		sun = new BillboardOverlay(sunPosition, 500f, 500f, 0,
 				"shader/common.vert", "shader/sun.frag");
 
-		setEnvironment(fogColor, fogDistance, sunPosition);
+		setEnvironment(skyColor, normalViewDistance, sunPosition);
 
 		overlayShader = loadShader("shader/common.vert", "shader/vignette.frag");
 	}
@@ -150,13 +155,13 @@ public class GameScreen extends AbstractScreen {
 
 		// Fog background color
 		shapeRenderer.begin(ShapeType.Filled);
-		shapeRenderer.setColor(fogColor);
+		shapeRenderer.setColor(currentColor);
 		shapeRenderer.rect(0, 0, getViewportWidth(), getViewportHeight());
 		shapeRenderer.end();
 
 		// Render the skybox
 		modelBatch.begin(camera);
-		modelBatch.render(world.skybox);
+		// modelBatch.render(world.skybox);
 		modelBatch.end();
 
 		// Draw sun billboard
@@ -220,6 +225,69 @@ public class GameScreen extends AbstractScreen {
 		shapeRenderer.line(chVert1, chVert2);
 		shapeRenderer.end();
 
+		// Environment effect tags (fog, sunshine)
+		viewDistance = normalViewDistance;
+		Color colorDelta = new Color(skyColor);
+		float dstNearest = Float.MAX_VALUE;
+		EnvTag tagNearest = null;
+		float fadeNearest = 0;
+		for (EnvTag tag : world.envTags) {
+			float fade = 0;
+			float dst = tag.position.dst(world.player.position);
+
+			if (dst > tag.fadeDistance) {
+				continue;
+			}
+			if (dst <= tag.effectDistance) {
+				fade = 1;
+			} else {
+				fade = 1 - (dst - tag.effectDistance)
+						/ (tag.fadeDistance - tag.effectDistance);
+				if (fade > 1) {
+					fade = 1;
+				}
+			}
+			if (dst < dstNearest) {
+				dstNearest = dst;
+				tagNearest = tag;
+				fadeNearest = fade;
+			}
+			tag.color.a = fade;
+			colorDelta = mixColors(colorDelta, tag.color);
+			tag.color.a = 1;
+		}
+		if (tagNearest == null) {
+			viewDistance = normalViewDistance;
+			currentColor.set(skyColor);
+			environment.set(new ColorAttribute(ColorAttribute.AmbientLight,
+					0.4f, 0.4f, 0.4f, 1.f));
+		} else {
+			currentColor.set(colorDelta);
+			viewDistance = tagNearest.minViewDistance + normalViewDistance
+					* (1 - fadeNearest);
+			float i = (currentColor.r + currentColor.g + currentColor.b) / 3 * 1f;
+			i = (i > 1) ? 1 : i;
+			System.out.println(i);
+			float r = i;
+			float g = i;
+			float b = i;
+			float a = 1;
+			environment.set(new ColorAttribute(ColorAttribute.AmbientLight, r,
+					g, b, a));
+		}
+		camera.far = viewDistance;
+		environment.set(new ColorAttribute(ColorAttribute.Fog, currentColor.r,
+				currentColor.g, currentColor.b, currentColor.a));
+
+	}
+
+	private static Color mixColors(Color bg, Color fg) {
+		Color r = new Color();
+		r.a = 1 - (1 - fg.a) * (1 - bg.a);
+		r.r = fg.r * fg.a / r.a + bg.r * bg.a * (1 - fg.a) / r.a;
+		r.g = fg.g * fg.a / r.a + bg.g * bg.a * (1 - fg.a) / r.a;
+		r.b = fg.b * fg.a / r.a + bg.b * bg.a * (1 - fg.a) / r.a;
+		return r;
 	}
 
 	@Override
@@ -231,7 +299,7 @@ public class GameScreen extends AbstractScreen {
 				getViewportWidth(), getViewportHeight());
 		camera.lookAt(lastCameraDirection);
 		camera.update(true);
-		camera.far = fogDistance;
+		camera.far = viewDistance;
 		camera.near = 1E-2f;
 
 		viewport.setCamera(camera);
@@ -247,17 +315,17 @@ public class GameScreen extends AbstractScreen {
 		// TODO Auto-generated method stub
 	}
 
-	void setEnvironment(Color fogColor, float fogDistance, Vector3 sunPosition) {
-		this.fogColor = fogColor;
-		this.fogDistance = fogDistance;
+	void setEnvironment(Color color, float viewDistance, Vector3 sunPosition) {
+		this.currentColor = color.cpy();
+		this.viewDistance = viewDistance;
 
-		environment.clear();
+		// environment.clear();
 		environment.add(new DirectionalLight().set(Color.WHITE,
 				sunPosition.scl(-1)));
 		environment.set(new ColorAttribute(ColorAttribute.AmbientLight, 0.4f,
 				0.4f, 0.4f, 1.f));
-		environment.set(new ColorAttribute(ColorAttribute.Fog, fogColor.r,
-				fogColor.g, fogColor.b, fogColor.a));
+		environment.set(new ColorAttribute(ColorAttribute.Fog, color.r,
+				color.g, color.b, color.a));
 	}
 
 	@Override

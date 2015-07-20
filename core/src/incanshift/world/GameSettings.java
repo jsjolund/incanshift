@@ -13,7 +13,7 @@ public class GameSettings {
 
 	public static final float PLAYER_CLIMB_SPEED = 1.5f;
 	public static final float PLAYER_WALK_SPEED = 8f;
-	public static final float PLAYER_RUN_SPEED = 12f;
+	public static final float PLAYER_RUN_SPEED = 16f;
 	public static final float PLAYER_JUMP_FORCE = 6000f;
 	public static final float PLAYER_MAX_JUMP_PRESS_TIME = 0.2f;
 	public static final float PLAYER_STOP_DOWNSCALE = 0.9f;
@@ -36,9 +36,9 @@ public class GameSettings {
 	public static int RUN = Keys.SHIFT_LEFT;
 	public static int USE = Keys.E;
 	public static int RESET = Keys.F5;
-	
+
 	public static int FLY = Keys.F1;
-	
+
 	public static float SOUND_VOLUME = 1f;
 	public static float MUSIC_VOLUME = 1f;
 

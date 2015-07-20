@@ -4,6 +4,7 @@ import java.util.Random;
 
 import incanshift.IncanShift;
 import incanshift.gameobjects.Billboard;
+import incanshift.gameobjects.EnvTag;
 import incanshift.gameobjects.GameObject;
 import incanshift.player.Player;
 import incanshift.player.PlayerSound;
@@ -68,6 +69,7 @@ public class GameWorld implements Disposable {
 	public ArrayMap<String, Array<GameObject>> instances;
 
 	public Array<Billboard> billboards;
+	public Array<EnvTag> envTags;
 
 	public String[] levels = { "model/outside_level.csv", "model/level1.csv",
 			"model/level2.csv" };
@@ -114,6 +116,7 @@ public class GameWorld implements Disposable {
 		Bullet.init();
 		instances = new ArrayMap<String, Array<GameObject>>();
 		billboards = new Array<Billboard>();
+		envTags = new Array<EnvTag>();
 		collisionHandler = new CollisionHandler();
 		gameObjectFactory = new ArrayMap<String, GameObject.Constructor>();
 
@@ -150,6 +153,8 @@ public class GameWorld implements Disposable {
 			}
 		}
 		instances.clear();
+		billboards.clear();
+		envTags.clear();
 		loadLevelCSV(levels[level]);
 	}
 
@@ -262,6 +267,12 @@ public class GameWorld implements Disposable {
 
 			} else if (name.equals("text_tag")) {
 				billboardPos.add(pos);
+
+			} else if (name.equals("fog_tag")) {
+				envTags.add(new EnvTag(pos, 80, 40, Color.GRAY, 30));
+
+			} else if (name.equals("sun_tag")) {
+				envTags.add(new EnvTag(pos, 60, 15, Color.WHITE, 30));
 
 			} else {
 				spawn(name, pos, rot, false, false, false,
