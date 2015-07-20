@@ -71,8 +71,9 @@ public class GameWorld implements Disposable {
 	public Array<Billboard> billboards;
 	public Array<EnvTag> envTags;
 
-	public String[] levels = { "model/inside_level1.csv",
-			"model/outside_level.csv", "model/level1.csv", "model/level2.csv" };
+	public String[] levels = { "model/outside_level.csv",
+			"model/inside_level1.csv", "model/inside_level2.csv",
+			"model/inside_level3.csv", };
 	public int currentLevel = 0;
 
 	public ModelInstance skybox;
@@ -152,6 +153,10 @@ public class GameWorld implements Disposable {
 				collisionHandler.dynamicsWorld.removeCollisionObject(obj.body);
 			}
 		}
+		if (taskRemoveShards != null) {
+			taskRemoveShards.cancel();
+			Gdx.app.debug(tag, "Canceled remove shards task");
+		}
 		instances.clear();
 		billboards.clear();
 		envTags.clear();
@@ -191,16 +196,16 @@ public class GameWorld implements Disposable {
 			String filePath = String.format("model/%s.g3db", name);
 			Gdx.app.debug(tag,
 					String.format("Creating collision shape for %s", filePath));
-			
+
 			assets.load(filePath, Model.class);
 			try {
-				assets.finishLoading();				
+				assets.finishLoading();
 			} catch (Exception e) {
 				Gdx.app.debug(tag, "Could not load assets ", e);
 			}
-			
+
 			Model model = assets.get(filePath);
-			
+
 			gameObjectFactory.put(name, new GameObject.Constructor(model,
 					Bullet.obtainStaticNodeShape(model.nodes), 0));
 		}
@@ -233,7 +238,7 @@ public class GameWorld implements Disposable {
 	 * 
 	 * @param csv
 	 */
-	public void loadLevelCSV(String csvPath) {
+	private void loadLevelCSV(String csvPath) {
 		Gdx.app.debug(tag, String.format("Loading CSV data from %s", csvPath));
 		String csv = Gdx.files.internal(csvPath).readString();
 		Gdx.app.debug(tag, String.format("Content: \n%s", csv));
@@ -276,7 +281,7 @@ public class GameWorld implements Disposable {
 				billboardPos.add(pos);
 
 			} else if (name.equals("fog_tag")) {
-				envTags.add(new EnvTag(pos, 80, 40, Color.BLACK, 30));
+				envTags.add(new EnvTag(pos, 80, 40, Color.DARK_GRAY, 30));
 
 			} else if (name.equals("sun_tag")) {
 				envTags.add(new EnvTag(pos, 60, 30, Color.WHITE, 30));
@@ -468,14 +473,16 @@ public class GameWorld implements Disposable {
 			b.update(viewport.getCamera());
 		}
 
-		// if (numberSpawned("mask") == 0) {
-		// currentLevel++;
-		// if (currentLevel == levels.length) {
-		// currentLevel = 0;
-		// }
-		// loadLevel(currentLevel);
-		// game.resize(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-		// }
+		if (numberSpawned("mask") == 0) {
+			Gdx.app.debug(tag, "Loading level " + currentLevel);
+			currentLevel++;
+			if (currentLevel == levels.length) {
+				currentLevel = 0;
+			}
+			loadLevel(currentLevel);
+			game.resize(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+			Gdx.app.debug(tag, "Finished loading level " + currentLevel);
+		}
 
 	}
 
@@ -519,7 +526,7 @@ public class GameWorld implements Disposable {
 			obj.body.setLinearVelocity(randAndNor(lin_vel).scl(50));
 			shards.add(obj);
 		}
-		Timer.schedule(new Task() {
+		taskRemoveShards = Timer.schedule(new Task() {
 
 			@Override
 			public void run() {
@@ -530,6 +537,8 @@ public class GameWorld implements Disposable {
 		}, 2);
 	}
 
+	private Task taskRemoveShards;
+
 	public void destroy(GameObject obj) {
 		collisionHandler.dynamicsWorld.removeCollisionObject(obj.body);
 		instances.get(obj.id).removeValue(obj, true);
@@ -538,6 +547,7 @@ public class GameWorld implements Disposable {
 		obj.transform.getTranslation(pos);
 		Gdx.app.debug(tag, String.format("Destroyed %s at %s, %s remaining.",
 				obj.id, pos, numberSpawned(obj.id)));
+
 		if (obj.id.equals("mask")) {
 			shatter(pos);
 		}
