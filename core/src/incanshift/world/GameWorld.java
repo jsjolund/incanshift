@@ -272,7 +272,7 @@ public class GameWorld implements Disposable {
 				envTags.add(new EnvTag(pos, 80, 40, Color.GRAY, 30));
 
 			} else if (name.equals("sun_tag")) {
-				envTags.add(new EnvTag(pos, 60, 15, Color.WHITE, 30));
+				envTags.add(new EnvTag(pos, 60, 30, Color.WHITE, 30));
 
 			} else {
 				spawn(name, pos, rot, false, false, false,

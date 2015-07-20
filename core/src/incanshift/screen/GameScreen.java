@@ -2,11 +2,10 @@ package incanshift.screen;
 
 import incanshift.IncanShift;
 import incanshift.gameobjects.Billboard;
-import incanshift.gameobjects.BillboardOverlay;
-import incanshift.gameobjects.EnvTag;
 import incanshift.gameobjects.GameObject;
 import incanshift.world.GameSettings;
 import incanshift.world.GameWorld;
+import incanshift.world.WorldEnvironment;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
@@ -15,10 +14,7 @@ import com.badlogic.gdx.graphics.PerspectiveCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.Pixmap.Format;
 import com.badlogic.gdx.graphics.g2d.BitmapFontCache;
-import com.badlogic.gdx.graphics.g3d.Environment;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
-import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
-import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
@@ -32,10 +28,11 @@ public class GameScreen extends AbstractScreen {
 	final static String tag = "GameScreen";
 
 	private GameWorld world;
+	private WorldEnvironment env;
 	private ModelBatch modelBatch;
 
 	// Lights and stuff
-	private Environment environment;
+
 	private ShapeRenderer shapeRenderer;
 
 	// Crosshair coordinates
@@ -43,16 +40,6 @@ public class GameScreen extends AbstractScreen {
 	private Vector2 chHoriz2 = new Vector2();
 	private Vector2 chVert1 = new Vector2();
 	private Vector2 chVert2 = new Vector2();
-
-	private float normalViewDistance = 1E3f;
-	private float viewDistance;
-
-	private BillboardOverlay sun;
-	Vector3 sunPosition = new Vector3(500, 800, 700);
-
-	private Color skyColor = new Color(0.28f, 0.56f, 0.83f, 1);
-
-	private Color currentColor;
 
 	private boolean overlayIsOn = false;
 	private Texture overlay;
@@ -68,17 +55,9 @@ public class GameScreen extends AbstractScreen {
 
 		world = new GameWorld(game, viewport, screenCenter, sansLarge);
 
-		// Various environment graphics stuff
 		shapeRenderer = new ShapeRenderer();
-		environment = new Environment();
+		env = new WorldEnvironment();
 		modelBatch = new ModelBatch();
-
-		// Sun billboard
-
-		sun = new BillboardOverlay(sunPosition, 500f, 500f, 0,
-				"shader/common.vert", "shader/sun.frag");
-
-		setEnvironment(skyColor, normalViewDistance, sunPosition);
 
 		overlayShader = loadShader("shader/common.vert", "shader/vignette.frag");
 	}
@@ -88,7 +67,7 @@ public class GameScreen extends AbstractScreen {
 		super.dispose();
 		world.dispose();
 		modelBatch.dispose();
-		sun.dispose();
+		env.dispose();
 		overlay.dispose();
 		overlayShader.dispose();
 	}
@@ -155,7 +134,7 @@ public class GameScreen extends AbstractScreen {
 
 		// Fog background color
 		shapeRenderer.begin(ShapeType.Filled);
-		shapeRenderer.setColor(currentColor);
+		shapeRenderer.setColor(env.currentColor);
 		shapeRenderer.rect(0, 0, getViewportWidth(), getViewportHeight());
 		shapeRenderer.end();
 
@@ -167,11 +146,12 @@ public class GameScreen extends AbstractScreen {
 		// Draw sun billboard
 		spriteBatch.begin();
 		spriteBatch.setProjectionMatrix(uiMatrix);
-		sun.setProjection(viewport);
-		spriteBatch.setShader(sun.shader);
-		spriteBatch.draw(sun.texture, sun.screenPos.x - sun.screenWidth / 2,
-				sun.screenPos.y - sun.screenHeight / 2, sun.screenWidth,
-				sun.screenHeight);
+		env.sun.setProjection(viewport);
+		spriteBatch.setShader(env.sun.shader);
+		spriteBatch.draw(env.sun.texture, env.sun.screenPos.x
+				- env.sun.screenWidth / 2, env.sun.screenPos.y
+				- env.sun.screenHeight / 2, env.sun.screenWidth,
+				env.sun.screenHeight);
 
 		spriteBatch.setShader(null);
 		spriteBatch.end();
@@ -186,7 +166,7 @@ public class GameScreen extends AbstractScreen {
 
 		for (Entry<String, Array<GameObject>> entry : world.instances) {
 			for (GameObject obj : entry.value) {
-				modelBatch.render(obj, environment);
+				modelBatch.render(obj, env);
 			}
 		}
 
@@ -225,69 +205,9 @@ public class GameScreen extends AbstractScreen {
 		shapeRenderer.line(chVert1, chVert2);
 		shapeRenderer.end();
 
-		// Environment effect tags (fog, sunshine)
-		viewDistance = normalViewDistance;
-		Color colorDelta = new Color(skyColor);
-		float dstNearest = Float.MAX_VALUE;
-		EnvTag tagNearest = null;
-		float fadeNearest = 0;
-		for (EnvTag tag : world.envTags) {
-			float fade = 0;
-			float dst = tag.position.dst(world.player.position);
-
-			if (dst > tag.fadeDistance) {
-				continue;
-			}
-			if (dst <= tag.effectDistance) {
-				fade = 1;
-			} else {
-				fade = 1 - (dst - tag.effectDistance)
-						/ (tag.fadeDistance - tag.effectDistance);
-				if (fade > 1) {
-					fade = 1;
-				}
-			}
-			if (dst < dstNearest) {
-				dstNearest = dst;
-				tagNearest = tag;
-				fadeNearest = fade;
-			}
-			tag.color.a = fade;
-			colorDelta = mixColors(colorDelta, tag.color);
-			tag.color.a = 1;
-		}
-		if (tagNearest == null) {
-			viewDistance = normalViewDistance;
-			currentColor.set(skyColor);
-			environment.set(new ColorAttribute(ColorAttribute.AmbientLight,
-					0.4f, 0.4f, 0.4f, 1.f));
-		} else {
-			currentColor.set(colorDelta);
-			viewDistance = tagNearest.minViewDistance + normalViewDistance
-					* (1 - fadeNearest);
-			float i = (currentColor.r + currentColor.g + currentColor.b) / 3 * 1f;
-			i = (i > 1) ? 1 : i;
-			System.out.println(i);
-			float r = i;
-			float g = i;
-			float b = i;
-			float a = 1;
-			environment.set(new ColorAttribute(ColorAttribute.AmbientLight, r,
-					g, b, a));
-		}
-		camera.far = viewDistance;
-		environment.set(new ColorAttribute(ColorAttribute.Fog, currentColor.r,
-				currentColor.g, currentColor.b, currentColor.a));
-
-	}
-
-	private static Color mixColors(Color bg, Color fg) {
-		Color r = new Color();
-		r.a = 1 - (1 - fg.a) * (1 - bg.a);
-		r.r = fg.r * fg.a / r.a + bg.r * bg.a * (1 - fg.a) / r.a;
-		r.g = fg.g * fg.a / r.a + bg.g * bg.a * (1 - fg.a) / r.a;
-		r.b = fg.b * fg.a / r.a + bg.b * bg.a * (1 - fg.a) / r.a;
-		return r;
+		// Update environment from tags
+		env.update(world.envTags, world.player.position);
+		camera.far = env.viewDistance;
 	}
 
 	@Override
@@ -299,7 +219,7 @@ public class GameScreen extends AbstractScreen {
 				getViewportWidth(), getViewportHeight());
 		camera.lookAt(lastCameraDirection);
 		camera.update(true);
-		camera.far = viewDistance;
+		camera.far = env.viewDistance;
 		camera.near = 1E-2f;
 
 		viewport.setCamera(camera);
@@ -313,19 +233,6 @@ public class GameScreen extends AbstractScreen {
 	@Override
 	public void resume() {
 		// TODO Auto-generated method stub
-	}
-
-	void setEnvironment(Color color, float viewDistance, Vector3 sunPosition) {
-		this.currentColor = color.cpy();
-		this.viewDistance = viewDistance;
-
-		// environment.clear();
-		environment.add(new DirectionalLight().set(Color.WHITE,
-				sunPosition.scl(-1)));
-		environment.set(new ColorAttribute(ColorAttribute.AmbientLight, 0.4f,
-				0.4f, 0.4f, 1.f));
-		environment.set(new ColorAttribute(ColorAttribute.Fog, color.r,
-				color.g, color.b, color.a));
 	}
 
 	@Override
