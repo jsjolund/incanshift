@@ -39,7 +39,9 @@ public class IncanShift extends Game {
 	}
 
 	public void getScreenshot() {
-		scrot = AbstractScreen.getScreenshot(0, 0,
+		scrot = AbstractScreen.getScreenshot(
+				currentScreen.getLeftGutterWidth(),
+				currentScreen.getBottomGutterWidth(),
 				currentScreen.getViewportWidth(),
 				currentScreen.getViewportHeight(), true);
 	}

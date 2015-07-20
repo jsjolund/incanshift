@@ -5,6 +5,7 @@ import incanshift.screen.menu.Menu;
 import incanshift.screen.menu.MenuItem;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 
 public class StartScreen extends AbstractMenuScreen {
 
@@ -14,7 +15,8 @@ public class StartScreen extends AbstractMenuScreen {
 	MenuItem credits;
 	MenuItem options;
 	MenuItem start;
-
+	MenuItem restart;
+	
 	public StartScreen(IncanShift game, int reqWidth, int reqHeight) {
 		super(game, reqWidth, reqHeight, "sound/music_menu.ogg");
 
@@ -22,6 +24,7 @@ public class StartScreen extends AbstractMenuScreen {
 		credits = new MenuItem("Credits", null, true);
 		options = new MenuItem("Options", null, true);
 		start = new MenuItem("Start", null, true);
+		restart = new MenuItem("Restart", null, true);
 		Menu menu = new Menu();
 		menu.add(back);
 		menu.add(credits);
@@ -39,6 +42,7 @@ public class StartScreen extends AbstractMenuScreen {
 				canResume = true;
 				menu.dispose();
 				start.key = "Resume";
+				menu.add(restart);				
 				createMenuTextures();
 			}
 			game.showGameScreen();
@@ -57,8 +61,11 @@ public class StartScreen extends AbstractMenuScreen {
 
 	@Override
 	boolean keyDownCapture(int keycode) {
-		// TODO Auto-generated method stub
-		return false;
+		if (canResume && keycode == Input.Keys.ESCAPE) {
+			selectedItem = start;
+			enterSelected();
+		}
+		return true;
 	}
 
 	@Override

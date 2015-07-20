@@ -90,12 +90,6 @@ public abstract class AbstractScreen implements Screen {
 
 	}
 
-	public Pixmap viewportScreenshot() {
-		return getScreenshot(0, 0, getViewportWidth(), getViewportHeight(),
-				false);
-
-	}
-
 	public static Pixmap getScreenshot(int x, int y, int w, int h, boolean yDown) {
 		final Pixmap pixmap = ScreenUtils.getFrameBufferPixmap(x, y, w, h);
 
@@ -123,6 +117,14 @@ public abstract class AbstractScreen implements Screen {
 		sansTiny.dispose();
 		game.dispose();
 
+	}
+
+	public int getLeftGutterWidth() {
+		return viewport.getLeftGutterWidth();
+	}
+
+	public int getBottomGutterWidth() {
+		return viewport.getBottomGutterHeight();
 	}
 
 	public int getViewportHeight() {

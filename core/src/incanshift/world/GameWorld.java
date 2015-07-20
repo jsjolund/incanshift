@@ -71,8 +71,8 @@ public class GameWorld implements Disposable {
 	public Array<Billboard> billboards;
 	public Array<EnvTag> envTags;
 
-	public String[] levels = { "model/outside_level.csv", "model/level1.csv",
-			"model/level2.csv" };
+	public String[] levels = { "model/inside_level1.csv",
+			"model/outside_level.csv", "model/level1.csv", "model/level2.csv" };
 	public int currentLevel = 0;
 
 	public ModelInstance skybox;
@@ -191,9 +191,16 @@ public class GameWorld implements Disposable {
 			String filePath = String.format("model/%s.g3db", name);
 			Gdx.app.debug(tag,
 					String.format("Creating collision shape for %s", filePath));
+			
 			assets.load(filePath, Model.class);
-			assets.finishLoading();
+			try {
+				assets.finishLoading();				
+			} catch (Exception e) {
+				Gdx.app.debug(tag, "Could not load assets ", e);
+			}
+			
 			Model model = assets.get(filePath);
+			
 			gameObjectFactory.put(name, new GameObject.Constructor(model,
 					Bullet.obtainStaticNodeShape(model.nodes), 0));
 		}
@@ -269,7 +276,7 @@ public class GameWorld implements Disposable {
 				billboardPos.add(pos);
 
 			} else if (name.equals("fog_tag")) {
-				envTags.add(new EnvTag(pos, 80, 40, Color.GRAY, 30));
+				envTags.add(new EnvTag(pos, 80, 40, Color.BLACK, 30));
 
 			} else if (name.equals("sun_tag")) {
 				envTags.add(new EnvTag(pos, 60, 30, Color.WHITE, 30));

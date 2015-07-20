@@ -32,6 +32,7 @@ public abstract class AbstractMenuScreen extends AbstractScreen implements
 
 		@Override
 		public boolean keyDown(int keycode) {
+			lastKeycode = keycode;
 			if (keyDownCapture(keycode)) {
 				return true;
 			}
@@ -53,7 +54,6 @@ public abstract class AbstractMenuScreen extends AbstractScreen implements
 				selectedItem = backItem;
 				enterSelected();
 			}
-			lastKeycode = keycode;
 			return true;
 		}
 
