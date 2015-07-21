@@ -15,6 +15,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.Pixmap.Format;
 import com.badlogic.gdx.graphics.g2d.BitmapFontCache;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
+import com.badlogic.gdx.graphics.g3d.utils.DepthShaderProvider;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
@@ -50,6 +51,8 @@ public class GameScreen extends AbstractScreen {
 
 	private Vector3 lastCameraDirection = new Vector3();
 
+	ModelBatch shadowBatch;
+
 	public GameScreen(IncanShift game, int reqWidth, int reqHeight) {
 		super(game, reqWidth, reqHeight);
 
@@ -60,6 +63,8 @@ public class GameScreen extends AbstractScreen {
 		modelBatch = new ModelBatch();
 
 		overlayShader = loadShader("shader/common.vert", "shader/vignette.frag");
+
+		shadowBatch = new ModelBatch(new DepthShaderProvider());
 	}
 
 	@Override
@@ -123,10 +128,25 @@ public class GameScreen extends AbstractScreen {
 		return shader;
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	public void render(float delta) {
 		delta = Math.min(1f / 30f, Gdx.graphics.getDeltaTime());
 		world.update(delta);
+
+		env.shadowLight.begin(Vector3.Zero, camera.direction);
+		env.shadowLight.update(world.player.position.cpy(), Vector3.Z);
+
+		shadowBatch.begin(env.shadowLight.getCamera());
+
+		for (Entry<String, Array<GameObject>> entry : world.instances) {
+			for (GameObject obj : entry.value) {
+				shadowBatch.render(obj);
+			}
+		}
+
+		shadowBatch.end();
+		env.shadowLight.end();
 
 		// Clear the screen
 		Gdx.gl.glClearColor(0, 0, 0, 1);

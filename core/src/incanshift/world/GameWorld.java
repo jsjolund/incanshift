@@ -295,11 +295,12 @@ public class GameWorld implements Disposable {
 				}
 
 			} else if (tagName.equals("fog_tag")) {
-				envTags.add(new EnvTag(pos, 80, 40, Color.DARK_GRAY, 30));
+				envTags.add(new EnvTag(pos, 80, 30, Color.GRAY, 30));
 
 			} else if (tagName.equals("sun_tag")) {
-				envTags.add(new EnvTag(pos, 60, 30, Color.WHITE, 30));
+				envTags.add(new EnvTag(pos, 100, 20, Color.WHITE, 30));
 
+			} else if (tagName.equals("empty")) {
 			} else {
 				spawn(tagName, pos, rot, false, false, false,
 						CollisionHandler.GROUND_FLAG, CollisionHandler.ALL_FLAG);

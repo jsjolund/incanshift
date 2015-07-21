@@ -7,10 +7,12 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g3d.Environment;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
+import com.badlogic.gdx.graphics.g3d.environment.DirectionalShadowLight;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
 
+@SuppressWarnings("deprecation")
 public class WorldEnvironment extends Environment implements Disposable {
 
 	// private Environment environment;
@@ -22,22 +24,28 @@ public class WorldEnvironment extends Environment implements Disposable {
 
 	public BillboardOverlay sun;
 	public Vector3 sunPosition = new Vector3(500, 800, 700);
+	public Vector3 sunDirection;
 	public Color skyColor = new Color(0.28f, 0.56f, 0.83f, 1);
+
+	public DirectionalShadowLight shadowLight;
 
 	public WorldEnvironment() {
 		sun = new BillboardOverlay(sunPosition, 500f, 500f, 0,
 				"shader/common.vert", "shader/sun.frag");
-		setEnvironment(skyColor, normalViewDistance, sunPosition);
+		sunDirection = sunPosition.cpy().scl(-1).nor();
+
 		this.currentColor = skyColor.cpy();
 
-		add(new DirectionalLight().set(Color.WHITE, sunPosition.scl(-1)));
+		add(new DirectionalLight().set(Color.WHITE, sunDirection));
 		set(new ColorAttribute(ColorAttribute.AmbientLight, 0.4f, 0.4f, 0.4f,
 				1.f));
 		set(new ColorAttribute(ColorAttribute.Fog, currentColor.r,
 				currentColor.g, currentColor.b, currentColor.a));
-	}
 
-	void setEnvironment(Color color, float viewDistance, Vector3 sunPosition) {
+		add((shadowLight = new DirectionalShadowLight(1024 * 2, 1024 * 2, 300f,
+				300f, .1f, 1E3f)).set(Color.WHITE, sunDirection));
+
+		shadowMap = shadowLight;
 
 	}
 
