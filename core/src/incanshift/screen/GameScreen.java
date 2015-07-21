@@ -134,23 +134,23 @@ public class GameScreen extends AbstractScreen {
 		delta = Math.min(1f / 30f, Gdx.graphics.getDeltaTime());
 		world.update(delta);
 
+		// Clear the screen
+		Gdx.gl.glClearColor(0, 0, 0, 1);
+		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
+
 		env.shadowLight.begin(Vector3.Zero, camera.direction);
+
 		env.shadowLight.update(world.player.position.cpy(), Vector3.Z);
 
 		shadowBatch.begin(env.shadowLight.getCamera());
-
 		for (Entry<String, Array<GameObject>> entry : world.instances) {
 			for (GameObject obj : entry.value) {
 				shadowBatch.render(obj);
 			}
 		}
-
 		shadowBatch.end();
-		env.shadowLight.end();
 
-		// Clear the screen
-		Gdx.gl.glClearColor(0, 0, 0, 1);
-		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
+		env.shadowLight.end();
 
 		// Fog background color
 		shapeRenderer.begin(ShapeType.Filled);
@@ -193,7 +193,7 @@ public class GameScreen extends AbstractScreen {
 		modelBatch.end();
 
 		// Draw collision debug wireframe
-		// world.collisionHandler.debugDrawWorld(camera);
+//		 world.collisionHandler.debugDrawWorld(camera);
 
 		// Overlay shading
 		if (overlayIsOn) {

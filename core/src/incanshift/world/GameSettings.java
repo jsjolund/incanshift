@@ -27,6 +27,7 @@ public class GameSettings {
 			.nor();
 
 	public static final int SHOOT = Buttons.LEFT;
+	public static final int HOOK = Buttons.RIGHT;
 
 	public static int FORWARD = Keys.W;
 	public static int STRAFE_LEFT = Keys.A;

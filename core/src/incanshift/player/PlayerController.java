@@ -119,6 +119,7 @@ class PlayerController implements InputProcessor {
 			player.direction.set(directionOld);
 		}
 		player.direction.rotate(Vector3.Y, -mouseSens * mouseDx);
+		player.direction.nor();
 		centerMouseCursor();
 		return true;
 	}
@@ -133,6 +134,9 @@ class PlayerController implements InputProcessor {
 	public boolean touchDown(int screenX, int screenY, int pointer, int button) {
 		if (button == GameSettings.SHOOT) {
 			actionQueueAdd(PlayerAction.FIRE);
+		}
+		if (button == GameSettings.HOOK) {
+			actionQueueAdd(PlayerAction.HOOK);
 		}
 		return true;
 	}

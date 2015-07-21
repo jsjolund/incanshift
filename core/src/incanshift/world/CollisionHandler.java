@@ -24,6 +24,7 @@ public class CollisionHandler implements Disposable {
 
 	// Collision flags
 	public final static short NONE_FLAG = 0;
+	public final static short HOOK_FLAG = 1 << 6;
 	public final static short PLAYER_FLAG = 1 << 7;
 	public final static short GROUND_FLAG = 1 << 8;
 	public final static short OBJECT_FLAG = 1 << 9;

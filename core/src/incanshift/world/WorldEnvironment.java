@@ -17,7 +17,7 @@ public class WorldEnvironment extends Environment implements Disposable {
 
 	// private Environment environment;
 
-	public float normalViewDistance = 1E3f;
+	public float normalViewDistance = 2E3f;
 	public float viewDistance;
 
 	public Color currentColor;
@@ -42,7 +42,7 @@ public class WorldEnvironment extends Environment implements Disposable {
 		set(new ColorAttribute(ColorAttribute.Fog, currentColor.r,
 				currentColor.g, currentColor.b, currentColor.a));
 
-		add((shadowLight = new DirectionalShadowLight(1024 * 2, 1024 * 2, 300f,
+		add((shadowLight = new DirectionalShadowLight(1024 * 4, 1024 * 4, 300f,
 				300f, .1f, 1E3f)).set(Color.WHITE, sunDirection));
 
 		shadowMap = shadowLight;

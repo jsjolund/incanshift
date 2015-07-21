@@ -11,8 +11,11 @@ import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.physics.bullet.collision.ContactListener;
+import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
 import com.badlogic.gdx.physics.bullet.collision.btManifoldPoint;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
+import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.ArrayMap;
 import com.badlogic.gdx.utils.Disposable;
 import com.badlogic.gdx.utils.Timer;
 import com.badlogic.gdx.utils.Timer.Task;
@@ -25,7 +28,7 @@ public class Player implements Disposable {
 
 		JUMP("jump"), FIRE("shoot"), USE("use"),
 
-		RESET("reset"), FLY("fly");
+		RESET("reset"), FLY("fly"), HOOK("hook");
 
 		private String name;
 
@@ -51,34 +54,45 @@ public class Player implements Disposable {
 		Vector3 horizontalDirection = new Vector3();
 
 		@Override
-		public boolean onContactAdded(btManifoldPoint cp, int userValue0,
-				int partId0, int index0, int userValue1, int partId1, int index1) {
+		public boolean onContactAdded(btManifoldPoint cp,
+				btCollisionObject colObj0, int partId0, int index0,
+				btCollisionObject colObj1, int partId1, int index1) {
 
-			cp.getNormalWorldOnB(collisionNormal);
-			horizontalDirection.set(direction).scl(1, 0, 1).nor();
-
-			/*
-			 * Climbing, check if the surface is approximately vertical and if
-			 * player is facing the surface. If so store the normal and handle
-			 * it in player update. If player stops facing the vertical surface,
-			 * disable climbing using a timeout.
-			 */
-			if (collisionNormal.isPerpendicular(Vector3.Y,
-					climbNormalEpsilonVertical)
-					&& collisionNormal.isCollinearOpposite(horizontalDirection,
-							climbNormalEpsilonDirection)) {
-				climbSurfaceNormal.set(collisionNormal).nor();
-				if (!climbResetTimer.isScheduled()) {
-					climbResetTimer = Timer.schedule(climbResetTimer,
-							canClimbTimeout);
-				} else {
-					climbResetTimer.cancel();
-					climbResetTimer = Timer.schedule(climbResetTimer,
-							canClimbTimeout);
-				}
-			}
+			// super.onContactAdded(cp, colObj0, partId0, index0, colObj1,
+			// partId1, index1);
+			// System.out.println(index0 + " " + index1);
 			return true;
 		}
+
+		// @Override
+		// public boolean onContactAdded(btManifoldPoint cp, int userValue0,
+		// int partId0, int index0, int userValue1, int partId1, int index1) {
+		//
+		// cp.getNormalWorldOnB(collisionNormal);
+		// horizontalDirection.set(direction).scl(1, 0, 1).nor();
+		//
+		// /*
+		// * Climbing, check if the surface is approximately vertical and if
+		// * player is facing the surface. If so store the normal and handle
+		// * it in player update. If player stops facing the vertical surface,
+		// * disable climbing using a timeout.
+		// */
+		// if (collisionNormal.isPerpendicular(Vector3.Y,
+		// climbNormalEpsilonVertical)
+		// && collisionNormal.isCollinearOpposite(horizontalDirection,
+		// climbNormalEpsilonDirection)) {
+		// climbSurfaceNormal.set(collisionNormal).nor();
+		// if (!climbResetTimer.isScheduled()) {
+		// climbResetTimer = Timer.schedule(climbResetTimer,
+		// canClimbTimeout);
+		// } else {
+		// climbResetTimer.cancel();
+		// climbResetTimer = Timer.schedule(climbResetTimer,
+		// canClimbTimeout);
+		// }
+		// }
+		// return true;
+		// }
 
 	}
 
@@ -96,8 +110,8 @@ public class Player implements Disposable {
 	public PlayerController controller;
 
 	private Vector3 climbSurfaceNormal = new Vector3();
-	private float climbNormalEpsilonDirection = 0.1f;
-	private float climbNormalEpsilonVertical = 0.5f;
+	// private float climbNormalEpsilonDirection = 0.1f;
+	// private float climbNormalEpsilonVertical = 0.5f;
 	float canClimbTimeout = 0.1f;
 
 	private Vector3 velocityXZ = new Vector3();
@@ -110,6 +124,8 @@ public class Player implements Disposable {
 	public Vector3 up = new Vector3(Vector3.Y);
 
 	public Vector3 positionCarried = new Vector3();
+
+	private ArrayMap<String, GameObject> inventory = new ArrayMap<String, GameObject>();
 
 	public boolean isClimbing = false;
 	private boolean isJumping = false;
@@ -125,7 +141,7 @@ public class Player implements Disposable {
 
 	private PlayerAction moveMode = PlayerAction.STOP;
 
-	GameObject currentGun;
+	GameObject currentEquip;
 	private boolean gunHidden = false;
 
 	private float gunYoffset = 0;
@@ -161,10 +177,6 @@ public class Player implements Disposable {
 	@Override
 	public void dispose() {
 		contactListener.dispose();
-	}
-
-	public GameObject getGun(GameObject gun) {
-		return gun;
 	}
 
 	public void handleClimbing() {
@@ -281,8 +293,11 @@ public class Player implements Disposable {
 						distance) != null;
 	}
 
+
+
 	private void handleShooting() {
 		if (controller.actionQueueContains(PlayerAction.FIRE) && !gunHidden) {
+
 			sound.shoot();
 
 			ray.set(viewport.getCamera().position,
@@ -353,31 +368,60 @@ public class Player implements Disposable {
 		}
 	}
 
-	public void setGun(GameObject gun) {
-		if (gun != null) {
-			gun.position(position);
+	public void equipFromInventory(String item) {
+		if (!inventory.containsKey(item)) {
+			return;
 		}
-		this.currentGun = gun;
+		GameObject obj = inventory.get(item);
+		obj.position(position);
+		this.currentEquip = obj;
+	}
+	
+	public void unequip() {
+		if (currentEquip == null) {
+			return;
+		}
+		currentEquip.position(position);
+	}
+
+
+	public void addToInventory(GameObject item) {
+		inventory.put(item.id, item);
 	}
 
 	public void setMoveMode(boolean isOnGround) {
-		if (!isOnGround || controller.actionQueueContains(PlayerAction.STOP)
+
+		if (controller.actionQueueContains(PlayerAction.STOP)
 				&& moveMode != PlayerAction.STOP) {
 			sound.halt();
 			moveMode = PlayerAction.STOP;
 		}
-		if (isOnGround && controller.actionQueueContains(PlayerAction.WALK)
+		if (controller.actionQueueContains(PlayerAction.WALK)
 				&& moveMode != PlayerAction.WALK) {
-			sound.move(false);
+			if (isOnGround) {
+				sound.move(false);
+			}
 			moveMode = PlayerAction.WALK;
 		}
-		if (isOnGround && controller.actionQueueContains(PlayerAction.RUN)
+		if (controller.actionQueueContains(PlayerAction.RUN)
 				&& moveMode != PlayerAction.RUN) {
-			sound.move(true);
+			if (isOnGround) {
+				sound.move(true);
+			}
 			moveMode = PlayerAction.RUN;
 		}
 	}
-
+	
+	private void handleHook() {
+		if (controller.actionQueueContains(PlayerAction.HOOK)
+				&& inventory.containsKey("hook")) {
+			GameObject hook = inventory.get("hook");
+			equipFromInventory("hook");
+			hook.body.setLinearVelocity(direction.cpy().scl(100));
+			equipFromInventory(null);
+		}
+	}
+	
 	public void update(float delta) {
 
 		if (controller.actionQueueContains(PlayerAction.RESET)) {
@@ -412,8 +456,9 @@ public class Player implements Disposable {
 		// }
 
 		// React to input
-		setMoveMode(true);
+		setMoveMode(isOnGround);
 		handleShooting();
+		handleHook();
 		handleUsing();
 		handleMoving(true);
 		handleJumping(isOnGround);
@@ -434,14 +479,14 @@ public class Player implements Disposable {
 		camera.up.set(Vector3.Y);
 		camera.update();
 
-		updateGun(delta);
+		updateWeapon(delta);
 
 		controller.actionQueueClear();
 	}
 
-	private void updateGun(float delta) {
-		GameObject gun = currentGun;
-		if (gun == null) {
+	private void updateWeapon(float delta) {
+		GameObject weapon = currentEquip;
+		if (weapon == null) {
 			return;
 		}
 		if (gunHidden) {
@@ -449,20 +494,29 @@ public class Player implements Disposable {
 		} else {
 			gunBaseTransform.set(viewport.getCamera().view).inv();
 		}
-		gunBaseTransform.rotate(Vector3.Y, 30);
 		// Update gun position/rotation relative to camera
-		gun.body.setWorldTransform(gunBaseTransform);
 
-		// // For gun
+		// For gun
+		// gun.body.setWorldTransform(gunBaseTransform);
 		// gunLeftRightPosition.set(direction).crs(Vector3.Y).nor().scl(0.075f);
 		// gunFrontBackPosition.set(direction).nor().scl(0.15f);
-		// gunUpDownPosition.set(direction).nor().crs(gunLeftRightPosition).scl(0.75f);
+		// gunUpDownPosition.set(direction).nor().crs(gunLeftRightPosition)
+		// .scl(0.75f);
 
-		// For blowgun
-		gunLeftRightPosition.set(direction).crs(Vector3.Y).nor().scl(0.075f);
-		gunFrontBackPosition.set(direction).nor().scl(0.3f);
+		// // For blowgun
+		// gun.body.setWorldTransform(gunBaseTransform);
+		// gunLeftRightPosition.set(direction).crs(Vector3.Y).nor().scl(0.075f);
+		// gunFrontBackPosition.set(direction).nor().scl(0.3f);
+		// gunUpDownPosition.set(direction).nor().crs(gunLeftRightPosition)
+		// .scl(0.80f);
+
+		// For hook
+		// gunBaseTransform.rotate(Vector3.X, 90);
+		weapon.body.setWorldTransform(gunBaseTransform);
+		gunLeftRightPosition.set(direction).crs(Vector3.Y).nor().scl(0.2f);
+		gunFrontBackPosition.set(direction).nor().scl(0.4f);
 		gunUpDownPosition.set(direction).nor().crs(gunLeftRightPosition)
-				.scl(0.80f);
+				.scl(0.3f);
 
 		// Move the gun around if walking or running
 		if (moveMode == PlayerAction.STOP) {
@@ -488,10 +542,10 @@ public class Player implements Disposable {
 		}
 		gunUpDownPosition.y += gunYoffset;
 
-		gun.body.translate(gunLeftRightPosition);
-		gun.body.translate(gunFrontBackPosition);
-		gun.body.translate(gunUpDownPosition);
-		gun.body.setLinearVelocity(object.body.getLinearVelocity());
-		gun.body.getWorldTransform(gun.transform);
+		weapon.body.translate(gunLeftRightPosition);
+		weapon.body.translate(gunFrontBackPosition);
+		weapon.body.translate(gunUpDownPosition);
+		weapon.body.setLinearVelocity(object.body.getLinearVelocity());
+		weapon.body.getWorldTransform(weapon.transform);
 	}
 }
