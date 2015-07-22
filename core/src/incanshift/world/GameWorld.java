@@ -72,8 +72,8 @@ public class GameWorld implements Disposable {
 	public Array<EnvTag> envTags;
 
 	public String[] levels = { // Level CSV
-	// "model/outside_level.csv", //
-	"model/inside_level1.csv",//
+	"model/outside_level.csv", //
+			"model/inside_level1.csv",//
 			"model/inside_level2.csv", //
 			"model/inside_level3.csv", //
 			"model/inside_level4_chair.csv", //
@@ -503,17 +503,6 @@ public class GameWorld implements Disposable {
 			b.update(viewport.getCamera());
 		}
 
-		if (numberSpawned("mask") == 0) {
-			Gdx.app.debug(tag, "Loading level " + currentLevel);
-			currentLevel++;
-			if (currentLevel == levels.length) {
-				currentLevel = 0;
-			}
-			loadLevel(currentLevel);
-			game.resize(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-			Gdx.app.debug(tag, "Finished loading level " + currentLevel);
-		}
-
 	}
 
 	public GameObject getGameObject(btRigidBody co) {
@@ -579,7 +568,20 @@ public class GameWorld implements Disposable {
 				obj.id, pos, numberSpawned(obj.id)));
 
 		if (obj.id.equals("mask")) {
+
 			shatter(pos);
+
+			if (numberSpawned("mask") == 0) {
+
+				Gdx.app.debug(tag, "Loading level " + currentLevel);
+				currentLevel++;
+				if (currentLevel == levels.length) {
+					currentLevel = 0;
+				}
+				loadLevel(currentLevel);
+				game.resize(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+				Gdx.app.debug(tag, "Finished loading level " + currentLevel);
+			}
 		}
 	}
 
