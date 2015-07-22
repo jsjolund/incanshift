@@ -71,10 +71,14 @@ public class GameWorld implements Disposable {
 	public Array<Billboard> billboards;
 	public Array<EnvTag> envTags;
 
-	public String[] levels = { "model/outside_level.csv",
-	// "model/inside_level1.csv",
-	// "model/inside_level2.csv",
-	// "model/inside_level3.csv",
+	public String[] levels = { // Level CSV
+	// "model/outside_level.csv", //
+	"model/inside_level1.csv",//
+			"model/inside_level2.csv", //
+			"model/inside_level3.csv", //
+			"model/inside_level4_chair.csv", //
+			"model/inside_level5_l.csv", //
+
 	};
 	public int currentLevel = 0;
 
@@ -172,7 +176,7 @@ public class GameWorld implements Disposable {
 				CollisionHandler.OBJECT_FLAG, CollisionHandler.GROUND_FLAG);
 		addInstance(blowpipe);
 		player.addToInventory(blowpipe);
-		
+
 		player.equipFromInventory("blowpipe");
 	}
 
@@ -315,10 +319,13 @@ public class GameWorld implements Disposable {
 			} else if (tagName.equals("fog_tag")) {
 				envTags.add(new EnvTag(pos, 80, 30, Color.GRAY, 30));
 
+			} else if (tagName.startsWith("sound_tag")) {
+
 			} else if (tagName.equals("sun_tag")) {
 				envTags.add(new EnvTag(pos, 100, 20, Color.WHITE, 30));
 
 			} else if (tagName.equals("empty")) {
+
 			} else {
 				spawn(tagName, pos, rot, false, false, false, false,
 						CollisionHandler.GROUND_FLAG, CollisionHandler.ALL_FLAG);

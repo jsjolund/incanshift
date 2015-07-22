@@ -17,7 +17,7 @@ import subprocess
 performFbxConv = True;
 performObjConv = True;
 
-excludeNames = ['start_position', 'text_tag', 'fog_tag', 'sun_tag']
+excludeNames = ['start_position', 'text_tag', 'fog_tag', 'sun_tag', 'sound_tag']
 excludeTypes = [bpy.types.Camera, bpy.types.PointLamp]
 
 def main():
