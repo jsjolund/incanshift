@@ -293,8 +293,6 @@ public class Player implements Disposable {
 						distance) != null;
 	}
 
-
-
 	private void handleShooting() {
 		if (controller.actionQueueContains(PlayerAction.FIRE) && !gunHidden) {
 
@@ -376,14 +374,13 @@ public class Player implements Disposable {
 		obj.position(position);
 		this.currentEquip = obj;
 	}
-	
+
 	public void unequip() {
 		if (currentEquip == null) {
 			return;
 		}
 		currentEquip.position(position);
 	}
-
 
 	public void addToInventory(GameObject item) {
 		inventory.put(item.id, item);
@@ -411,7 +408,7 @@ public class Player implements Disposable {
 			moveMode = PlayerAction.RUN;
 		}
 	}
-	
+
 	private void handleHook() {
 		if (controller.actionQueueContains(PlayerAction.HOOK)
 				&& inventory.containsKey("hook")) {
@@ -421,7 +418,7 @@ public class Player implements Disposable {
 			equipFromInventory(null);
 		}
 	}
-	
+
 	public void update(float delta) {
 
 		if (controller.actionQueueContains(PlayerAction.RESET)) {
@@ -485,8 +482,7 @@ public class Player implements Disposable {
 	}
 
 	private void updateWeapon(float delta) {
-		GameObject weapon = currentEquip;
-		if (weapon == null) {
+		if (currentEquip == null) {
 			return;
 		}
 		if (gunHidden) {
@@ -495,28 +491,28 @@ public class Player implements Disposable {
 			gunBaseTransform.set(viewport.getCamera().view).inv();
 		}
 		// Update gun position/rotation relative to camera
+		if (currentEquip.id == "blowgun") {
+			currentEquip.body.setWorldTransform(gunBaseTransform);
+			gunLeftRightPosition.set(direction).crs(Vector3.Y).nor()
+					.scl(0.075f);
+			gunFrontBackPosition.set(direction).nor().scl(0.3f);
+			gunUpDownPosition.set(direction).nor().crs(gunLeftRightPosition)
+					.scl(0.80f);
 
-		// For gun
-		// gun.body.setWorldTransform(gunBaseTransform);
-		// gunLeftRightPosition.set(direction).crs(Vector3.Y).nor().scl(0.075f);
-		// gunFrontBackPosition.set(direction).nor().scl(0.15f);
-		// gunUpDownPosition.set(direction).nor().crs(gunLeftRightPosition)
-		// .scl(0.75f);
-
-		// // For blowgun
-		// gun.body.setWorldTransform(gunBaseTransform);
-		// gunLeftRightPosition.set(direction).crs(Vector3.Y).nor().scl(0.075f);
-		// gunFrontBackPosition.set(direction).nor().scl(0.3f);
-		// gunUpDownPosition.set(direction).nor().crs(gunLeftRightPosition)
-		// .scl(0.80f);
-
-		// For hook
-		// gunBaseTransform.rotate(Vector3.X, 90);
-		weapon.body.setWorldTransform(gunBaseTransform);
-		gunLeftRightPosition.set(direction).crs(Vector3.Y).nor().scl(0.2f);
-		gunFrontBackPosition.set(direction).nor().scl(0.4f);
-		gunUpDownPosition.set(direction).nor().crs(gunLeftRightPosition)
-				.scl(0.3f);
+		} else if (currentEquip.id == "hook") {
+			// gunBaseTransform.rotate(Vector3.X, 90);
+			currentEquip.body.setWorldTransform(gunBaseTransform);
+			gunLeftRightPosition.set(direction).crs(Vector3.Y).nor().scl(0.2f);
+			gunFrontBackPosition.set(direction).nor().scl(0.4f);
+			gunUpDownPosition.set(direction).nor().crs(gunLeftRightPosition)
+					.scl(0.3f);
+		} else if (currentEquip.id == "gun") {
+			// gun.body.setWorldTransform(gunBaseTransform);
+			// gunLeftRightPosition.set(direction).crs(Vector3.Y).nor().scl(0.075f);
+			// gunFrontBackPosition.set(direction).nor().scl(0.15f);
+			// gunUpDownPosition.set(direction).nor().crs(gunLeftRightPosition)
+			// .scl(0.75f);
+		}
 
 		// Move the gun around if walking or running
 		if (moveMode == PlayerAction.STOP) {
@@ -542,10 +538,10 @@ public class Player implements Disposable {
 		}
 		gunUpDownPosition.y += gunYoffset;
 
-		weapon.body.translate(gunLeftRightPosition);
-		weapon.body.translate(gunFrontBackPosition);
-		weapon.body.translate(gunUpDownPosition);
-		weapon.body.setLinearVelocity(object.body.getLinearVelocity());
-		weapon.body.getWorldTransform(weapon.transform);
+		currentEquip.body.translate(gunLeftRightPosition);
+		currentEquip.body.translate(gunFrontBackPosition);
+		currentEquip.body.translate(gunUpDownPosition);
+		currentEquip.body.setLinearVelocity(object.body.getLinearVelocity());
+		currentEquip.body.getWorldTransform(currentEquip.transform);
 	}
 }
