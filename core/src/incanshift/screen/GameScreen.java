@@ -95,7 +95,7 @@ public class GameScreen extends AbstractScreen {
 						"[WHITE]Game:[]    [RED]x=% .2f[]  [GREEN]y=% .2f[]  [BLUE]z=% .2f[]  [WHITE]v=% .2f",
 						world.player.position.x, world.player.position.y
 								- GameSettings.PLAYER_HEIGHT / 2,
-						world.player.position.z, world.player.object.body
+						world.player.position.z, world.player.playerObject.body
 								.getLinearVelocity().len()), textX, (textY));
 		monoTiny.getData().markupEnabled = false;
 		return cache;

@@ -35,6 +35,7 @@ import com.badlogic.gdx.physics.bullet.collision.btBoxShape;
 import com.badlogic.gdx.physics.bullet.collision.btCapsuleShape;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
 import com.badlogic.gdx.physics.bullet.collision.btConeShape;
+import com.badlogic.gdx.physics.bullet.collision.btCylinderShape;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ArrayMap;
@@ -72,8 +73,8 @@ public class GameWorld implements Disposable {
 	public Array<EnvTag> envTags;
 
 	public String[] levels = { // Level CSV
-	"model/outside_level.csv", //
-			"model/inside_level1.csv",//
+	// "model/outside_level.csv", //
+	"model/inside_level1.csv",//
 			"model/inside_level2.csv", //
 			"model/inside_level3.csv", //
 			"model/inside_level4_chair.csv", //
@@ -158,6 +159,7 @@ public class GameWorld implements Disposable {
 		instances.clear();
 		billboards.clear();
 		envTags.clear();
+		player.clearInventory();
 		loadLevelCSV(levels[level]);
 
 		// GameObject gun = spawn("gun", player.position.cpy(), new Vector3(),
@@ -302,7 +304,7 @@ public class GameWorld implements Disposable {
 						CollisionHandler.OBJECT_FLAG, CollisionHandler.ALL_FLAG);
 
 			} else if (tagName.equals("start_position")) {
-				player.object.position(pos);
+				player.playerObject.position(pos);
 
 			} else if (tagName.startsWith("text_tag")) {
 				String textTagName = tagName.split("_")[2];
@@ -364,9 +366,8 @@ public class GameWorld implements Disposable {
 		Gdx.app.debug(tag, "Loaded blowpipe model");
 
 		Model modelHook = assets.get("model/grappling_hook.g3db", Model.class);
-		btConeShape shapeHook = new btConeShape(0.1f, 0.2f);
 		gameObjectFactory.put("hook", new GameObject.Constructor(modelHook,
-				shapeHook, 5f));
+				new btBoxShape(getBoundingBoxDimensions(modelHook)), 5f));
 		Gdx.app.debug(tag, "Loaded hook model");
 
 		Model modelBox = assets.get("model/box.g3db", Model.class);
@@ -492,7 +493,7 @@ public class GameWorld implements Disposable {
 
 		// Update player transform from user input
 		player.update(delta);
-		player.object.body.getWorldTransform(player.object.transform);
+		player.playerObject.body.getWorldTransform(player.playerObject.transform);
 
 		for (Entry<String, Array<GameObject>> entry : instances) {
 			for (GameObject obj : entry.value) {
@@ -505,12 +506,15 @@ public class GameWorld implements Disposable {
 
 	}
 
-	public GameObject getGameObject(btRigidBody co) {
+	public GameObject getGameObject(btCollisionObject co) {
+		if (co == null) {
+			return null;
+		}
 		GameObject go = null;
-
 		for (Entry<String, Array<GameObject>> entry : instances) {
 			for (GameObject obj : entry.value) {
-				if (obj.body.equals(co)) {
+				btCollisionObject o = (btCollisionObject) obj.body;
+				if (o.equals(co)) {
 					go = obj;
 					Gdx.app.debug(tag,
 							String.format("Found object id: " + obj.id));
@@ -571,7 +575,7 @@ public class GameWorld implements Disposable {
 
 			shatter(pos);
 
-			if (numberSpawned("mask") == 0) {
+//			if (numberSpawned("mask") == 0) {
 
 				Gdx.app.debug(tag, "Loading level " + currentLevel);
 				currentLevel++;
@@ -579,10 +583,10 @@ public class GameWorld implements Disposable {
 					currentLevel = 0;
 				}
 				loadLevel(currentLevel);
-				game.resize(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+//				game.resize(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 				Gdx.app.debug(tag, "Finished loading level " + currentLevel);
 			}
-		}
+//		}
 	}
 
 	/**
