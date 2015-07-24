@@ -35,7 +35,6 @@ import com.badlogic.gdx.physics.bullet.collision.btBoxShape;
 import com.badlogic.gdx.physics.bullet.collision.btCapsuleShape;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
 import com.badlogic.gdx.physics.bullet.collision.btConeShape;
-import com.badlogic.gdx.physics.bullet.collision.btCylinderShape;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ArrayMap;
@@ -168,7 +167,7 @@ public class GameWorld implements Disposable {
 		// player.setGun(gun);
 
 		GameObject hook = spawn("hook", player.position.cpy(), new Vector3(),
-				false, false, false, true, CollisionHandler.OBJECT_FLAG,
+				false, false, true, true, CollisionHandler.OBJECT_FLAG,
 				CollisionHandler.GROUND_FLAG);
 		addInstance(hook);
 		player.addToInventory(hook);

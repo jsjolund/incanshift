@@ -52,24 +52,20 @@ public class Player implements Disposable {
 				btCollisionObject colObj0, int partId0, int index0,
 				btCollisionObject colObj1, int partId1, int index1) {
 
-			if (hook != null) {
+			if (hook != null && colObj0.equals(hook.body)) {
 
-				btCollisionObject hookColObj = hook.body;
+				hook.transform.getTranslation(pos);
+				cp.getNormalWorldOnB(normal);
+				normal.scl(-cp.getDistance1());
+				pos.add(normal);
+				playerObject.position(pos);
+				isGrappling = true;
 
-				if (colObj0.equals(hookColObj)) {
-
-					hook.transform.getTranslation(pos);
-					cp.getNormalWorldOnB(normal);
-					normal.scl(-cp.getDistance1());
-					pos.add(normal);
-					playerObject.position(pos);
-
-					if (resetHook.isScheduled()) {
-						resetHook.cancel();
-						resetHook.run();
-					}
-
+				if (resetHook.isScheduled()) {
+					resetHook.cancel();
+					resetHook.run();
 				}
+
 			}
 			return true;
 		}
@@ -148,6 +144,8 @@ public class Player implements Disposable {
 
 	private GameObject currentEquip;
 	private GameObject hook;
+	private boolean isGrappling = false;
+
 	private boolean gunHidden = false;
 
 	private float gunYoffset = 0;
@@ -460,11 +458,19 @@ public class Player implements Disposable {
 		moveDirection.set(controller.getMoveDirection());
 
 		if (controller.actionQueueContains(PlayerAction.FLY)) {
+			// Toggle gravity each time fly button is pressed
 			if (!isFlying) {
 				isFlying = true;
 				playerObject.body.setGravity(Vector3.Zero);
 			} else {
 				isFlying = false;
+				playerObject.body.setGravity(GameSettings.GRAVITY);
+			}
+		} else if (isGrappling) {
+			playerObject.body.setGravity(Vector3.Zero);
+			playerObject.body.setLinearVelocity(Vector3.Zero);
+			if (!moveDirection.isZero()) {
+				isGrappling = false;
 				playerObject.body.setGravity(GameSettings.GRAVITY);
 			}
 		}
