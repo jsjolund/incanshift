@@ -2,6 +2,7 @@ package incanshift.screen;
 
 import incanshift.IncanShift;
 import incanshift.gameobjects.Billboard;
+import incanshift.gameobjects.BillboardOverlay;
 import incanshift.gameobjects.GameObject;
 import incanshift.world.GameSettings;
 import incanshift.world.GameWorld;
@@ -192,6 +193,31 @@ public class GameScreen extends AbstractScreen {
 
 		modelBatch.end();
 
+		if (world.xRayMask) {
+			Gdx.gl.glEnable(GL20.GL_BLEND);
+			Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+			shapeRenderer.begin(ShapeType.Filled);
+			Color c = Color.BLACK;
+			shapeRenderer.setColor(c.r, c.g, c.b, 0.5f);
+			shapeRenderer.rect(0, 0, getViewportWidth(), getViewportHeight());
+			shapeRenderer.end();
+			Gdx.gl.glDisable(GL20.GL_BLEND);
+
+			spriteBatch.begin();
+			spriteBatch.setProjectionMatrix(uiMatrix);
+			for (Entry<GameObject, BillboardOverlay> entry : world.billboardOverlays) {
+				BillboardOverlay o = entry.value;
+				o.setProjection(viewport);
+				spriteBatch.setShader(o.shader);
+				spriteBatch.draw(o.texture, o.screenPos.x - o.screenWidth / 2,
+						o.screenPos.y - o.screenHeight / 2, o.screenWidth,
+						o.screenHeight);
+				spriteBatch.setShader(null);
+			}
+			spriteBatch.end();
+
+		}
+
 		// Draw collision debug wireframe
 		// world.collisionHandler.debugDrawWorld(camera);
 
@@ -208,6 +234,7 @@ public class GameScreen extends AbstractScreen {
 			spriteBatch.setShader(overlayShader);
 			spriteBatch.draw(overlay, 0, 0);
 			spriteBatch.end();
+
 		}
 
 		// Draw player coordinates

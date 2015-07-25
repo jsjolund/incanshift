@@ -4,6 +4,7 @@ import java.util.Random;
 
 import incanshift.IncanShift;
 import incanshift.gameobjects.Billboard;
+import incanshift.gameobjects.BillboardOverlay;
 import incanshift.gameobjects.EnvTag;
 import incanshift.gameobjects.GameObject;
 import incanshift.gameobjects.TextParser;
@@ -69,6 +70,7 @@ public class GameWorld implements Disposable {
 	public ArrayMap<String, Array<GameObject>> instances;
 
 	public Array<Billboard> billboards;
+	public ArrayMap<GameObject, BillboardOverlay> billboardOverlays;
 	public Array<EnvTag> envTags;
 
 	public String[] levels = { //
@@ -89,6 +91,8 @@ public class GameWorld implements Disposable {
 
 	public ModelInstance skybox;
 	public Player player;
+
+	public boolean xRayMask = false;
 
 	public Music music;
 
@@ -131,6 +135,8 @@ public class GameWorld implements Disposable {
 		Bullet.init();
 		instances = new ArrayMap<String, Array<GameObject>>();
 		billboards = new Array<Billboard>();
+		billboards.ordered = true;
+		billboardOverlays = new ArrayMap<GameObject, BillboardOverlay>();
 		envTags = new Array<EnvTag>();
 		collisionHandler = new CollisionHandler();
 		gameObjectFactory = new ArrayMap<String, GameObject.Constructor>();
@@ -162,6 +168,7 @@ public class GameWorld implements Disposable {
 			Gdx.app.debug(tag, "Canceled remove shards task");
 		}
 		instances.clear();
+		billboardOverlays.clear();
 		billboards.clear();
 		envTags.clear();
 		player.reset();
@@ -301,8 +308,11 @@ public class GameWorld implements Disposable {
 			Gdx.app.debug(tag, "Loading object " + tagName);
 
 			if (tagName.equals("mask")) {
-				spawn(tagName, pos, rot, false, true, false, false,
-						CollisionHandler.OBJECT_FLAG, CollisionHandler.ALL_FLAG);
+				GameObject mask = spawn(tagName, pos, rot, false, true, false,
+						false, CollisionHandler.OBJECT_FLAG,
+						CollisionHandler.ALL_FLAG);
+				billboardOverlays.put(mask, new BillboardOverlay(pos, 3f, 3f,
+						0, "shader/common.vert", "shader/sun.frag"));
 
 			} else if (tagName.equals("box")) {
 				spawn(tagName, pos, rot, true, false, true, false,
@@ -424,7 +434,7 @@ public class GameWorld implements Disposable {
 		Gdx.app.debug(tag, "Loaded shard model");
 	}
 
-	public static Vector3 getBoundingBoxHalfExtents(Model model) {
+	private static Vector3 getBoundingBoxHalfExtents(Model model) {
 		BoundingBox bBox = new BoundingBox();
 		Vector3 dim = new Vector3();
 		model.calculateBoundingBox(bBox);
@@ -444,7 +454,10 @@ public class GameWorld implements Disposable {
 			}
 		}
 		instances.clear();
-
+		for (Entry<GameObject, BillboardOverlay> entry : billboardOverlays) {
+			entry.value.dispose();
+		}
+		billboardOverlays.clear();
 		for (GameObject.Constructor ctor : gameObjectFactory.values())
 			ctor.dispose();
 		gameObjectFactory.clear();
@@ -581,7 +594,7 @@ public class GameWorld implements Disposable {
 	public void destroy(GameObject obj) {
 		collisionHandler.dynamicsWorld.removeCollisionObject(obj.body);
 		instances.get(obj.id).removeValue(obj, true);
-		obj.dispose();
+
 		Vector3 pos = new Vector3();
 		obj.transform.getTranslation(pos);
 		Gdx.app.debug(tag, String.format("Destroyed %s at %s, %s remaining.",
@@ -589,10 +602,14 @@ public class GameWorld implements Disposable {
 
 		if (obj.id.equals("mask")) {
 			shatter(pos);
+			BillboardOverlay o = billboardOverlays.get(obj);
+			billboardOverlays.removeKey(obj);
+			o.dispose();
 			if (numberSpawned("mask") == 0) {
 				loadNextLevel();
 			}
 		}
+		obj.dispose();
 	}
 
 	public void loadNextLevel() {

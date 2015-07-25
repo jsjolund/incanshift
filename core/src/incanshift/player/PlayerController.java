@@ -83,7 +83,9 @@ class PlayerController implements InputProcessor {
 		if (keycode == Keys.F6) {
 			player.world.loadNextLevel();
 		}
-
+		if (keycode == GameSettings.XRAY) {
+			player.world.xRayMask = true;
+		}
 		return true;
 	}
 
@@ -104,6 +106,9 @@ class PlayerController implements InputProcessor {
 		}
 		if (keycode == GameSettings.FLY) {
 			flyKeyReleased = true;
+		}
+		if (keycode == GameSettings.XRAY) {
+			player.world.xRayMask = false;
 		}
 		return false;
 	}

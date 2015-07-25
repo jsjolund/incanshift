@@ -19,9 +19,9 @@ public class BillboardOverlay implements Disposable {
 	public TextureRegion texture;
 	public ShaderProgram shader = null;
 
-	Vector3 worldPos = new Vector3();
-	float worldWidth;
-	float worldHeight;
+	public Vector3 worldPos = new Vector3();
+	public float worldWidth;
+	public float worldHeight;
 
 	int texWidth = 1024;
 	int texHeight = 1024;
