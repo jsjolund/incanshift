@@ -164,7 +164,7 @@ public class GameWorld implements Disposable {
 		instances.clear();
 		billboards.clear();
 		envTags.clear();
-		player.clearInventory();
+		player.reset();
 		loadLevelCSV(levels[level]);
 
 		// GameObject gun = spawn("gun", player.position.cpy(), new Vector3(),
@@ -312,9 +312,9 @@ public class GameWorld implements Disposable {
 				player.playerObject.position(pos);
 
 			} else if (tagName.startsWith("text_tag")) {
-				
+
 				String textTagName = tagName.split("_")[2];
-				
+
 				if (!textMap.containsKey(textTagName)
 						|| textMap.get(textTagName).size - 1 < tagIndex) {
 					Gdx.app.debug(tag, String.format(
@@ -322,7 +322,7 @@ public class GameWorld implements Disposable {
 							tagIndex));
 				} else {
 					String textTagText = textMap.get(textTagName).get(tagIndex);
-					spawnBillboard(pos.sub(0,1,0), textTagText);
+					spawnBillboard(pos.sub(0, 1, 0), textTagText);
 				}
 
 			} else if (tagName.equals("fog_tag")) {
@@ -497,8 +497,9 @@ public class GameWorld implements Disposable {
 		return player;
 	}
 
-	public btRigidBody rayTest(Ray ray, short mask, float maxDistance) {
-		return collisionHandler.rayTest(ray, mask, maxDistance);
+	public btRigidBody rayTest(Ray ray, Vector3 point, short mask,
+			float maxDistance) {
+		return collisionHandler.rayTest(ray, point, mask, maxDistance);
 	}
 
 	public void update(float delta) {
@@ -595,13 +596,28 @@ public class GameWorld implements Disposable {
 	}
 
 	public void loadNextLevel() {
-		Gdx.app.debug(tag, "Loading level " + currentLevel);
 		currentLevel++;
 		if (currentLevel == levels.length) {
 			currentLevel = 0;
 		}
+		Gdx.app.debug(tag, "Loading level " + currentLevel);
 		loadLevel(currentLevel);
-		// game.resize(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+		Gdx.app.debug(tag, "Finished loading level " + currentLevel);
+	}
+
+	public void loadPrevLevel() {
+		currentLevel--;
+		if (currentLevel == -1) {
+			currentLevel = levels.length - 1;
+		}
+		Gdx.app.debug(tag, "Loading level " + currentLevel);
+		loadLevel(currentLevel);
+		Gdx.app.debug(tag, "Finished loading level " + currentLevel);
+	}
+
+	public void reloadLevel() {
+		Gdx.app.debug(tag, "Loading level " + currentLevel);
+		loadLevel(currentLevel);
 		Gdx.app.debug(tag, "Finished loading level " + currentLevel);
 	}
 

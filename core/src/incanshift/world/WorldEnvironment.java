@@ -15,8 +15,6 @@ import com.badlogic.gdx.utils.Disposable;
 @SuppressWarnings("deprecation")
 public class WorldEnvironment extends Environment implements Disposable {
 
-	// private Environment environment;
-
 	public float normalViewDistance = 2E3f;
 	public float viewDistance;
 
@@ -44,8 +42,8 @@ public class WorldEnvironment extends Environment implements Disposable {
 
 		add((shadowLight = new DirectionalShadowLight(1024 * 4, 1024 * 4, 300f,
 				300f, .1f, 1E3f)).set(Color.WHITE, sunDirection));
-
-		shadowMap = shadowLight;
+//
+//		shadowMap = shadowLight;
 
 	}
 

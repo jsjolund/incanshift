@@ -10,9 +10,6 @@ import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
-import com.badlogic.gdx.physics.bullet.collision.ContactListener;
-import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
-import com.badlogic.gdx.physics.bullet.collision.btManifoldPoint;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ArrayMap;
@@ -29,7 +26,7 @@ public class Player implements Disposable {
 
 		JUMP("jump"), FIRE("shoot"), USE("use"),
 
-		RESET("reset"), FLY("fly"), HOOK("hook");
+		FLY("fly"), HOOK("hook");
 
 		private String name;
 
@@ -43,65 +40,33 @@ public class Player implements Disposable {
 		}
 	}
 
-	public class PlayerContactListener extends ContactListener {
-
-		Vector3 pos = new Vector3();
-		Vector3 normal = new Vector3();
-
-		@Override
-		public boolean onContactAdded(btManifoldPoint cp,
-				btCollisionObject colObj0, int partId0, int index0,
-				btCollisionObject colObj1, int partId1, int index1) {
-
-			if (hook != null && colObj0.equals(hook.body)) {
-
-				hook.transform.getTranslation(pos);
-				cp.getNormalWorldOnB(normal);
-				normal.scl(-cp.getDistance1());
-				pos.add(normal);
-				playerObject.position(pos);
-				isGrappling = true;
-
-				if (resetHook.isScheduled()) {
-					resetHook.cancel();
-					resetHook.run();
-				}
-
-			}
-			return true;
-		}
-
-		// @Override
-		// public boolean onContactAdded(btManifoldPoint cp, int userValue0,
-		// int partId0, int index0, int userValue1, int partId1, int index1) {
-		//
-		// cp.getNormalWorldOnB(collisionNormal);
-		// horizontalDirection.set(direction).scl(1, 0, 1).nor();
-		//
-		// /*
-		// * Climbing, check if the surface is approximately vertical and if
-		// * player is facing the surface. If so store the normal and handle
-		// * it in player update. If player stops facing the vertical surface,
-		// * disable climbing using a timeout.
-		// */
-		// if (collisionNormal.isPerpendicular(Vector3.Y,
-		// climbNormalEpsilonVertical)
-		// && collisionNormal.isCollinearOpposite(horizontalDirection,
-		// climbNormalEpsilonDirection)) {
-		// climbSurfaceNormal.set(collisionNormal).nor();
-		// if (!climbResetTimer.isScheduled()) {
-		// climbResetTimer = Timer.schedule(climbResetTimer,
-		// canClimbTimeout);
-		// } else {
-		// climbResetTimer.cancel();
-		// climbResetTimer = Timer.schedule(climbResetTimer,
-		// canClimbTimeout);
-		// }
-		// }
-		// return true;
-		// }
-
-	}
+	// public class PlayerContactListener extends ContactListener {
+	//
+	// Vector3 pos = new Vector3();
+	// Vector3 normal = new Vector3();
+	//
+	// @Override
+	// public boolean onContactAdded(btManifoldPoint cp,
+	// btCollisionObject colObj0, int partId0, int index0,
+	// btCollisionObject colObj1, int partId1, int index1) {
+	//
+	// if (hook != null && colObj0.equals(hook.body)) {
+	//
+	// hook.transform.getTranslation(pos);
+	// cp.getNormalWorldOnB(normal);
+	// normal.scl(-cp.getDistance1());
+	// pos.add(normal);
+	// playerObject.position(pos);
+	// isGrappling = true;
+	//
+	// if (resetHook.isScheduled()) {
+	// resetHook.cancel();
+	// resetHook.run();
+	// }
+	//
+	// }
+	// return true;
+	// }
 
 	final static String tag = "Player";
 	private PlayerSound sound;
@@ -113,7 +78,7 @@ public class Player implements Disposable {
 
 	public GameObject playerObject;
 
-	private PlayerContactListener contactListener;
+	// private PlayerContactListener contactListener;
 	public PlayerController controller;
 
 	private Vector3 velocityXZ = new Vector3();
@@ -129,7 +94,6 @@ public class Player implements Disposable {
 
 	private ArrayMap<String, GameObject> inventory = new ArrayMap<String, GameObject>();
 
-	public boolean isClimbing = false;
 	private boolean isJumping = false;
 	private boolean isFlying = false;
 
@@ -144,10 +108,11 @@ public class Player implements Disposable {
 	private PlayerAction moveMode = PlayerAction.STOP;
 
 	private GameObject currentEquip;
-	private GameObject hook;
+	// private GameObject hook;
 	private boolean isGrappling = false;
 
 	private boolean gunHidden = false;
+	private boolean grapplingBlocked = false;
 
 	private float yOffset = 0;
 	private boolean yIncrease = true;
@@ -160,14 +125,20 @@ public class Player implements Disposable {
 
 	GameWorld world;
 
-	Task resetHook = new Task() {
+	Vector3 teleportPosition = new Vector3();
+
+	Task teleportTask = new Task() {
 		@Override
 		public void run() {
-			if (hook != null) {
-				inventory.put("hook", hook);
-				hook = null;
-				updateEquip(0);
-			}
+			playerObject.position(teleportPosition);
+			isGrappling = true;
+			grapplingBlocked = false;
+		}
+	};
+	Task unblockGrapplingTask = new Task() {
+		@Override
+		public void run() {
+			grapplingBlocked = false;
 		}
 	};
 
@@ -186,28 +157,28 @@ public class Player implements Disposable {
 		direction = new Vector3(GameSettings.PLAYER_START_DIR);
 
 		playerObject.transform.getTranslation(position);
-		contactListener = new PlayerContactListener();
-		contactListener.enable();
+		// contactListener = new PlayerContactListener();
+		// contactListener.enable();
 
 		controller = new PlayerController(this);
 		hookTrail = new Array<GameObject>();
 		hookTrail.ordered = true;
 	}
 
+	public void reset() {
+		inventory.clear();
+		playerObject.body.setGravity(GameSettings.GRAVITY);
+		isJumping = false;
+		isGrappling = false;
+	}
+
 	public void addToInventory(GameObject item) {
 		inventory.put(item.id, item);
 	}
 
-	public void clearInventory() {
-		if (resetHook.isScheduled()) {
-			resetHook.run();
-		}
-		inventory.clear();
-	}
-
 	@Override
 	public void dispose() {
-		contactListener.dispose();
+		// contactListener.dispose();
 	}
 
 	public void equipFromInventory(String item) {
@@ -218,88 +189,37 @@ public class Player implements Disposable {
 		currentEquip = obj;
 	}
 
-	public void handleClimbing() {
-		// // Climbing logic
-		// moveDirectionXZ.set(moveDirection.x, 0, moveDirection.z);
-		// if (!climbSurfaceNormal.isZero() && !isJumping) {
-		//
-		// if (controller.actionQueueContains(PlayerAction.WALK)
-		// || controller.actionQueueContains(PlayerAction.RUN)) {
-		//
-		// if (moveDirectionXZ.isCollinearOpposite(climbSurfaceNormal,
-		// climbNormalEpsilonDirection)) {
-		// // Climb upwards
-		// isClimbing = true;
-		//
-		// System.out.println("climb up");
-		// velocity.set(moveDirectionXZ).nor()
-		// .scl(GameSettings.PLAYER_CLIMB_SPEED);
-		// velocity.y = GameSettings.PLAYER_CLIMB_SPEED;
-		// // object.body.setGravity(Vector3.Zero);
-		//
-		// } else if (moveDirectionXZ.isCollinear(climbSurfaceNormal,
-		// climbNormalEpsilonDirection)) {
-		// System.out.println("climb down");
-		// // Climb downwards
-		// isClimbing = true;
-		//
-		// velocity.setZero();
-		// velocity.y = -GameSettings.PLAYER_CLIMB_SPEED;
-		// // object.body.setGravity(Vector3.Zero);
-		// }
-		// } else {
-		// velocity.set(direction.cpy().nor().scl(1));
-		// }
-		//
-		// } else if (isClimbing) {
-		// System.out.println("not climbing");
-		// isClimbing = false;
-		// // if (!isOnGround) {
-		// //
-		// // Vector3 stopClimbImpulse = direction.cpy().nor().scl(2);
-		// // stopClimbImpulse.y = 4;
-		// // object.body.applyCentralImpulse(stopClimbImpulse);
-		// // }
-		// object.body.setGravity(GameSettings.GRAVITY);
-		// }
-	}
-
 	private void handleGrappling() {
 		if (controller.actionQueueContains(PlayerAction.HOOK)
-				&& inventory.containsKey("hook")) {
-			GameObject weapon = currentEquip;
-			hook = inventory.get("hook");
-			equipFromInventory("hook");
-			updateEquip(0);
-			hook.body.setAngularVelocity(Vector3.Zero);
-			Vector3 hookVelocity = direction.cpy().add(0, 0.1f, 0).nor()
-					.scl(40);
-			hook.body.setLinearVelocity(hookVelocity);
-			inventory.removeKey("hook");
-			equipFromInventory(weapon.id);
-			updateEquip(0);
+				&& inventory.containsKey("hook") && !teleportTask.isScheduled()
+				&& !grapplingBlocked) {
 
-			Timer.schedule(resetHook, 1);
+			ray.set(viewport.getCamera().position,
+					viewport.getCamera().direction);
+			float distance = 1000;
 
-		} else if (hook != null) {
+			btRigidBody hitObject = world
+					.rayTest(
+							ray,
+							teleportPosition,
+							(short) (CollisionHandler.GROUND_FLAG | CollisionHandler.OBJECT_FLAG),
+							distance);
 
-			GameObject trail = world.spawn("hook_trail", position,
-					new Vector3(), false, false, false, false,
-					CollisionHandler.OBJECT_FLAG, CollisionHandler.GROUND_FLAG);
-			trail.body.setWorldTransform(hook.body.getWorldTransform());
-			trail.body.setGravity(Vector3.Zero);
-			hookTrail.add(trail);
-
-		} else if (hookTrail.size != 0) {
-			for (GameObject obj : hookTrail) {
-				world.destroy(obj);
+			if (hitObject != null) {
+				if (!teleportTask.isScheduled()) {
+					Timer.schedule(teleportTask,
+							GameSettings.PLAYER_GRAPPLE_TELEPORT_TIME);
+				}
+			} else {
+				grapplingBlocked = true;
+				Timer.schedule(unblockGrapplingTask,
+						GameSettings.PLAYER_GRAPPLE_MISS_TIME);
 			}
-			hookTrail.clear();
 		}
 	}
 
 	private void handleJumping(boolean isOnGround) {
-		if (controller.actionQueueContains(PlayerAction.JUMP) && !isClimbing) {
+		if (controller.actionQueueContains(PlayerAction.JUMP)) {
 
 			if (!isJumping && isOnGround) {
 				isJumping = true;
@@ -368,6 +288,7 @@ public class Player implements Disposable {
 			btRigidBody hitObject = world
 					.rayTest(
 							ray,
+							tmp,
 							(short) (CollisionHandler.GROUND_FLAG | CollisionHandler.OBJECT_FLAG),
 							distance);
 
@@ -386,7 +307,7 @@ public class Player implements Disposable {
 
 			Ray ray = viewport.getCamera().getPickRay(screenCenter.x,
 					screenCenter.y);
-			btRigidBody hitObject = world.rayTest(ray,
+			btRigidBody hitObject = world.rayTest(ray, tmp,
 					CollisionHandler.OBJECT_FLAG, 5);
 
 			if (hitObject != null) {
@@ -429,12 +350,15 @@ public class Player implements Disposable {
 		}
 	}
 
+	Vector3 tmp = new Vector3();
+
 	private boolean isOnGround() {
 		ray.set(position, up.cpy().scl(-1));
 		float distance = GameSettings.PLAYER_HEIGHT / 2 + 0.5f;
 		return world
 				.rayTest(
 						ray,
+						tmp,
 						(short) (CollisionHandler.GROUND_FLAG | CollisionHandler.OBJECT_FLAG),
 						distance) != null;
 	}
@@ -470,10 +394,6 @@ public class Player implements Disposable {
 	}
 
 	public void update(float delta) {
-
-		if (controller.actionQueueContains(PlayerAction.RESET)) {
-			game.restartGameScreen();
-		}
 
 		boolean isOnGround = isOnGround();
 
@@ -517,7 +437,6 @@ public class Player implements Disposable {
 		handleUsing();
 		handleMoving(true);
 		handleJumping(isOnGround);
-		handleClimbing();
 
 		// Set the transforms
 		playerObject.body.setLinearVelocity(velocity);

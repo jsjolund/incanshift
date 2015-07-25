@@ -69,12 +69,6 @@ public class IncanShift extends Game {
 		setScreen(gameScreen);
 	}
 
-	public void restartGameScreen() {
-		gameScreen = new GameScreen(game, reqWidth, reqHeight);
-		currentScreen = gameScreen;
-		setScreen(gameScreen);
-	}
-
 	public void showCreditScreen() {
 		if (creditScreen == null) {
 			creditScreen = new CreditScreen(game, reqWidth, reqHeight);

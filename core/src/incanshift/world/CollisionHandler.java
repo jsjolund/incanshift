@@ -73,7 +73,9 @@ public class CollisionHandler implements Disposable {
 		constraintSolver.dispose();
 	}
 
-	public btRigidBody rayTest(Ray ray, short mask, float maxDistance) {
+	Vector3 tmp = new Vector3();
+	
+	public btRigidBody rayTest(Ray ray, Vector3 point, short mask, float maxDistance) {
 		btRigidBody rb = null;
 
 		Vector3 rayFrom = new Vector3(ray.origin);
@@ -86,6 +88,9 @@ public class CollisionHandler implements Disposable {
 		dynamicsWorld.rayTest(rayFrom, rayTo, callback);
 		if (callback.hasHit()) {
 			rb = (btRigidBody) callback.getCollisionObject();
+			callback.getHitPointWorld(point);
+			callback.getHitNormalWorld(tmp);
+			point.add(tmp.nor());
 		}
 		callback.dispose();
 		return rb;

@@ -63,9 +63,7 @@ class PlayerController implements InputProcessor {
 		} else {
 			keys.put(keycode, keycode);
 		}
-		if (keycode == GameSettings.RESET) {
-			actionQueueAdd(PlayerAction.RESET);
-		}
+
 		if (keycode == GameSettings.RUN) {
 			move = PlayerAction.RUN;
 		}
@@ -75,6 +73,12 @@ class PlayerController implements InputProcessor {
 		if (keycode == GameSettings.FLY && flyKeyReleased) {
 			flyKeyReleased = false;
 			actionQueueAdd(PlayerAction.FLY);
+		}
+		if (keycode == Keys.F4) {
+			player.world.loadPrevLevel();
+		}
+		if (keycode == Keys.F5) {
+			player.world.reloadLevel();
 		}
 		if (keycode == Keys.F6) {
 			player.world.loadNextLevel();
