@@ -1,11 +1,13 @@
 package incanshift.gameobjects;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.VertexAttributes.Usage;
 import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.badlogic.gdx.utils.Disposable;
@@ -21,6 +23,7 @@ public class GameObject extends ModelInstance implements Disposable {
 	public static class Constructor implements Disposable {
 
 		public final Model model;
+
 		public final btCollisionShape shape;
 		public final btRigidBody.btRigidBodyConstructionInfo constructionInfo;
 		private static Vector3 localInertia = new Vector3();
@@ -33,12 +36,14 @@ public class GameObject extends ModelInstance implements Disposable {
 				this.model = model;
 			}
 			this.shape = shape;
-			if (mass > 0f)
+			if (mass > 0f) {
 				shape.calculateLocalInertia(mass, localInertia);
-			else
+			} else {
 				localInertia.set(0, 0, 0);
+			}
 			this.constructionInfo = new btRigidBody.btRigidBodyConstructionInfo(
 					mass, null, shape, localInertia);
+
 		}
 
 		public GameObject construct() {
@@ -53,15 +58,32 @@ public class GameObject extends ModelInstance implements Disposable {
 
 	}
 
+	final static String tag = "GameObject";
+
 	public final btRigidBody body;
 	public boolean removable = false;
 	public boolean movable = false;
 	public String id;
 
+	public final Vector3 center = new Vector3();
+	public final Vector3 dimensions = new Vector3();
+	public final float radius;
+	private final BoundingBox bounds = new BoundingBox();
+
 	public GameObject(Model model,
 			btRigidBody.btRigidBodyConstructionInfo constructionInfo) {
 		super(model);
 		body = new btRigidBody(constructionInfo);
+
+		try {
+			calculateBoundingBox(bounds);
+		} catch (Exception e) {
+			Gdx.app.debug(tag, "Error when calculating bounding box.", e);
+		}
+		bounds.getCenter(center);
+		bounds.getDimensions(dimensions);
+		radius = dimensions.len() / 2f;
+
 	}
 
 	@Override

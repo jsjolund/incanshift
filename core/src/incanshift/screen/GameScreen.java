@@ -9,6 +9,7 @@ import incanshift.world.GameWorld;
 import incanshift.world.WorldEnvironment;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
@@ -53,6 +54,8 @@ public class GameScreen extends AbstractScreen {
 	private Vector3 lastCameraDirection = new Vector3();
 
 	ModelBatch shadowBatch;
+
+	private Vector3 position = new Vector3();
 
 	public GameScreen(IncanShift game, int reqWidth, int reqHeight) {
 		super(game, reqWidth, reqHeight);
@@ -129,6 +132,12 @@ public class GameScreen extends AbstractScreen {
 		return shader;
 	}
 
+	protected boolean isVisible(Camera cam, GameObject instance) {
+		instance.transform.getTranslation(position);
+		position.add(instance.center);
+		return cam.frustum.sphereInFrustum(position, instance.radius);
+	}
+
 	@SuppressWarnings("deprecation")
 	@Override
 	public void render(float delta) {
@@ -184,13 +193,13 @@ public class GameScreen extends AbstractScreen {
 				modelBatch.render(b.modelInstance);
 			}
 		}
-
 		for (Entry<String, Array<GameObject>> entry : world.instances) {
 			for (GameObject obj : entry.value) {
-				modelBatch.render(obj, env);
+				if (isVisible(camera, obj)) {
+					modelBatch.render(obj, env);
+				}
 			}
 		}
-
 		modelBatch.end();
 
 		if (world.xRayMask) {
