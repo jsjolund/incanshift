@@ -17,8 +17,8 @@ public class GameSettings {
 	public static final float PLAYER_MAX_JUMP_PRESS_TIME = 0.2f;
 	public static final float PLAYER_STOP_DOWNSCALE = 0.9f;
 
-	public static final float PLAYER_GRAPPLE_TELEPORT_TIME = 0.5f;
-	public static final float PLAYER_GRAPPLE_MISS_TIME = 1.0f;
+	public static final float PLAYER_GRAPPLE_TELEPORT_TIME = 0.25f;
+	public static final float PLAYER_GRAPPLE_MISS_TIME = 0.5f;
 
 	public static final float PLAYER_HEIGHT = 2f;
 	public static final float PLAYER_RADIUS = 0.5f;
@@ -37,10 +37,7 @@ public class GameSettings {
 	public static int JUMP = Keys.SPACE;
 	public static int RUN = Keys.SHIFT_LEFT;
 	public static int USE = Keys.E;
-	
 	public static int XRAY = Keys.TAB;
-
-	public static int FLY = Keys.F1;
 
 	public static float SOUND_VOLUME = 1f;
 	public static float MUSIC_VOLUME = 1f;
