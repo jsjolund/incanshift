@@ -45,8 +45,7 @@ class PlayerController implements InputProcessor {
 	}
 
 	public void centerMouseCursor() {
-		Gdx.input.setCursorPosition((int) player.screenCenter.x,
-				(int) player.screenCenter.y);
+		Gdx.input.setCursorPosition((int) player.screenCenter.x, (int) player.screenCenter.y);
 	}
 
 	public Vector3 getMoveDirection() {
@@ -70,7 +69,7 @@ class PlayerController implements InputProcessor {
 		if (keycode == GameSettings.USE) {
 			actionQueueAdd(PlayerAction.USE);
 		}
-		if (keycode == GameSettings.FLY && flyKeyReleased) {
+		if (keycode == Keys.F1 && flyKeyReleased) {
 			flyKeyReleased = false;
 			actionQueueAdd(PlayerAction.FLY);
 		}
@@ -104,7 +103,7 @@ class PlayerController implements InputProcessor {
 		if (keycode == GameSettings.RUN) {
 			move = PlayerAction.WALK;
 		}
-		if (keycode == GameSettings.FLY) {
+		if (keycode == Keys.F1) {
 			flyKeyReleased = true;
 		}
 		if (keycode == GameSettings.XRAY) {
@@ -123,9 +122,7 @@ class PlayerController implements InputProcessor {
 		float mouseDx = screenX - player.screenCenter.x;
 		float mouseDy = screenY - player.screenCenter.y;
 
-		player.direction.rotate(
-				xzMouseRotation.set(player.direction).crs(Vector3.Y),
-				-mouseSens * mouseDy);
+		player.direction.rotate(xzMouseRotation.set(player.direction).crs(Vector3.Y), -mouseSens * mouseDy);
 
 		if (player.direction.isCollinear(Vector3.Y, epsilonY)
 				|| player.direction.isCollinearOpposite(Vector3.Y, epsilonY)) {
