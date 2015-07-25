@@ -158,7 +158,7 @@ public class Player implements Disposable {
 	private Vector3 equipLeftRightPosition = new Vector3();
 	private Vector3 equipUpDownPosition = new Vector3();
 
-	private GameWorld world;
+	GameWorld world;
 
 	Task resetHook = new Task() {
 		@Override

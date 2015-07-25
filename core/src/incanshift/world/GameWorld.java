@@ -71,13 +71,18 @@ public class GameWorld implements Disposable {
 	public Array<Billboard> billboards;
 	public Array<EnvTag> envTags;
 
-	public String[] levels = { // Level CSV
+	public String[] levels = { //
 	"model/outside_level.csv", //
 			"model/inside_level1.csv",//
 			"model/inside_level2.csv", //
 			"model/inside_level3.csv", //
 			"model/inside_level4_chair.csv", //
 			"model/inside_level5_l.csv", //
+			"model/inside_level6_ziggurat_room.csv", //
+			"model/inside_level7_ziggurat_dissolved.csv", //
+			"model/inside_level8_ant_hive.csv", //
+			"model/inside_level9_pillars_in_a_hill_of_stairs.csv", //
+			"model/inside_level10_throw_out_the_bodies.csv", //
 
 	};
 	public int currentLevel = 0;
@@ -172,14 +177,6 @@ public class GameWorld implements Disposable {
 				CollisionHandler.GROUND_FLAG);
 		addInstance(hook);
 		player.addToInventory(hook);
-
-		GameObject hookt = spawn("hook", player.position.cpy(), new Vector3(),
-				false, false, true, true, CollisionHandler.OBJECT_FLAG,
-				CollisionHandler.GROUND_FLAG);
-		Vector3 t = new Vector3();
-		player.playerObject.transform.getTranslation(t);
-		hookt.position(t.add(1, 1, 1));
-		addInstance(hookt);
 
 		GameObject blowpipe = spawn("blowpipe", player.position.cpy(),
 				new Vector3(), false, false, false, false,
@@ -315,7 +312,9 @@ public class GameWorld implements Disposable {
 				player.playerObject.position(pos);
 
 			} else if (tagName.startsWith("text_tag")) {
+				
 				String textTagName = tagName.split("_")[2];
+				
 				if (!textMap.containsKey(textTagName)
 						|| textMap.get(textTagName).size - 1 < tagIndex) {
 					Gdx.app.debug(tag, String.format(
@@ -323,7 +322,7 @@ public class GameWorld implements Disposable {
 							tagIndex));
 				} else {
 					String textTagText = textMap.get(textTagName).get(tagIndex);
-					spawnBillboard(pos, textTagText);
+					spawnBillboard(pos.sub(0,1,0), textTagText);
 				}
 
 			} else if (tagName.equals("fog_tag")) {
@@ -349,7 +348,7 @@ public class GameWorld implements Disposable {
 		Color bkgColor = new Color(Color.GRAY).mul(1f, 1f, 1f, 0f);
 
 		Gdx.app.debug(tag, String.format("Spawning billboard at %s", pos));
-		billboards.add(new Billboard(pos, 4f, 4f, 10f, text, textColor,
+		billboards.add(new Billboard(pos, 2f, 2f, 20f, text, textColor,
 				bkgColor, font));
 
 	}
@@ -588,21 +587,22 @@ public class GameWorld implements Disposable {
 				obj.id, pos, numberSpawned(obj.id)));
 
 		if (obj.id.equals("mask")) {
-
 			shatter(pos);
-
-			// if (numberSpawned("mask") == 0) {
-
-			Gdx.app.debug(tag, "Loading level " + currentLevel);
-			currentLevel++;
-			if (currentLevel == levels.length) {
-				currentLevel = 0;
+			if (numberSpawned("mask") == 0) {
+				loadNextLevel();
 			}
-			loadLevel(currentLevel);
-			// game.resize(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-			Gdx.app.debug(tag, "Finished loading level " + currentLevel);
 		}
-		// }
+	}
+
+	public void loadNextLevel() {
+		Gdx.app.debug(tag, "Loading level " + currentLevel);
+		currentLevel++;
+		if (currentLevel == levels.length) {
+			currentLevel = 0;
+		}
+		loadLevel(currentLevel);
+		// game.resize(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+		Gdx.app.debug(tag, "Finished loading level " + currentLevel);
 	}
 
 	/**

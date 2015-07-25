@@ -16,8 +16,10 @@ import subprocess
 
 performFbxConv = True;
 performObjConv = True;
+#performFbxConv = False;
+#performObjConv = False;
 
-excludeNames = ['start_position', 'text_tag', 'fog_tag', 'sun_tag', 'sound_tag']
+excludeNames = ['start_position', 'text_tag', 'fog_tag', 'sun_tag', 'sound_tag', 'mask']
 excludeTypes = [bpy.types.Camera, bpy.types.PointLamp]
 
 def main():
@@ -36,6 +38,11 @@ def main():
 			# Construct and write a row for the object in the CSV file
 			names = str(obj.name).split(".")
 			name = names[0]
+			m_name = filename+"_"+name
+			for excludeName in excludeNames:
+				if name.startswith(excludeName):
+					m_name = name
+					break
 			if (len(names) > 1):
 				index = int(names[1])
 			else:
@@ -43,7 +50,7 @@ def main():
 			euler_rotation = obj.rotation_euler
 			rot = [math.degrees(a) for a in euler_rotation]
 			loc = obj.location
-			objrow = "{};{:};{:.2f};{:.2f};{:.2f};{:.2f};{:.2f};{:.2f}\n".format(name, int(index), loc.x, loc.y, loc.z, rot[0], rot[1], rot[2])
+			objrow = "{};{:};{:.2f};{:.2f};{:.2f};{:.2f};{:.2f};{:.2f}\n".format(m_name, int(index), loc.x, loc.y, loc.z, rot[0], rot[1], rot[2])
 			csv += objrow
 			text_file.write(objrow)
 			
@@ -69,7 +76,7 @@ def main():
 			
 			obj.select = True
 			scene.objects.active = obj
-			fn = os.path.join(basedir, name)
+			fn = os.path.join(basedir, m_name)
 			bpy.ops.export_scene.obj(filepath=fn + ".obj", use_selection=True)
 			obj.select = False
 		

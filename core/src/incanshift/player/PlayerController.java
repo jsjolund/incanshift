@@ -6,6 +6,7 @@ import incanshift.world.GameSettings;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputProcessor;
+import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.IntIntMap;
 import com.badlogic.gdx.utils.Timer;
@@ -74,6 +75,9 @@ class PlayerController implements InputProcessor {
 		if (keycode == GameSettings.FLY && flyKeyReleased) {
 			flyKeyReleased = false;
 			actionQueueAdd(PlayerAction.FLY);
+		}
+		if (keycode == Keys.F6) {
+			player.world.loadNextLevel();
 		}
 
 		return true;

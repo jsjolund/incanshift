@@ -19,6 +19,9 @@ excludes=("blowpipe.g3db"\
           "skybox.g3db"\
           "shard.g3db"\
           "gun.g3db"\
+          "grappling_hook.g3db"\
+          "grappling_hook_trail.g3db"\
+          "hook_target.g3db"\
           )
 
 for i in *.g3db; do
