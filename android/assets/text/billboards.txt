@@ -5,6 +5,17 @@
 "How the children of tomorrow will interpenetrate these traces however, is beyond our comprehension."
 - Christoffer Lundberg
 
+#well.0                   
+Gold coins.
+#well.1
+Human bones.
+#well.2     
+Incense.
+#well.3     
+Jade statue.
+#well.4     
+Everything offers to the gods.
+
 #﻿chiuateteo.0
 You are no god, and yet, I recognize your face... Have you been... resurrected?
 #﻿chiuateteo.1
@@ -27,19 +38,21 @@ Where am I? What is this place?
 #player.1
 What god does this land belong to?
 #player.2
-This place feels strangely familiar. Yet... so different.
+This whole place feels strangely familiar. Yet... so different.
 #player.3
 That mask... I feel like I have used it before. In some kind of ritual or maybe... was it a different mask?
 #player.4
-Was I... a servant of the jaguar god?!
+Was I... a servant of the jaguar god?
 
 #glyphs.0
 Ever since the creation of the worlds, a persistent rivalry between Quetzcoatl and Tezcatlipoca has layed as the foundation for many conflicts of man.
 #glyphs.1
 Some blue masks are symbols of the jaguar god, Tezcatlipoca. Others are of the feathered serpent, Quetzcoatl.
-Learn to see the differance between the masks, and you may change the destiny of all mankind for eternity.
+
 #glyphs.2
-To enter his sanctuary, Kukulcan requires a sacrifice of blood. We praise him with our blood! We honor him with our blood! We give thanks to him with our blood! To him, the feathered serpent, Quetzcoatl, Kukulcan, to our master we willingly give our blood!
+To enter his sanctuary, Kukulcan requires a sacrifice of blood. We praise him with our blood. We honor him with our blood. We give thanks to him with our blood! To him, the feathered serpent, Quetzcoatl, Kukulcan, to our master we willingly give our blood!
 
 #gods.0
 
+#temp.0
+Learn to see the differance between the masks, and you may change the destiny of all mankind for eternity.

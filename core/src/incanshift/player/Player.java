@@ -14,6 +14,7 @@ import com.badlogic.gdx.physics.bullet.collision.ContactListener;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
 import com.badlogic.gdx.physics.bullet.collision.btManifoldPoint;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
+import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ArrayMap;
 import com.badlogic.gdx.utils.Disposable;
 import com.badlogic.gdx.utils.ObjectMap.Entry;
@@ -148,16 +149,29 @@ public class Player implements Disposable {
 
 	private boolean gunHidden = false;
 
-	private float gunYoffset = 0;
-	private boolean gunYIncrease = true;
+	private float yOffset = 0;
+	private boolean yIncrease = true;
 
 	// Gun positioning
-	private Matrix4 gunBaseTransform = new Matrix4();
-	private Vector3 gunFrontBackPosition = new Vector3();
-	private Vector3 gunLeftRightPosition = new Vector3();
-	private Vector3 gunUpDownPosition = new Vector3();
+	private Matrix4 equipTransform = new Matrix4();
+	private Vector3 equipFrontBackPosition = new Vector3();
+	private Vector3 equipLeftRightPosition = new Vector3();
+	private Vector3 equipUpDownPosition = new Vector3();
 
 	private GameWorld world;
+
+	Task resetHook = new Task() {
+		@Override
+		public void run() {
+			if (hook != null) {
+				inventory.put("hook", hook);
+				hook = null;
+				updateEquip(0);
+			}
+		}
+	};
+
+	Array<GameObject> hookTrail;
 
 	public Player(IncanShift game, GameObject playerObject,
 			Vector3 screenCenter, Viewport viewport, GameWorld world,
@@ -176,11 +190,32 @@ public class Player implements Disposable {
 		contactListener.enable();
 
 		controller = new PlayerController(this);
+		hookTrail = new Array<GameObject>();
+		hookTrail.ordered = true;
+	}
+
+	public void addToInventory(GameObject item) {
+		inventory.put(item.id, item);
+	}
+
+	public void clearInventory() {
+		if (resetHook.isScheduled()) {
+			resetHook.run();
+		}
+		inventory.clear();
 	}
 
 	@Override
 	public void dispose() {
 		contactListener.dispose();
+	}
+
+	public void equipFromInventory(String item) {
+		if (!inventory.containsKey(item)) {
+			return;
+		}
+		GameObject obj = inventory.get(item);
+		currentEquip = obj;
 	}
 
 	public void handleClimbing() {
@@ -227,6 +262,40 @@ public class Player implements Disposable {
 		// // }
 		// object.body.setGravity(GameSettings.GRAVITY);
 		// }
+	}
+
+	private void handleGrappling() {
+		if (controller.actionQueueContains(PlayerAction.HOOK)
+				&& inventory.containsKey("hook")) {
+			GameObject weapon = currentEquip;
+			hook = inventory.get("hook");
+			equipFromInventory("hook");
+			updateEquip(0);
+			hook.body.setAngularVelocity(Vector3.Zero);
+			Vector3 hookVelocity = direction.cpy().add(0, 0.1f, 0).nor()
+					.scl(40);
+			hook.body.setLinearVelocity(hookVelocity);
+			inventory.removeKey("hook");
+			equipFromInventory(weapon.id);
+			updateEquip(0);
+
+			Timer.schedule(resetHook, 1);
+
+		} else if (hook != null) {
+
+			GameObject trail = world.spawn("hook_trail", position,
+					new Vector3(), false, false, false, false,
+					CollisionHandler.OBJECT_FLAG, CollisionHandler.GROUND_FLAG);
+			trail.body.setWorldTransform(hook.body.getWorldTransform());
+			trail.body.setGravity(Vector3.Zero);
+			hookTrail.add(trail);
+
+		} else if (hookTrail.size != 0) {
+			for (GameObject obj : hookTrail) {
+				world.destroy(obj);
+			}
+			hookTrail.clear();
+		}
 	}
 
 	private void handleJumping(boolean isOnGround) {
@@ -285,16 +354,6 @@ public class Player implements Disposable {
 				}
 			}
 		}
-	}
-
-	private boolean isOnGround() {
-		ray.set(position, up.cpy().scl(-1));
-		float distance = GameSettings.PLAYER_HEIGHT / 2 + 0.5f;
-		return world
-				.rayTest(
-						ray,
-						(short) (CollisionHandler.GROUND_FLAG | CollisionHandler.OBJECT_FLAG),
-						distance) != null;
 	}
 
 	private void handleShooting() {
@@ -370,23 +429,14 @@ public class Player implements Disposable {
 		}
 	}
 
-	public void equipFromInventory(String item) {
-		if (!inventory.containsKey(item)) {
-			return;
-		}
-		GameObject obj = inventory.get(item);
-		currentEquip = obj;
-	}
-
-	public void unequip() {
-		if (currentEquip == null) {
-			return;
-		}
-		currentEquip.position(position);
-	}
-
-	public void addToInventory(GameObject item) {
-		inventory.put(item.id, item);
+	private boolean isOnGround() {
+		ray.set(position, up.cpy().scl(-1));
+		float distance = GameSettings.PLAYER_HEIGHT / 2 + 0.5f;
+		return world
+				.rayTest(
+						ray,
+						(short) (CollisionHandler.GROUND_FLAG | CollisionHandler.OBJECT_FLAG),
+						distance) != null;
 	}
 
 	public void setMoveMode(boolean isOnGround) {
@@ -412,33 +462,11 @@ public class Player implements Disposable {
 		}
 	}
 
-	Task resetHook = new Task() {
-		@Override
-		public void run() {
-			if (hook != null) {
-				inventory.put("hook", hook);
-				// hook.body.setLinearVelocity(Vector3.Zero);
-				hook = null;
-				updateWeapon(0);
-			}
+	public void unequip() {
+		if (currentEquip == null) {
+			return;
 		}
-	};
-
-	private void handleGrappling() {
-		if (controller.actionQueueContains(PlayerAction.HOOK)
-				&& inventory.containsKey("hook")) {
-			GameObject weapon = currentEquip;
-			hook = inventory.get("hook");
-			equipFromInventory("hook");
-			updateWeapon(0);
-			hook.body.setAngularVelocity(Vector3.Zero);
-			hook.body.setLinearVelocity(direction.cpy().scl(50));
-			inventory.removeKey("hook");
-			equipFromInventory(weapon.id);
-			updateWeapon(0);
-
-			Timer.schedule(resetHook, 3);
-		}
+		currentEquip.position(position);
 	}
 
 	public void update(float delta) {
@@ -506,12 +534,12 @@ public class Player implements Disposable {
 		camera.up.set(Vector3.Y);
 		camera.update();
 
-		updateWeapon(delta);
+		updateEquip(delta);
 
 		controller.actionQueueClear();
 	}
 
-	private void updateWeapon(float delta) {
+	private void updateEquip(float delta) {
 
 		for (Entry<String, GameObject> entry : inventory) {
 			GameObject obj = entry.value;
@@ -522,26 +550,27 @@ public class Player implements Disposable {
 			return;
 		}
 		if (gunHidden) {
-			gunBaseTransform.set(viewport.getCamera().view);
+			equipTransform.set(viewport.getCamera().view);
 		} else {
-			gunBaseTransform.set(viewport.getCamera().view).inv();
+			equipTransform.set(viewport.getCamera().view).inv();
 		}
 		// Update gun position/rotation relative to camera
 		if (currentEquip.id == "blowpipe") {
-			currentEquip.body.setWorldTransform(gunBaseTransform);
-			gunLeftRightPosition.set(direction).crs(Vector3.Y).nor()
+			currentEquip.body.setWorldTransform(equipTransform);
+			equipLeftRightPosition.set(direction).crs(Vector3.Y).nor()
 					.scl(0.075f);
-			gunFrontBackPosition.set(direction).nor().scl(0.3f);
-			gunUpDownPosition.set(direction).nor().crs(gunLeftRightPosition)
-					.scl(0.80f);
+			equipFrontBackPosition.set(direction).nor().scl(0.3f);
+			equipUpDownPosition.set(direction).nor()
+					.crs(equipLeftRightPosition).nor().scl(0.080f);
 
 		} else if (currentEquip.id == "hook") {
 			// gunBaseTransform.rotate(Vector3.X, 90);
-			currentEquip.body.setWorldTransform(gunBaseTransform);
-			gunLeftRightPosition.set(direction).crs(Vector3.Y).nor().scl(0.2f);
-			gunFrontBackPosition.set(direction).nor().scl(0.4f);
-			gunUpDownPosition.set(direction).nor().crs(gunLeftRightPosition)
-					.scl(0.3f);
+			currentEquip.body.setWorldTransform(equipTransform);
+			equipLeftRightPosition.set(direction).crs(Vector3.Y).nor()
+					.scl(0.01f);
+			equipFrontBackPosition.set(direction).nor().scl(0.4f);
+			equipUpDownPosition.set(direction).nor()
+					.crs(equipLeftRightPosition).nor().scl(0.1f);
 		} else if (currentEquip.id == "gun") {
 			// gun.body.setWorldTransform(gunBaseTransform);
 			// gunLeftRightPosition.set(direction).crs(Vector3.Y).nor().scl(0.075f);
@@ -552,40 +581,33 @@ public class Player implements Disposable {
 
 		// Move the gun around if walking or running
 		if (moveMode == PlayerAction.STOP) {
-			gunYoffset = 0;
+			yOffset = 0;
 
 		} else {
-			float gunMoveSpeed = (moveMode == PlayerAction.RUN) ? GameSettings.PLAYER_RUN_SPEED
+			float moveSpeed = (moveMode == PlayerAction.RUN) ? GameSettings.PLAYER_RUN_SPEED
 					: GameSettings.PLAYER_WALK_SPEED;
-			gunMoveSpeed *= 0.0015;
-			double gunMoveLimitY = 0.005;
+			moveSpeed *= 0.0015;
+			double moveLimitY = 0.005;
 
-			if (gunYoffset > 0) {
-				gunYIncrease = false;
+			if (yOffset > 0) {
+				yIncrease = false;
 
-			} else if (gunYoffset < -gunMoveLimitY) {
-				gunYIncrease = true;
+			} else if (yOffset < -moveLimitY) {
+				yIncrease = true;
 			}
-			if (gunYIncrease) {
-				gunYoffset += delta * gunMoveSpeed;
+			if (yIncrease) {
+				yOffset += delta * moveSpeed;
 			} else {
-				gunYoffset -= delta * gunMoveSpeed * 3;
+				yOffset -= delta * moveSpeed * 3;
 			}
 		}
-		gunUpDownPosition.y += gunYoffset;
+		equipUpDownPosition.y += yOffset;
 
-		currentEquip.body.translate(gunLeftRightPosition);
-		currentEquip.body.translate(gunFrontBackPosition);
-		currentEquip.body.translate(gunUpDownPosition);
+		currentEquip.body.translate(equipLeftRightPosition);
+		currentEquip.body.translate(equipFrontBackPosition);
+		currentEquip.body.translate(equipUpDownPosition);
 		currentEquip.body.setLinearVelocity(playerObject.body
 				.getLinearVelocity());
 		currentEquip.body.getWorldTransform(currentEquip.transform);
-	}
-
-	public void clearInventory() {
-		if (resetHook.isScheduled()) {
-			resetHook.run();
-		}
-		inventory.clear();
 	}
 }

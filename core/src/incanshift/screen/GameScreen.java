@@ -193,7 +193,7 @@ public class GameScreen extends AbstractScreen {
 		modelBatch.end();
 
 		// Draw collision debug wireframe
-//		 world.collisionHandler.debugDrawWorld(camera);
+		// world.collisionHandler.debugDrawWorld(camera);
 
 		// Overlay shading
 		if (overlayIsOn) {

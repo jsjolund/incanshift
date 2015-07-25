@@ -72,8 +72,8 @@ public class GameWorld implements Disposable {
 	public Array<EnvTag> envTags;
 
 	public String[] levels = { // Level CSV
-	// "model/outside_level.csv", //
-	"model/inside_level1.csv",//
+	"model/outside_level.csv", //
+			"model/inside_level1.csv",//
 			"model/inside_level2.csv", //
 			"model/inside_level3.csv", //
 			"model/inside_level4_chair.csv", //
@@ -107,6 +107,7 @@ public class GameWorld implements Disposable {
 		// Load the 3D models and sounds used by the game
 		assets.load("model/blowpipe.g3db", Model.class);
 		assets.load("model/grappling_hook.g3db", Model.class);
+		assets.load("model/grappling_hook_trail.g3db", Model.class);
 		assets.load("model/box.g3db", Model.class);
 		assets.load("model/gun.g3db", Model.class);
 		assets.load("model/mask.g3db", Model.class);
@@ -171,6 +172,14 @@ public class GameWorld implements Disposable {
 				CollisionHandler.GROUND_FLAG);
 		addInstance(hook);
 		player.addToInventory(hook);
+
+		GameObject hookt = spawn("hook", player.position.cpy(), new Vector3(),
+				false, false, true, true, CollisionHandler.OBJECT_FLAG,
+				CollisionHandler.GROUND_FLAG);
+		Vector3 t = new Vector3();
+		player.playerObject.transform.getTranslation(t);
+		hookt.position(t.add(1, 1, 1));
+		addInstance(hookt);
 
 		GameObject blowpipe = spawn("blowpipe", player.position.cpy(),
 				new Vector3(), false, false, false, false,
@@ -361,13 +370,20 @@ public class GameWorld implements Disposable {
 		Model modelBlowpipe = assets.get("model/blowpipe.g3db", Model.class);
 		gameObjectFactory.put("blowpipe", new GameObject.Constructor(
 				modelBlowpipe, new btBoxShape(
-						getBoundingBoxDimensions(modelBlowpipe)), 5f));
+						getBoundingBoxHalfExtents(modelBlowpipe)), 5f));
 		Gdx.app.debug(tag, "Loaded blowpipe model");
 
 		Model modelHook = assets.get("model/grappling_hook.g3db", Model.class);
 		gameObjectFactory.put("hook", new GameObject.Constructor(modelHook,
-				new btBoxShape(getBoundingBoxDimensions(modelHook)), 5f));
+				new btBoxShape(getBoundingBoxHalfExtents(modelHook)), 1f));
 		Gdx.app.debug(tag, "Loaded hook model");
+
+		Model modelHookTrail = assets.get("model/grappling_hook_trail.g3db",
+				Model.class);
+		gameObjectFactory.put("hook_trail", new GameObject.Constructor(
+				modelHookTrail, new btBoxShape(
+						getBoundingBoxHalfExtents(modelHookTrail)), 5f));
+		Gdx.app.debug(tag, "Loaded hook trail model");
 
 		Model modelBox = assets.get("model/box.g3db", Model.class);
 		gameObjectFactory.put("box", new GameObject.Constructor(modelBox,
@@ -376,7 +392,7 @@ public class GameWorld implements Disposable {
 
 		Model modelGun = assets.get("model/gun.g3db", Model.class);
 		gameObjectFactory.put("gun", new GameObject.Constructor(modelGun,
-				new btBoxShape(getBoundingBoxDimensions(modelGun)), 5f));
+				new btBoxShape(getBoundingBoxHalfExtents(modelGun)), 5f));
 		Gdx.app.debug(tag, "Loaded gun model");
 
 		Model modelSphere = assets.get("model/mask.g3db", Model.class);
@@ -409,12 +425,12 @@ public class GameWorld implements Disposable {
 		Gdx.app.debug(tag, "Loaded shard model");
 	}
 
-	public static Vector3 getBoundingBoxDimensions(Model model) {
+	public static Vector3 getBoundingBoxHalfExtents(Model model) {
 		BoundingBox bBox = new BoundingBox();
 		Vector3 dim = new Vector3();
 		model.calculateBoundingBox(bBox);
 		bBox.getDimensions(dim);
-		return dim;
+		return dim.scl(0.5f);
 	}
 
 	private static Vector3 blenderToGameCoords(Vector3 v) {
@@ -492,7 +508,8 @@ public class GameWorld implements Disposable {
 
 		// Update player transform from user input
 		player.update(delta);
-		player.playerObject.body.getWorldTransform(player.playerObject.transform);
+		player.playerObject.body
+				.getWorldTransform(player.playerObject.transform);
 
 		for (Entry<String, Array<GameObject>> entry : instances) {
 			for (GameObject obj : entry.value) {
@@ -574,18 +591,18 @@ public class GameWorld implements Disposable {
 
 			shatter(pos);
 
-//			if (numberSpawned("mask") == 0) {
+			// if (numberSpawned("mask") == 0) {
 
-				Gdx.app.debug(tag, "Loading level " + currentLevel);
-				currentLevel++;
-				if (currentLevel == levels.length) {
-					currentLevel = 0;
-				}
-				loadLevel(currentLevel);
-//				game.resize(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-				Gdx.app.debug(tag, "Finished loading level " + currentLevel);
+			Gdx.app.debug(tag, "Loading level " + currentLevel);
+			currentLevel++;
+			if (currentLevel == levels.length) {
+				currentLevel = 0;
 			}
-//		}
+			loadLevel(currentLevel);
+			// game.resize(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+			Gdx.app.debug(tag, "Finished loading level " + currentLevel);
+		}
+		// }
 	}
 
 	/**
