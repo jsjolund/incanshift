@@ -16,7 +16,7 @@ import subprocess
 
 class GameObject(object):
 	exclude_names = ['start_position', 'text_tag', 'fog_tag', 'sun_tag', 'sound_tag', 'mask']
-	csv_header = "\nname;index;loc.x;loc.y;loc.z;rot.x;rot.y;rot.z\n"
+	csv_header = "name;index;loc.x;loc.y;loc.z;rot.x;rot.y;rot.z"
 	
 	def get_first_name(self):
 		return self.name_array[0]
@@ -59,9 +59,12 @@ class GameObject(object):
 
 def write_csv(csv_file_path, gobj_map):
 	csv_file = open(csv_file_path, "w")
+	print(GameObject.csv_header)
+	print("-" * len(GameObject.csv_header))
 	for name, gobj_list in gobj_map.items():
 		for gobj in gobj_list:
 			csv_file.write(gobj.get_csv_row())
+			print(str(gobj.get_csv_row()).strip("\r\n"))
 	csv_file.close()
 
 def write_obj(obj_dir, export_objects):
@@ -116,7 +119,7 @@ def get_export_objects(gobj_map):
 				gobj0_candidates.append(gobj)
 		if len(gobj0_candidates) > 1:
 			print("WARNING: Multiple base models found for {}, using: {}".format(name, gobj0.bobj.name))
-		else:
+		if len(gobj0_candidates) == 0:
 			print("WARNING: No base model found for {}, using: {}".format(name, gobj0.bobj.name))
 		export_objects.append(gobj0)
 	return export_objects
@@ -147,9 +150,10 @@ def main():
 	gobj_map = create_game_object_map(filename)
 
 	csv_file_path = os.path.join(basedir, filename + ".csv")
+	print("\nWriting to " + csv_file_path)
+	print()
 	write_csv(csv_file_path, gobj_map)
-	print("\nWrote " + csv_file_path)
-	
+	print()
 	export_objects = get_export_objects(gobj_map);
 	print()
 	obj_file_paths = write_obj(basedir, export_objects)
