@@ -7,12 +7,11 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g3d.Environment;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
-import com.badlogic.gdx.graphics.g3d.environment.DirectionalShadowLight;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
 
-@SuppressWarnings("deprecation")
+//@SuppressWarnings("deprecation")
 public class WorldEnvironment extends Environment implements Disposable {
 
 	public float normalViewDistance = 2E3f;
@@ -25,7 +24,7 @@ public class WorldEnvironment extends Environment implements Disposable {
 	public Vector3 sunDirection;
 	public Color skyColor = new Color(0.28f, 0.56f, 0.83f, 1);
 
-//	public DirectionalShadowLight shadowLight;
+	// public DirectionalShadowLight shadowLight;
 
 	public WorldEnvironment() {
 		sun = new BillboardOverlay(sunPosition, 500f, 500f, 0,
@@ -40,10 +39,11 @@ public class WorldEnvironment extends Environment implements Disposable {
 		set(new ColorAttribute(ColorAttribute.Fog, currentColor.r,
 				currentColor.g, currentColor.b, currentColor.a));
 
-//		add((shadowLight = new DirectionalShadowLight(1024 * 4, 1024 * 4, 300f,
-//				300f, .1f, 1E3f)).set(Color.WHITE, sunDirection));
-//
-//		shadowMap = shadowLight;
+		// add((shadowLight = new DirectionalShadowLight(1024 * 4, 1024 * 4,
+		// 300f,
+		// 300f, .1f, 1E3f)).set(Color.WHITE, sunDirection));
+		//
+		// shadowMap = shadowLight;
 
 	}
 
@@ -104,8 +104,8 @@ public class WorldEnvironment extends Environment implements Disposable {
 					0.4f, 1.f));
 		} else {
 			currentColor.set(colorDelta);
-			viewDistance = tagNearest.minViewDistance + normalViewDistance
-					* (1 - fadeNearest);
+			viewDistance = tagNearest.minViewDistance
+					+ normalViewDistance * (1 - fadeNearest);
 			float i = (currentColor.r + currentColor.g + currentColor.b) / 3;
 			i = (i > 1) ? 1 : i;
 			set(new ColorAttribute(ColorAttribute.AmbientLight, i, i, i, 1));

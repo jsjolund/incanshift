@@ -1,5 +1,6 @@
 package incanshift.world;
 
+import java.util.Arrays;
 import java.util.Random;
 
 import incanshift.IncanShift;
@@ -74,9 +75,9 @@ public class GameWorld implements Disposable {
 	public Array<EnvTag> envTags;
 
 	public String[] levels = { //
-	// "model/outside_level.csv", //
+			// "model/outside_level.csv", //
 			"model/inside_level10_throw_out_the_bodies.csv", //
-			"model/inside_level1.csv",//
+			"model/inside_level1.csv", //
 			"model/inside_level2.csv", //
 			"model/inside_level4_chair.csv", //
 			"model/inside_level6_ziggurat_room.csv", //
@@ -84,7 +85,7 @@ public class GameWorld implements Disposable {
 			"model/inside_level9_pillars_in_a_hill_of_stairs.csv", //
 			"model/inside_level7_ziggurat_dissolved.csv", //
 			"model/inside_level8_ant_hive.csv", //
-	// "model/inside_level5_l.csv", //
+			// "model/inside_level5_l.csv", //
 
 	};
 	public int currentLevel = 0;
@@ -170,7 +171,8 @@ public class GameWorld implements Disposable {
 		}
 		Gdx.app.debug(tag, String.format("Assets finished loading."));
 		createFactoryDefs(assets, gameObjectFactory);
-		skybox = new ModelInstance(assets.get("model/skybox.g3db", Model.class));
+		skybox = new ModelInstance(
+				assets.get("model/skybox.g3db", Model.class));
 
 		// Create a player, a gun and load the level from CSV
 		player = spawnPlayer(game, viewport, screenCenter);
@@ -308,33 +310,41 @@ public class GameWorld implements Disposable {
 	 * @param csv
 	 */
 	private void loadLevelCSV(String csvPath) {
+		ArrayMap<String, Array<String>> textMap = TextParser
+				.parse(Gdx.files.internal("text/billboards.txt"));
+
 		Gdx.app.debug(tag, String.format("Loading CSV data from %s", csvPath));
 		String csv = Gdx.files.internal(csvPath).readString();
 		Gdx.app.debug(tag, String.format("Content: \n%s", csv));
-		String[] lines = csv.split(System.getProperty("line.separator"));
 
-		ArrayMap<String, Array<String>> textMap = TextParser.parse(Gdx.files
-				.internal("text/billboards.txt"));
-
+		// String[] lines = csv.split(System.getProperty("line.separator"));
+		String[] lines = csv.split("\n");
 		for (String line : lines) {
 			String tagName;
 			int tagIndex;
 			Vector3 pos = new Vector3();
 			Vector3 rot = new Vector3();
+			String[] values = line.split(";");
+			Gdx.app.debug(tag, "Parsing: " + Arrays.toString(values));
 			try {
-				String[] values = line.split(";");
 				tagName = values[0];
+				Gdx.app.debug(tag, "name: " + tagName);
 				tagIndex = Integer.parseInt(values[1]);
+				Gdx.app.debug(tag, "index: " + tagIndex);
 				pos.set(Float.parseFloat(values[2]),
 						Float.parseFloat(values[3]),
 						Float.parseFloat(values[4]));
+				Gdx.app.debug(tag, "pos: " + pos);
 				rot.set(Float.parseFloat(values[5]),
 						Float.parseFloat(values[6]),
 						Float.parseFloat(values[7]));
+				Gdx.app.debug(tag, "rot: " + rot);
 			} catch (Exception e) {
 				Gdx.app.debug(tag, "Error when parsing csv file.", e);
+				Gdx.app.exit();
 				continue;
 			}
+
 			blenderToGameCoords(rot);
 			blenderToGameCoords(pos);
 
@@ -344,12 +354,13 @@ public class GameWorld implements Disposable {
 				GameObject mask = spawn(tagName, pos, rot, false, true, false,
 						false, CollisionHandler.OBJECT_FLAG,
 						CollisionHandler.ALL_FLAG);
-				billboardOverlays.put(mask, new BillboardOverlay(pos, 3f, 3f,
-						0, "shader/common.vert", "shader/sun.frag"));
+				billboardOverlays.put(mask, new BillboardOverlay(pos, 3f, 3f, 0,
+						"shader/common.vert", "shader/sun.frag"));
 
 			} else if (tagName.equals("box")) {
 				spawn(tagName, pos, rot, true, false, true, false,
-						CollisionHandler.OBJECT_FLAG, CollisionHandler.ALL_FLAG);
+						CollisionHandler.OBJECT_FLAG,
+						CollisionHandler.ALL_FLAG);
 
 			} else if (tagName.equals("start_position")) {
 				player.playerObject.position(pos);
@@ -360,9 +371,9 @@ public class GameWorld implements Disposable {
 
 				if (!textMap.containsKey(textTagName)
 						|| textMap.get(textTagName).size - 1 < tagIndex) {
-					Gdx.app.debug(tag, String.format(
-							"Could not find text for %s index %s", textTagName,
-							tagIndex));
+					Gdx.app.debug(tag,
+							String.format("Could not find text for %s index %s",
+									textTagName, tagIndex));
 				} else {
 					String textTagText = textMap.get(textTagName).get(tagIndex);
 					spawnBillboard(pos.sub(0, 1, 0), textTagText);
@@ -380,7 +391,8 @@ public class GameWorld implements Disposable {
 
 			} else {
 				spawn(tagName, pos, rot, false, false, false, false,
-						CollisionHandler.GROUND_FLAG, CollisionHandler.ALL_FLAG);
+						CollisionHandler.GROUND_FLAG,
+						CollisionHandler.ALL_FLAG);
 			}
 		}
 		Gdx.app.debug(tag, "Finished loading CSV.");
@@ -404,15 +416,15 @@ public class GameWorld implements Disposable {
 			ArrayMap<String, GameObject.Constructor> gameObjectFactory) {
 
 		Model modelCompass = buildCompassModel();
-		gameObjectFactory.put("compass", new GameObject.Constructor(
-				modelCompass, Bullet.obtainStaticNodeShape(modelCompass.nodes),
-				0));
+		gameObjectFactory.put("compass",
+				new GameObject.Constructor(modelCompass,
+						Bullet.obtainStaticNodeShape(modelCompass.nodes), 0));
 		Gdx.app.debug(tag, "Loaded compass model");
 
 		Model modelBlowpipe = assets.get("model/blowpipe.g3db", Model.class);
 		gameObjectFactory.put("blowpipe", new GameObject.Constructor(
-				modelBlowpipe, new btBoxShape(
-						getBoundingBoxHalfExtents(modelBlowpipe)), 5f));
+				modelBlowpipe,
+				new btBoxShape(getBoundingBoxHalfExtents(modelBlowpipe)), 5f));
 		Gdx.app.debug(tag, "Loaded blowpipe model");
 
 		Model modelHook = assets.get("model/grappling_hook.g3db", Model.class);
@@ -422,9 +434,11 @@ public class GameWorld implements Disposable {
 
 		Model modelHookTrail = assets.get("model/grappling_hook_trail.g3db",
 				Model.class);
-		gameObjectFactory.put("hook_trail", new GameObject.Constructor(
-				modelHookTrail, new btBoxShape(
-						getBoundingBoxHalfExtents(modelHookTrail)), 5f));
+		gameObjectFactory.put("hook_trail",
+				new GameObject.Constructor(modelHookTrail,
+						new btBoxShape(
+								getBoundingBoxHalfExtents(modelHookTrail)),
+						5f));
 		Gdx.app.debug(tag, "Loaded hook trail model");
 
 		Model modelBox = assets.get("model/box.g3db", Model.class);
@@ -444,20 +458,24 @@ public class GameWorld implements Disposable {
 
 		Model modelHookTarget = assets.get("model/hook_target.g3db",
 				Model.class);
-		gameObjectFactory.put(
-				"hook_target",
-				new GameObject.Constructor(modelHookTarget, Bullet
-						.obtainStaticNodeShape(modelHookTarget.nodes), 0));
+		gameObjectFactory.put("hook_target",
+				new GameObject.Constructor(modelHookTarget,
+						Bullet.obtainStaticNodeShape(modelHookTarget.nodes),
+						0));
 		Gdx.app.debug(tag, "Loaded hook target model");
 
-		Model modelPlayer = new ModelBuilder().createCapsule(
-				GameSettings.PLAYER_RADIUS, GameSettings.PLAYER_HEIGHT - 2
-						* GameSettings.PLAYER_RADIUS, 4, GL20.GL_TRIANGLES,
-				new Material(), Usage.Position | Usage.Normal);
-		gameObjectFactory.put("player", new GameObject.Constructor(modelPlayer,
-				new btCapsuleShape(GameSettings.PLAYER_RADIUS,
-						GameSettings.PLAYER_HEIGHT - 2
-								* GameSettings.PLAYER_RADIUS), 100));
+		Model modelPlayer = new ModelBuilder()
+				.createCapsule(GameSettings.PLAYER_RADIUS,
+						GameSettings.PLAYER_HEIGHT
+								- 2 * GameSettings.PLAYER_RADIUS,
+						4, GL20.GL_TRIANGLES, new Material(),
+						Usage.Position | Usage.Normal);
+		gameObjectFactory.put("player",
+				new GameObject.Constructor(modelPlayer,
+						new btCapsuleShape(GameSettings.PLAYER_RADIUS,
+								GameSettings.PLAYER_HEIGHT
+										- 2 * GameSettings.PLAYER_RADIUS),
+						100));
 		Gdx.app.debug(tag, "Loaded player model");
 
 		Model modelShard = assets.get("model/shard.g3db", Model.class);
@@ -520,16 +538,10 @@ public class GameWorld implements Disposable {
 	public Player spawnPlayer(IncanShift game, Viewport viewport,
 			Vector3 screenCenter) {
 
-		GameObject obj = spawn(
-				"player",
-				new Vector3(),
-				new Vector3(),
-				false,
-				false,
-				true,
-				true,
-				CollisionHandler.PLAYER_FLAG,
-				(short) (CollisionHandler.GROUND_FLAG | CollisionHandler.OBJECT_FLAG));
+		GameObject obj = spawn("player", new Vector3(), new Vector3(), false,
+				false, true, true, CollisionHandler.PLAYER_FLAG,
+				(short) (CollisionHandler.GROUND_FLAG
+						| CollisionHandler.OBJECT_FLAG));
 
 		instances.removeKey("player");
 
@@ -679,25 +691,26 @@ public class GameWorld implements Disposable {
 	private static Model buildCompassModel() {
 		float compassScale = 5;
 		ModelBuilder modelBuilder = new ModelBuilder();
-		Model arrow = modelBuilder.createArrow(Vector3.Zero, Vector3.Y.cpy()
-				.scl(compassScale), null, Usage.Position | Usage.Normal);
+		Model arrow = modelBuilder.createArrow(Vector3.Zero,
+				Vector3.Y.cpy().scl(compassScale), null,
+				Usage.Position | Usage.Normal);
 		modelBuilder.begin();
 
 		Mesh zArrow = arrow.meshes.first().copy(false);
 		zArrow.transform(new Matrix4().rotate(Vector3.X, 90));
-		modelBuilder.part("part1", zArrow, GL20.GL_TRIANGLES, new Material(
-				ColorAttribute.createDiffuse(Color.BLUE)));
+		modelBuilder.part("part1", zArrow, GL20.GL_TRIANGLES,
+				new Material(ColorAttribute.createDiffuse(Color.BLUE)));
 
 		modelBuilder.node();
 		Mesh yArrow = arrow.meshes.first().copy(false);
-		modelBuilder.part("part2", yArrow, GL20.GL_TRIANGLES, new Material(
-				ColorAttribute.createDiffuse(Color.GREEN)));
+		modelBuilder.part("part2", yArrow, GL20.GL_TRIANGLES,
+				new Material(ColorAttribute.createDiffuse(Color.GREEN)));
 
 		modelBuilder.node();
 		Mesh xArrow = arrow.meshes.first().copy(false);
 		xArrow.transform(new Matrix4().rotate(Vector3.Z, -90));
-		modelBuilder.part("part3", xArrow, GL20.GL_TRIANGLES, new Material(
-				ColorAttribute.createDiffuse(Color.RED)));
+		modelBuilder.part("part3", xArrow, GL20.GL_TRIANGLES,
+				new Material(ColorAttribute.createDiffuse(Color.RED)));
 
 		arrow.dispose();
 		return modelBuilder.end();

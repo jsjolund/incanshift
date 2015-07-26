@@ -66,7 +66,8 @@ public class GameScreen extends AbstractScreen {
 		env = new WorldEnvironment();
 		modelBatch = new ModelBatch();
 
-		overlayShader = loadShader("shader/common.vert", "shader/vignette.frag");
+		overlayShader = loadShader("shader/common.vert",
+				"shader/vignette.frag");
 
 		shadowBatch = new ModelBatch(new DepthShaderProvider());
 	}
@@ -92,15 +93,16 @@ public class GameScreen extends AbstractScreen {
 				String.format(
 						"[WHITE]Blender:[] [RED]x=% .2f[]  [GREEN]y=% .2f[]  [BLUE]z=% .2f[]",
 						world.player.position.x, -world.player.position.z,
-						world.player.position.y - GameSettings.PLAYER_HEIGHT
-								/ 2), textX, textY * 2);
-		cache.addText(
-				String.format(
-						"[WHITE]Game:[]    [RED]x=% .2f[]  [GREEN]y=% .2f[]  [BLUE]z=% .2f[]  [WHITE]v=% .2f",
-						world.player.position.x, world.player.position.y
-								- GameSettings.PLAYER_HEIGHT / 2,
-						world.player.position.z, world.player.playerObject.body
-								.getLinearVelocity().len()), textX, (textY));
+						world.player.position.y
+								- GameSettings.PLAYER_HEIGHT / 2),
+				textX, textY * 2);
+		cache.addText(String.format(
+				"[WHITE]Game:[]    [RED]x=% .2f[]  [GREEN]y=% .2f[]  [BLUE]z=% .2f[]  [WHITE]v=% .2f",
+				world.player.position.x,
+				world.player.position.y - GameSettings.PLAYER_HEIGHT / 2,
+				world.player.position.z,
+				world.player.playerObject.body.getLinearVelocity().len()),
+				textX, (textY));
 		monoTiny.getData().markupEnabled = false;
 		return cache;
 	}
@@ -138,7 +140,7 @@ public class GameScreen extends AbstractScreen {
 		return cam.frustum.sphereInFrustum(position, instance.radius);
 	}
 
-	// @SuppressWarnings("deprecation")
+//	@SuppressWarnings("deprecation")
 	@Override
 	public void render(float delta) {
 		delta = Math.min(1f / 30f, Gdx.graphics.getDeltaTime());
@@ -148,19 +150,19 @@ public class GameScreen extends AbstractScreen {
 		Gdx.gl.glClearColor(0, 0, 0, 1);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
 
-		// env.shadowLight.begin(Vector3.Zero, camera.direction);
-		//
-		// env.shadowLight.update(world.player.position.cpy(), Vector3.Z);
-		//
-		// shadowBatch.begin(env.shadowLight.getCamera());
-		// for (Entry<String, Array<GameObject>> entry : world.instances) {
-		// for (GameObject obj : entry.value) {
-		// shadowBatch.render(obj);
-		// }
-		// }
-		// shadowBatch.end();
-		//
-		// env.shadowLight.end();
+//		env.shadowLight.begin(Vector3.Zero, camera.direction);
+//
+//		env.shadowLight.update(world.player.position.cpy(), Vector3.Z);
+//
+//		shadowBatch.begin(env.shadowLight.getCamera());
+//		for (Entry<String, Array<GameObject>> entry : world.instances) {
+//			for (GameObject obj : entry.value) {
+//				shadowBatch.render(obj);
+//			}
+//		}
+//		shadowBatch.end();
+//
+//		env.shadowLight.end();
 
 		// Fog background color
 		shapeRenderer.begin(ShapeType.Filled);
@@ -178,10 +180,10 @@ public class GameScreen extends AbstractScreen {
 		spriteBatch.setProjectionMatrix(uiMatrix);
 		env.sun.setProjection(viewport);
 		spriteBatch.setShader(env.sun.shader);
-		spriteBatch.draw(env.sun.texture, env.sun.screenPos.x
-				- env.sun.screenWidth / 2, env.sun.screenPos.y
-				- env.sun.screenHeight / 2, env.sun.screenWidth,
-				env.sun.screenHeight);
+		spriteBatch.draw(env.sun.texture,
+				env.sun.screenPos.x - env.sun.screenWidth / 2,
+				env.sun.screenPos.y - env.sun.screenHeight / 2,
+				env.sun.screenWidth, env.sun.screenHeight);
 
 		spriteBatch.setShader(null);
 		spriteBatch.end();
