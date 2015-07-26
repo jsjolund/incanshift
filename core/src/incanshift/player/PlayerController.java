@@ -27,8 +27,8 @@ class PlayerController implements InputProcessor {
 	float epsilonY = 0.01f;
 
 	private PlayerAction move = PlayerAction.WALK;
-	
-	private static final String tag = "PlayerController";
+
+//	private static final String tag = "PlayerController";
 
 	public PlayerController(Player player) {
 		this.player = player;
@@ -48,7 +48,6 @@ class PlayerController implements InputProcessor {
 
 	public void centerMouseCursor() {
 		Gdx.input.setCursorPosition((int) player.screenCenter.x, (int) player.screenCenter.y);
-//		Gdx.input.setCursorPosition(0,0);
 	}
 
 	public Vector3 getMoveDirection() {
@@ -85,7 +84,7 @@ class PlayerController implements InputProcessor {
 		if (keycode == Keys.F6) {
 			player.world.loadNextLevel();
 		}
-		if (keycode == GameSettings.XRAY) {
+		if (keycode == GameSettings.MASK) {
 			player.world.xRayMask = true;
 		}
 		return true;
@@ -109,7 +108,7 @@ class PlayerController implements InputProcessor {
 		if (keycode == Keys.F1) {
 			flyKeyReleased = true;
 		}
-		if (keycode == GameSettings.XRAY) {
+		if (keycode == GameSettings.MASK) {
 			player.world.xRayMask = false;
 		}
 		return false;

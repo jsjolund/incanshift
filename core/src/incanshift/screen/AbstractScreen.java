@@ -34,15 +34,13 @@ public abstract class AbstractScreen implements Screen {
 	Matrix4 uiMatrix;
 	Vector3 screenCenter = new Vector3();
 
-	BitmapFont sansTiny;
-	BitmapFont sansNormal;
-	BitmapFont sansLarge;
-	BitmapFont sansHuge;
-	BitmapFont monoTiny;
-	BitmapFont monoNormal;
-	BitmapFont monoLarge;
-
-	Pixmap cursorPixmap;
+	public static BitmapFont sansTiny;
+	public static BitmapFont sansNormal;
+	public static BitmapFont sansLarge;
+	public static BitmapFont sansHuge;
+	public static BitmapFont monoTiny;
+	public static BitmapFont monoNormal;
+	public static BitmapFont monoLarge;
 
 	IncanShift game;
 	int reqHeight;
@@ -57,28 +55,34 @@ public abstract class AbstractScreen implements Screen {
 
 		spriteBatch = new SpriteBatch();
 
-		FreeTypeFontGenerator generator = new FreeTypeFontGenerator(
-				Gdx.files.internal("font/sans.ttf"));
+		FreeTypeFontGenerator generator = new FreeTypeFontGenerator(Gdx.files.internal("font/sans.ttf"));
 		FreeTypeFontParameter parameter = new FreeTypeFontParameter();
+
 		parameter.size = 12;
 		sansTiny = generator.generateFont(parameter);
-		parameter.size = 24;
+
+		parameter.size = 20;
 		sansNormal = generator.generateFont(parameter);
-		parameter.size = 35;
+
+		parameter.size = 32;
 		sansLarge = generator.generateFont(parameter);
+
 		parameter.size = 62;
 		sansHuge = generator.generateFont(parameter);
 		generator.dispose();
 
-		generator = new FreeTypeFontGenerator(
-				Gdx.files.internal("font/mono.ttf"));
+		generator = new FreeTypeFontGenerator(Gdx.files.internal("font/mono.ttf"));
 		parameter = new FreeTypeFontParameter();
+
 		parameter.size = 12;
 		monoTiny = generator.generateFont(parameter);
+
 		parameter.size = 24;
 		monoNormal = generator.generateFont(parameter);
+
 		parameter.size = 35;
 		monoLarge = generator.generateFont(parameter);
+
 		generator.dispose();
 
 		camera = new OrthographicCamera(reqWidth, reqHeight);
@@ -91,10 +95,14 @@ public abstract class AbstractScreen implements Screen {
 		uiMatrix = camera.combined.cpy();
 		uiMatrix.setToOrtho2D(0, 0, getViewportWidth(), getViewportHeight());
 
+		try {
+			Gdx.input.setCursorImage(new Pixmap(Gdx.files.local("model/cursor.png")), 0, 0);
+		} catch (Exception e) {
+			Gdx.app.debug(tag, "Cannot set cursor pixmap..", e);
+		}
 	}
 
-	public static Pixmap getScreenshot(int x, int y, int w, int h,
-			boolean yDown) {
+	public static Pixmap getScreenshot(int x, int y, int w, int h, boolean yDown) {
 		final Pixmap pixmap = ScreenUtils.getFrameBufferPixmap(x, y, w, h);
 
 		if (yDown) {
@@ -117,7 +125,6 @@ public abstract class AbstractScreen implements Screen {
 
 	@Override
 	public void dispose() {
-		cursorPixmap.dispose();
 		spriteBatch.dispose();
 		sansTiny.dispose();
 		game.dispose();
@@ -179,7 +186,6 @@ public abstract class AbstractScreen implements Screen {
 	}
 
 	public float screenYtoViewportY(float screenY) {
-		return viewport.getWorldHeight() - viewport.getBottomGutterHeight()
-				- screenY;
+		return viewport.getWorldHeight() - viewport.getBottomGutterHeight() - screenY;
 	}
 }

@@ -22,7 +22,7 @@ public class CreditScreen extends AbstractMenuScreen {
 		menu.add(new MenuItem("Johannes Sjölund", null, false));
 		menu.add(new MenuItem("Created by:", null, false));
 
-		setMenu(menu, back);
+		setMenu(menu, back, sansLarge);
 	}
 
 	@Override
@@ -55,7 +55,5 @@ public class CreditScreen extends AbstractMenuScreen {
 		// TODO Auto-generated method stub
 		return false;
 	}
-
-
 
 }

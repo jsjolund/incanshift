@@ -37,7 +37,7 @@ public class GameSettings {
 	public static int JUMP = Keys.SPACE;
 	public static int RUN = Keys.SHIFT_LEFT;
 	public static int USE = Keys.E;
-	public static int XRAY = Keys.TAB;
+	public static int MASK = Keys.TAB;
 
 	public static float SOUND_VOLUME = 1f;
 	public static float MUSIC_VOLUME = 1f;

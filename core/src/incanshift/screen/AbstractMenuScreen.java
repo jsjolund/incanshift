@@ -6,7 +6,7 @@ import incanshift.screen.menu.MenuItem;
 import incanshift.world.GameSettings;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
+import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.audio.Music;
@@ -16,6 +16,7 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Pixmap.Format;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.FrameBuffer;
@@ -23,8 +24,7 @@ import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Disposable;
 
-public abstract class AbstractMenuScreen extends AbstractScreen
-		implements Disposable {
+public abstract class AbstractMenuScreen extends AbstractScreen implements Disposable {
 
 	class MenuInputProcessor implements InputProcessor {
 
@@ -32,28 +32,31 @@ public abstract class AbstractMenuScreen extends AbstractScreen
 
 		@Override
 		public boolean keyDown(int keycode) {
-			lastKeycode = keycode;
 			if (keyDownCapture(keycode)) {
 				return true;
 			}
-			if (keycode == GameSettings.FORWARD
-					|| keycode == Input.Keys.UP && keycode != lastKeycode) {
+			if ((keycode == GameSettings.FORWARD || keycode == Keys.UP)) {
 				selectedItem = menu.getUp(selectedItem);
 				soundClick.play(GameSettings.SOUND_VOLUME);
 			}
-			if (keycode == GameSettings.BACKWARD
-					|| keycode == Input.Keys.DOWN && keycode != lastKeycode) {
+			if ((keycode == GameSettings.BACKWARD || keycode == Keys.DOWN)) {
 				selectedItem = menu.getDown(selectedItem);
 				soundClick.play(GameSettings.SOUND_VOLUME);
 			}
-			if (keycode == Input.Keys.SPACE || keycode == Input.Keys.ENTER) {
+
+			if (keycode == Keys.ENTER
+					&& (Gdx.input.isKeyPressed(Keys.ALT_LEFT) || Gdx.input.isKeyPressed(Keys.ALT_RIGHT))) {
+				game.toggleFullscreen();
+
+			} else if (keycode == Keys.SPACE || keycode == Keys.ENTER) {
 				soundEnter.play(GameSettings.SOUND_VOLUME);
 				enterSelected();
 			}
-			if (keycode == Input.Keys.ESCAPE) {
+			if (keycode == Keys.ESCAPE) {
 				selectedItem = backItem;
 				enterSelected();
 			}
+			lastKeycode = keycode;
 			return true;
 		}
 
@@ -99,8 +102,7 @@ public abstract class AbstractMenuScreen extends AbstractScreen
 		}
 
 		@Override
-		public boolean touchDown(int screenX, int screenY, int pointer,
-				int button) {
+		public boolean touchDown(int screenX, int screenY, int pointer, int button) {
 			if (touchDownCapture(screenX, screenY)) {
 				return true;
 			}
@@ -124,8 +126,7 @@ public abstract class AbstractMenuScreen extends AbstractScreen
 		}
 
 		@Override
-		public boolean touchUp(int screenX, int screenY, int pointer,
-				int button) {
+		public boolean touchUp(int screenX, int screenY, int pointer, int button) {
 			// TODO Auto-generated method stub
 			return false;
 		}
@@ -156,14 +157,16 @@ public abstract class AbstractMenuScreen extends AbstractScreen
 
 	FrameBuffer fbo = null;
 
-	public AbstractMenuScreen(IncanShift game, int reqWidth, int reqHeight,
-			String musicFile) {
+	public AbstractMenuScreen(IncanShift game, int reqWidth, int reqHeight, String musicFile) {
 		super(game, reqWidth, reqHeight);
-
 		this.musicFile = musicFile;
 
 		input = new MenuInputProcessor();
-
+		try {
+			Gdx.input.setCursorImage(new Pixmap(Gdx.files.local("model/cursor.png")), 0, 0);
+		} catch (Exception e) {
+			Gdx.app.debug(tag, "Cannot set cursor pixmap..", e);
+		}
 		assets = new AssetManager();
 		assets.load(musicFile, Music.class);
 		assets.load("sound/click.wav", Sound.class);
@@ -182,12 +185,12 @@ public abstract class AbstractMenuScreen extends AbstractScreen
 	 * Draw menu text onto framebuffer in order to create textures with rendered
 	 * menu strings
 	 */
-	void createMenuTextures() {
+	void createMenuTextures(BitmapFont font) {
 		camera.update();
 
 		int texWidth = 1024;
 		int texHeight = 1024;
-		int maxCharHeight = 30;
+		int maxCharHeight = (int) font.getLineHeight();
 
 		try {
 			fbo = new FrameBuffer(Format.RGBA8888, texWidth, texHeight, false);
@@ -201,8 +204,7 @@ public abstract class AbstractMenuScreen extends AbstractScreen
 
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
 
-		spriteBatch.getProjectionMatrix().setToOrtho2D(0, 0, texWidth,
-				texHeight);
+		spriteBatch.getProjectionMatrix().setToOrtho2D(0, 0, texWidth, texHeight);
 		spriteBatch.begin();
 
 		for (int i = 0; i < menu.size(); i++) {
@@ -221,24 +223,22 @@ public abstract class AbstractMenuScreen extends AbstractScreen
 			TextureRegion texKeySelected;
 
 			// Value unselected
-			sansLarge.setColor(valueUnselectedColor);
+			font.setColor(valueUnselectedColor);
 			String string = item.key + ((item.value == null) ? "" : item.value);
-			GlyphLayout keyValueText = sansLarge.draw(spriteBatch, string, x,
-					y + yspace);
+			GlyphLayout keyValueText = font.draw(spriteBatch, string, x, y + yspace);
 			// Value selected
-			sansLarge.setColor(valueSelectedColor);
-			sansLarge.draw(spriteBatch, string, x + xspace, y + yspace);
+			font.setColor(valueSelectedColor);
+			font.draw(spriteBatch, string, x + xspace, y + yspace);
 
 			int kvw = (int) keyValueText.width;
 
 			// Key unselected
-			sansLarge.setColor(keyUnselectedColor);
-			GlyphLayout keyText = sansLarge.draw(spriteBatch, item.key, x,
-					y + yspace);
+			font.setColor(keyUnselectedColor);
+			GlyphLayout keyText = font.draw(spriteBatch, item.key, x, y + yspace);
 
 			// Key selected
-			sansLarge.setColor(keySelectedColor);
-			sansLarge.draw(spriteBatch, item.key, x + xspace, y + yspace);
+			font.setColor(keySelectedColor);
+			font.draw(spriteBatch, item.key, x + xspace, y + yspace);
 
 			int kw = (int) keyText.width;
 			int kh = (int) keyText.height * 2;
@@ -247,11 +247,8 @@ public abstract class AbstractMenuScreen extends AbstractScreen
 			if (item.value != null) {
 				int vw = kvw - kw;
 
-				texValueUnselected = new TextureRegion(
-						fbo.getColorBufferTexture(), x + kw, y, vw, kh);
-				texValueSelected = new TextureRegion(
-						fbo.getColorBufferTexture(), x + xspace + kw, y, vw,
-						kh);
+				texValueUnselected = new TextureRegion(fbo.getColorBufferTexture(), x + kw, y, vw, kh);
+				texValueSelected = new TextureRegion(fbo.getColorBufferTexture(), x + xspace + kw, y, vw, kh);
 
 				texValueSelected.flip(false, true);
 				texValueUnselected.flip(false, true);
@@ -261,10 +258,8 @@ public abstract class AbstractMenuScreen extends AbstractScreen
 			}
 
 			// Set texture region for key
-			texKeyUnselected = new TextureRegion(fbo.getColorBufferTexture(), x,
-					y, kw, kh);
-			texKeySelected = new TextureRegion(fbo.getColorBufferTexture(),
-					x + xspace, y, kw, kh);
+			texKeyUnselected = new TextureRegion(fbo.getColorBufferTexture(), x, y, kw, kh);
+			texKeySelected = new TextureRegion(fbo.getColorBufferTexture(), x + xspace, y, kw, kh);
 			texKeyUnselected.flip(false, true);
 			texKeySelected.flip(false, true);
 			item.setKeyTex(texKeyUnselected, false);
@@ -324,8 +319,7 @@ public abstract class AbstractMenuScreen extends AbstractScreen
 				spriteBatch.draw(texKey, b.x, b.y);
 
 				if (item.value != null) {
-					TextureRegion texValue = item.getValueTex(
-							item == selectedItem && itemValueSelected);
+					TextureRegion texValue = item.getValueTex(item == selectedItem && itemValueSelected);
 					spriteBatch.draw(texValue, b.x + b.width + 20, b.y);
 				}
 			}
@@ -352,22 +346,16 @@ public abstract class AbstractMenuScreen extends AbstractScreen
 
 	}
 
-	public void setMenu(Menu menu, MenuItem backItem) {
+	public void setMenu(Menu menu, MenuItem backItem, BitmapFont font) {
 		this.menu = menu;
 		this.backItem = backItem;
 		selectedItem = menu.get(0);
-		createMenuTextures();
+		createMenuTextures(font);
 	}
 
 	@Override
 	public void show() {
 		Gdx.input.setCursorCatched(false);
-		try {
-			Gdx.input.setCursorImage(
-					new Pixmap(Gdx.files.local("model/cursor.png")), 0, 0);
-		} catch (Exception e) {
-			Gdx.app.debug(tag, "Cannot set cursor pixmap..", e);
-		}
 		Gdx.input.setInputProcessor(input);
 
 		music = assets.get(musicFile, Music.class);

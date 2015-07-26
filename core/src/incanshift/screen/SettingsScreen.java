@@ -5,6 +5,7 @@ import incanshift.screen.menu.Menu;
 import incanshift.screen.menu.MenuItem;
 import incanshift.world.GameSettings;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
@@ -14,8 +15,11 @@ import com.badlogic.gdx.utils.ObjectMap.Entry;
 public class SettingsScreen extends AbstractMenuScreen {
 
 	private MenuItem backItem;
+	private MenuItem fullscreenItem;
 	private MenuItem keyFireItem;
-	private MenuItem keyUseItem;
+	private MenuItem keyGrappleItem;
+	private MenuItem keyMaskItem;
+	// private MenuItem keyUseItem;
 	private MenuItem keyRunItem;
 	private MenuItem keyJumpItem;
 	private MenuItem keyStrafeLeftItem;
@@ -32,12 +36,14 @@ public class SettingsScreen extends AbstractMenuScreen {
 
 		backItem = new MenuItem("Back", null, true);
 		keyFireItem = new MenuItem("Fire/Throw", "Left Mouse", false);
+		keyGrappleItem = new MenuItem("Grappling Hook", "Right Mouse", false);
+		fullscreenItem = new MenuItem("Fullscreen", Gdx.graphics.isFullscreen() ? "On" : "Off", true);
 
 		int key;
 
-		key = GameSettings.USE;
-		keyUseItem = new MenuItem("Use/Pick Up", Keys.toString(key), true);
-		keycodeUses.put(key, keyUseItem);
+		key = GameSettings.MASK;
+		keyMaskItem = new MenuItem("Mask Vision", Keys.toString(key), true);
+		keycodeUses.put(key, keyMaskItem);
 
 		key = GameSettings.RUN;
 		keyRunItem = new MenuItem("Run", Keys.toString(key), true);
@@ -48,18 +54,15 @@ public class SettingsScreen extends AbstractMenuScreen {
 		keycodeUses.put(key, keyJumpItem);
 
 		key = GameSettings.STRAFE_LEFT;
-		keyStrafeLeftItem = new MenuItem("Strafe Left", Keys.toString(key),
-				true);
+		keyStrafeLeftItem = new MenuItem("Strafe Left", Keys.toString(key), true);
 		keycodeUses.put(key, keyStrafeLeftItem);
 
 		key = GameSettings.STRAFE_RIGHT;
-		keyStrafeRightItem = new MenuItem("Strafe Right", Keys.toString(key),
-				true);
+		keyStrafeRightItem = new MenuItem("Strafe Right", Keys.toString(key), true);
 		keycodeUses.put(key, keyStrafeRightItem);
 
 		key = GameSettings.BACKWARD;
-		keyBackwardItem = new MenuItem("Move Backward", Keys.toString(key),
-				true);
+		keyBackwardItem = new MenuItem("Move Backward", Keys.toString(key), true);
 		keycodeUses.put(key, keyBackwardItem);
 
 		key = GameSettings.FORWARD;
@@ -68,11 +71,14 @@ public class SettingsScreen extends AbstractMenuScreen {
 
 		Menu menu = new Menu();
 		menu.add(backItem);
-		menu.add(keyFireItem);
+
 		for (Entry<Integer, MenuItem> entry : keycodeUses) {
 			menu.add(entry.value);
 		}
-		setMenu(menu, backItem);
+		menu.add(keyGrappleItem);
+		menu.add(keyFireItem);
+		menu.add(fullscreenItem);
+		setMenu(menu, backItem, sansNormal);
 	}
 
 	public void enterSelected() {
@@ -81,11 +87,22 @@ public class SettingsScreen extends AbstractMenuScreen {
 			game.showStartScreen();
 
 		} else if (selectedItem.selectable) {
-			itemValueSelected = true;
-			capturing = true;
-			if (msg == null) {
-				msg = "Press a key for " + selectedItem.key
-						+ ", or Esc to cancel...";
+
+			if (selectedItem == fullscreenItem) {
+				game.toggleFullscreen();
+				selectedItem.value = Gdx.graphics.isFullscreen() ? "On" : "Off";
+				keyDownCapture(Keys.ESCAPE);
+				menu.dispose();
+				createMenuTextures(sansNormal);
+				Gdx.input.setCursorPosition(Gdx.graphics.getWidth() / 2, Gdx.graphics.getHeight() / 2);
+				game.showSettingsScreen();
+
+			} else {
+				itemValueSelected = true;
+				capturing = true;
+				if (msg == null) {
+					msg = "Press a key for " + selectedItem.key + ", or Esc to cancel...";
+				}
 			}
 		}
 	}
@@ -112,16 +129,15 @@ public class SettingsScreen extends AbstractMenuScreen {
 		if (keycodeUses.containsKey(keycode)) {
 			MenuItem occupying = keycodeUses.get(keycode);
 			if (selectedItem != occupying) {
-				msg = "Key used by " + occupying.key
-						+ ", select new or Esc to cancel...";
+				msg = "Key used by " + occupying.key + ", select new or Esc to cancel...";
 			} else {
 				keyDownCapture(Keys.ESCAPE);
 			}
 			return true;
 		}
 
-		if (selectedItem == keyUseItem) {
-			GameSettings.USE = keycode;
+		if (selectedItem == keyMaskItem) {
+			GameSettings.MASK = keycode;
 		}
 		if (selectedItem == keyRunItem) {
 			GameSettings.RUN = keycode;
@@ -154,7 +170,7 @@ public class SettingsScreen extends AbstractMenuScreen {
 		// Redraw settings menu
 		selectedItem.value = Keys.toString(keycode);
 		menu.dispose();
-		createMenuTextures();
+		createMenuTextures(sansNormal);
 		game.showSettingsScreen();
 
 		return true;
@@ -182,8 +198,7 @@ public class SettingsScreen extends AbstractMenuScreen {
 		} else {
 			sansNormal.setColor(keySelectedColor);
 		}
-		GlyphLayout msgGlyph = sansNormal.draw(spriteBatch, msg, msgXpos,
-				msgYpos);
+		GlyphLayout msgGlyph = sansNormal.draw(spriteBatch, msg, msgXpos, msgYpos);
 
 		msgXpos = screenCenter.x - msgGlyph.width / 2;
 

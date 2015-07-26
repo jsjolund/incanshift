@@ -29,7 +29,7 @@ public class StartScreen extends AbstractMenuScreen {
 		menu.add(options);
 		menu.add(start);
 
-		setMenu(menu, back);
+		setMenu(menu, back, sansLarge);
 		selectedItem = start;
 
 	}
@@ -40,7 +40,7 @@ public class StartScreen extends AbstractMenuScreen {
 				canResume = true;
 				menu.dispose();
 				start.key = "Resume";
-				createMenuTextures();
+				createMenuTextures(sansLarge);
 			}
 			game.showGameScreen();
 		}
