@@ -75,16 +75,16 @@ public class GameWorld implements Disposable {
 
 	public String[] levels = { //
 	// "model/outside_level.csv", //
-	"model/inside_level1.csv",//
+			"model/inside_level10_throw_out_the_bodies.csv", //
+			"model/inside_level1.csv",//
 			"model/inside_level2.csv", //
-			"model/inside_level3.csv", //
 			"model/inside_level4_chair.csv", //
-			"model/inside_level5_l.csv", //
 			"model/inside_level6_ziggurat_room.csv", //
+			"model/inside_level3.csv", //
+			"model/inside_level9_pillars_in_a_hill_of_stairs.csv", //
 			"model/inside_level7_ziggurat_dissolved.csv", //
 			"model/inside_level8_ant_hive.csv", //
-			"model/inside_level9_pillars_in_a_hill_of_stairs.csv", //
-			"model/inside_level10_throw_out_the_bodies.csv", //
+	// "model/inside_level5_l.csv", //
 
 	};
 	public int currentLevel = 0;
@@ -212,11 +212,11 @@ public class GameWorld implements Disposable {
 		// CollisionHandler.GROUND_FLAG);
 		// player.setGun(gun);
 
-		// GameObject hook = spawn("hook", player.position.cpy(), new Vector3(),
-		// false, false, true, true, CollisionHandler.OBJECT_FLAG,
-		// CollisionHandler.GROUND_FLAG);
-		// addInstance(hook);
-		// player.addToInventory(hook);
+		GameObject hook = spawn("hook", player.position.cpy(), new Vector3(),
+				false, false, true, true, CollisionHandler.OBJECT_FLAG,
+				CollisionHandler.GROUND_FLAG);
+		addInstance(hook);
+		player.addToInventory(hook);
 
 		GameObject blowpipe = spawn("blowpipe", player.position.cpy(),
 				new Vector3(), false, false, false, false,

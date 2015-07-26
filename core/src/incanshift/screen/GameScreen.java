@@ -138,7 +138,7 @@ public class GameScreen extends AbstractScreen {
 		return cam.frustum.sphereInFrustum(position, instance.radius);
 	}
 
-	@SuppressWarnings("deprecation")
+	// @SuppressWarnings("deprecation")
 	@Override
 	public void render(float delta) {
 		delta = Math.min(1f / 30f, Gdx.graphics.getDeltaTime());
@@ -148,19 +148,19 @@ public class GameScreen extends AbstractScreen {
 		Gdx.gl.glClearColor(0, 0, 0, 1);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
 
-//		env.shadowLight.begin(Vector3.Zero, camera.direction);
-//
-//		env.shadowLight.update(world.player.position.cpy(), Vector3.Z);
-//
-//		shadowBatch.begin(env.shadowLight.getCamera());
-//		for (Entry<String, Array<GameObject>> entry : world.instances) {
-//			for (GameObject obj : entry.value) {
-//				shadowBatch.render(obj);
-//			}
-//		}
-//		shadowBatch.end();
-//
-//		env.shadowLight.end();
+		// env.shadowLight.begin(Vector3.Zero, camera.direction);
+		//
+		// env.shadowLight.update(world.player.position.cpy(), Vector3.Z);
+		//
+		// shadowBatch.begin(env.shadowLight.getCamera());
+		// for (Entry<String, Array<GameObject>> entry : world.instances) {
+		// for (GameObject obj : entry.value) {
+		// shadowBatch.render(obj);
+		// }
+		// }
+		// shadowBatch.end();
+		//
+		// env.shadowLight.end();
 
 		// Fog background color
 		shapeRenderer.begin(ShapeType.Filled);
@@ -187,6 +187,8 @@ public class GameScreen extends AbstractScreen {
 		spriteBatch.end();
 
 		// Render the game level models and player gun
+		Gdx.gl.glEnable(GL20.GL_BLEND);
+		Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
 		modelBatch.begin(camera);
 		for (Billboard b : world.billboards) {
 			if (b.modelInstance != null) {
@@ -195,12 +197,13 @@ public class GameScreen extends AbstractScreen {
 		}
 		for (Entry<String, Array<GameObject>> entry : world.instances) {
 			for (GameObject obj : entry.value) {
-				if (isVisible(camera, obj)) {
-					modelBatch.render(obj, env);
-				}
+				// if (isVisible(camera, obj)) {
+				modelBatch.render(obj, env);
+				// }
 			}
 		}
 		modelBatch.end();
+		Gdx.gl.glDisable(GL20.GL_BLEND);
 
 		if (world.xRayMask) {
 			// Draw black overlay
