@@ -74,8 +74,8 @@ public class GameWorld implements Disposable {
 	public Array<EnvTag> envTags;
 
 	public String[] levels = { //
-	"model/outside_level.csv", //
-			"model/inside_level1.csv",//
+	// "model/outside_level.csv", //
+	"model/inside_level1.csv",//
 			"model/inside_level2.csv", //
 			"model/inside_level3.csv", //
 			"model/inside_level4_chair.csv", //
@@ -212,11 +212,11 @@ public class GameWorld implements Disposable {
 		// CollisionHandler.GROUND_FLAG);
 		// player.setGun(gun);
 
-		GameObject hook = spawn("hook", player.position.cpy(), new Vector3(),
-				false, false, true, true, CollisionHandler.OBJECT_FLAG,
-				CollisionHandler.GROUND_FLAG);
-		addInstance(hook);
-		player.addToInventory(hook);
+		// GameObject hook = spawn("hook", player.position.cpy(), new Vector3(),
+		// false, false, true, true, CollisionHandler.OBJECT_FLAG,
+		// CollisionHandler.GROUND_FLAG);
+		// addInstance(hook);
+		// player.addToInventory(hook);
 
 		GameObject blowpipe = spawn("blowpipe", player.position.cpy(),
 				new Vector3(), false, false, false, false,

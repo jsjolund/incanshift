@@ -148,19 +148,19 @@ public class GameScreen extends AbstractScreen {
 		Gdx.gl.glClearColor(0, 0, 0, 1);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
 
-		env.shadowLight.begin(Vector3.Zero, camera.direction);
-
-		env.shadowLight.update(world.player.position.cpy(), Vector3.Z);
-
-		shadowBatch.begin(env.shadowLight.getCamera());
-		for (Entry<String, Array<GameObject>> entry : world.instances) {
-			for (GameObject obj : entry.value) {
-				shadowBatch.render(obj);
-			}
-		}
-		shadowBatch.end();
-
-		env.shadowLight.end();
+//		env.shadowLight.begin(Vector3.Zero, camera.direction);
+//
+//		env.shadowLight.update(world.player.position.cpy(), Vector3.Z);
+//
+//		shadowBatch.begin(env.shadowLight.getCamera());
+//		for (Entry<String, Array<GameObject>> entry : world.instances) {
+//			for (GameObject obj : entry.value) {
+//				shadowBatch.render(obj);
+//			}
+//		}
+//		shadowBatch.end();
+//
+//		env.shadowLight.end();
 
 		// Fog background color
 		shapeRenderer.begin(ShapeType.Filled);

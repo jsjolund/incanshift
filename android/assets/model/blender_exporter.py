@@ -22,6 +22,8 @@ class GameObject(object):
 		return self.name_array[0]
 
 	def get_model_name(self):
+		if self.has_excluded_name():
+			return self.get_first_name()
 		return self.filename + "_" + self.get_first_name()
 
 	def get_csv_row(self):
