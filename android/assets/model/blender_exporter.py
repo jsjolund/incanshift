@@ -48,8 +48,8 @@ class GameObject(object):
 		return type(self.bobj.data) is bpy.types.Mesh
 	
 	def has_excluded_name(self):
-		for excludeName in excludeNames:
-			if self.get_first_name().startswith(excludeName):
+		for exclude_name in GameObject.exclude_names:
+			if self.get_first_name().startswith(exclude_name):
 				return True
 		return False
 
@@ -103,21 +103,21 @@ def get_export_objects(gobj_map):
 	for name, gobj_list in gobj_map.items():
 		if len(gobj_list) == 0:
 			print("WARNING: No instances found for {}, using ".format(name))
-		if not gobj_list[0].is_mesh():
+		gobj0 = gobj_list[0]
+		if gobj0.has_excluded_name():
+			print("INFO: {} is in exclusion list.".format(name))
+			continue
+		if not gobj0.is_mesh():
 			print("INFO: {} is not a mesh.".format(name))
 			continue
 		gobj0_candidates = []
 		for gobj in gobj_list:
 			if gobj.get_index() == 0:
 				gobj0_candidates.append(gobj)
-		gobj0 = gobj_list[0]
-		if len(gobj0_candidates) == 1:
-			gobj0 = gobj0_candidates[0]
+		if len(gobj0_candidates) > 1:
+			print("WARNING: Multiple base models found for {}, using: {}".format(name, gobj0.bobj.name))
 		else:
-			if len(gobj0_candidates) > 1:
-				print("WARNING: Multiple base models found for {}, using: {}".format(name, gobj0.bobj.name))
-			else:
-				print("WARNING: No base model found for {}, using: {}".format(name, gobj0.bobj.name))
+			print("WARNING: No base model found for {}, using: {}".format(name, gobj0.bobj.name))
 		export_objects.append(gobj0)
 	return export_objects
 
