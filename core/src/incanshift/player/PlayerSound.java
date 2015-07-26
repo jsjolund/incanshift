@@ -59,12 +59,12 @@ public class PlayerSound {
 
 	public void maskHit() {
 		soundMaskHit.get(randInt(0, soundMaskHit.size - 1)).play(
-				1.0f * GameSettings.SOUND_VOLUME);
+				2.0f * GameSettings.SOUND_VOLUME);
 	}
 
 	public void wallHit() {
 		soundWallHit.get(randInt(0, soundWallHit.size - 1)).play(
-				1.0f * GameSettings.SOUND_VOLUME);
+				2.0f * GameSettings.SOUND_VOLUME);
 	}
 
 	public void jump() {
