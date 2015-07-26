@@ -61,7 +61,7 @@ public abstract class AbstractScreen implements Screen {
 		parameter.size = 12;
 		sansTiny = generator.generateFont(parameter);
 
-		parameter.size = 20;
+		parameter.size = 16;
 		sansNormal = generator.generateFont(parameter);
 
 		parameter.size = 32;
@@ -125,8 +125,14 @@ public abstract class AbstractScreen implements Screen {
 
 	@Override
 	public void dispose() {
-		spriteBatch.dispose();
 		sansTiny.dispose();
+		sansNormal.dispose();
+		sansLarge.dispose();
+		sansHuge.dispose();
+		monoTiny.dispose();
+		monoNormal.dispose();
+		monoLarge.dispose();
+		spriteBatch.dispose();
 		game.dispose();
 	}
 

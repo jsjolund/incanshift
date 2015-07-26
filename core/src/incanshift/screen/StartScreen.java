@@ -6,6 +6,7 @@ import incanshift.screen.menu.MenuItem;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 
 public class StartScreen extends AbstractMenuScreen {
 
@@ -15,10 +16,14 @@ public class StartScreen extends AbstractMenuScreen {
 	MenuItem credits;
 	MenuItem options;
 	MenuItem start;
-
+	
+	BitmapFont menuFont;
+	
 	public StartScreen(IncanShift game, int reqWidth, int reqHeight) {
 		super(game, reqWidth, reqHeight, "sound/music_menu.ogg");
-
+		
+		menuFont = sansLarge;
+		
 		back = new MenuItem("Exit", null, true);
 		credits = new MenuItem("Credits", null, true);
 		options = new MenuItem("Options", null, true);
@@ -29,7 +34,7 @@ public class StartScreen extends AbstractMenuScreen {
 		menu.add(options);
 		menu.add(start);
 
-		setMenu(menu, back, sansLarge);
+		setMenu(menu, back, menuFont);
 		selectedItem = start;
 
 	}
@@ -40,7 +45,7 @@ public class StartScreen extends AbstractMenuScreen {
 				canResume = true;
 				menu.dispose();
 				start.key = "Resume";
-				createMenuTextures(sansLarge);
+				createMenuTextures(menuFont);
 			}
 			game.showGameScreen();
 		}

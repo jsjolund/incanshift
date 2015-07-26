@@ -8,6 +8,7 @@ import incanshift.world.GameSettings;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.utils.ArrayMap;
 import com.badlogic.gdx.utils.ObjectMap.Entry;
@@ -28,12 +29,15 @@ public class SettingsScreen extends AbstractMenuScreen {
 	private MenuItem keyForwardItem;
 
 	boolean capturing = false;
+	BitmapFont menuFont;
 
 	ArrayMap<Integer, MenuItem> keycodeUses = new ArrayMap<Integer, MenuItem>();
 
 	public SettingsScreen(IncanShift game, int reqWidth, int reqHeight) {
 		super(game, reqWidth, reqHeight, "sound/music_menu.ogg");
 
+		menuFont = sansNormal;
+		
 		backItem = new MenuItem("Back", null, true);
 		keyFireItem = new MenuItem("Fire/Throw", "Left Mouse", false);
 		keyGrappleItem = new MenuItem("Grappling Hook", "Right Mouse", false);
@@ -78,7 +82,7 @@ public class SettingsScreen extends AbstractMenuScreen {
 		menu.add(keyGrappleItem);
 		menu.add(keyFireItem);
 		menu.add(fullscreenItem);
-		setMenu(menu, backItem, sansNormal);
+		setMenu(menu, backItem, menuFont);
 	}
 
 	public void enterSelected() {
@@ -93,7 +97,7 @@ public class SettingsScreen extends AbstractMenuScreen {
 				selectedItem.value = Gdx.graphics.isFullscreen() ? "On" : "Off";
 				keyDownCapture(Keys.ESCAPE);
 				menu.dispose();
-				createMenuTextures(sansNormal);
+				createMenuTextures(menuFont);
 				Gdx.input.setCursorPosition(Gdx.graphics.getWidth() / 2, Gdx.graphics.getHeight() / 2);
 				game.showSettingsScreen();
 
@@ -170,7 +174,7 @@ public class SettingsScreen extends AbstractMenuScreen {
 		// Redraw settings menu
 		selectedItem.value = Keys.toString(keycode);
 		menu.dispose();
-		createMenuTextures(sansNormal);
+		createMenuTextures(menuFont);
 		game.showSettingsScreen();
 
 		return true;
@@ -194,11 +198,11 @@ public class SettingsScreen extends AbstractMenuScreen {
 		if (msgXpos == 0) {
 			Color transparent = Color.YELLOW.cpy();
 			transparent.a = 0;
-			sansNormal.setColor(transparent);
+			menuFont.setColor(transparent);
 		} else {
-			sansNormal.setColor(keySelectedColor);
+			menuFont.setColor(keySelectedColor);
 		}
-		GlyphLayout msgGlyph = sansNormal.draw(spriteBatch, msg, msgXpos, msgYpos);
+		GlyphLayout msgGlyph = menuFont.draw(spriteBatch, msg, msgXpos, msgYpos);
 
 		msgXpos = screenCenter.x - msgGlyph.width / 2;
 
