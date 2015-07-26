@@ -14,97 +14,161 @@ import os
 import math
 import subprocess
 
-performFbxConv = True;
-performObjConv = True;
-#performFbxConv = False;
-#performObjConv = False;
+class GameObject(object):
+	exclude_names = ['start_position', 'text_tag', 'fog_tag', 'sun_tag', 'sound_tag', 'mask']
+	csv_header = "\nname;index;loc.x;loc.y;loc.z;rot.x;rot.y;rot.z\n"
+	
+	def get_first_name(self):
+		return self.name_array[0]
 
-excludeNames = ['start_position', 'text_tag', 'fog_tag', 'sun_tag', 'sound_tag', 'mask']
-excludeTypes = [bpy.types.Camera, bpy.types.PointLamp]
+	def get_model_name(self):
+		return self.filename + "_" + self.get_first_name()
 
-def main():
-	print("\nStarting export.")
+	def get_csv_row(self):
+		return "{};{:};{:.2f};{:.2f};{:.2f};{:.2f};{:.2f};{:.2f}\n".format(self.get_model_name(), self.get_index(), self.loc.x, self.loc.y, self.loc.z, self.rot[0], self.rot[1], self.rot[2])
+
+	def get_index(self):
+		if (len(self.name_array) > 1):
+			return int(self.name_array[1])
+		else:
+			return 0
+
+	def __init__(self, filename, bobj):
+		self.filename = filename
+		self.bobj = bobj
+		self.name_array = str(bobj.name).split(".")
+		self.loc = bobj.location.copy()
+		self.rote = bobj.rotation_euler.copy()
+		self.rot = [math.degrees(a) for a in bobj.rotation_euler]
+
+	def is_empty(self):
+		return self.bobj.data is None
+	
+	def is_mesh(self):
+		return type(self.bobj.data) is bpy.types.Mesh
+	
+	def has_excluded_name(self):
+		for excludeName in excludeNames:
+			if self.get_first_name().startswith(excludeName):
+				return True
+		return False
+
+	def is_exportable(self):
+		is_empty = self.bobj.data is None
+		is_mesh = type(self.bobj.data) is bpy_types.Mesh
+
+def write_csv(csv_file_path, gobj_map):
+	csv_file = open(csv_file_path, "w")
+	for name, gobj_list in gobj_map.items():
+		for gobj in gobj_list:
+			csv_file.write(gobj.get_csv_row())
+	csv_file.close()
+
+def write_obj(obj_dir, export_objects):
+	obj_file_paths = []
+	
+	# unselect all  
+	for item in bpy.context.selectable_objects:  
+		item.select = False
+	
+	for gobj0 in export_objects:
+		bobj0 = gobj0.bobj
+		obj_file_path = os.path.join(obj_dir, gobj0.get_model_name() + ".obj")
+		obj_file_paths.append(obj_file_path)
+				
+		# Select object, set loc & rot to zero, export to obj, restore loc & rot, unselect
+		bobj0.select = True
+		bpy.context.scene.objects.active = bobj0
+		bobj0.location.zero()
+		bobj0.rotation_euler.zero()
+		bpy.ops.export_scene.obj(filepath=obj_file_path, use_selection=True)
+		bobj0.location = gobj0.loc.copy()
+		bobj0.rotation_euler = gobj0.rote.copy()
+		bobj0.select = False
+
+	return obj_file_paths
+
+def convert_to_g3db(obj_file_paths):
+	g3db_file_paths = []
+	for obj_file_path in obj_file_paths:
+		subprocess.call(["fbx-conv", obj_file_path])
+		file_path_noext, file_ext = os.path.splitext(obj_file_path)
+		os.remove(file_path_noext + ".obj")
+		os.remove(file_path_noext + ".mtl")
+		g3db_file_paths.append(file_path_noext + ".g3db")
+
+
+def get_export_objects(gobj_map):
+	export_objects = []
+	for name, gobj_list in gobj_map.items():
+		if len(gobj_list) == 0:
+			print("WARNING: No instances found for {}, using ".format(name))
+		if not gobj_list[0].is_mesh():
+			print("INFO: {} is not a mesh.".format(name))
+			continue
+		gobj0_candidates = []
+		for gobj in gobj_list:
+			if gobj.get_index() == 0:
+				gobj0_candidates.append(gobj)
+		gobj0 = gobj_list[0]
+		if len(gobj0_candidates) == 1:
+			gobj0 = gobj0_candidates[0]
+		else:
+			if len(gobj0_candidates) > 1:
+				print("WARNING: Multiple base models found for {}, using: {}".format(name, gobj0.bobj.name))
+			else:
+				print("WARNING: No base model found for {}, using: {}".format(name, gobj0.bobj.name))
+		export_objects.append(gobj0)
+	return export_objects
+
+def create_game_object_map(filename):
+	gobj_map = {} 
+	for obj in bpy.data.objects:
+		gobj = GameObject(filename, obj)
+		
+		# Create map over names and objects with those names.
+		# Allow meshes and empties.
+		if gobj.is_mesh() or gobj.is_empty():
+			name = gobj.get_first_name()
+			if name in gobj_map:
+				gobj_map.get(name).append(gobj)
+			else:
+				gobj_map[name] = [gobj]
+	return gobj_map
+
+def main():	
+	print("\nStarting level export...")
 	basedir = os.path.dirname(bpy.data.filepath)
 	filename = bpy.path.basename(bpy.context.blend_data.filepath).split(".")[0]
 	scene = bpy.context.scene
 	if not basedir:
 		raise Exception("Blend file is not saved")
-	fn = os.path.join(basedir, filename + ".csv")
-	text_file = open(fn, "w")
-	csv = "\nname;index;loc.x;loc.y;loc.z;rot.x;rot.y;rot.z\n"
-	print("\nExporting models:")
-	for obj in bpy.data.objects:
-		if type(obj.data) not in excludeTypes:
-			# Construct and write a row for the object in the CSV file
-			names = str(obj.name).split(".")
-			name = names[0]
-			m_name = filename+"_"+name
-			for excludeName in excludeNames:
-				if name.startswith(excludeName):
-					m_name = name
-					break
-			if (len(names) > 1):
-				index = int(names[1])
-			else:
-				index = 0
-			euler_rotation = obj.rotation_euler
-			rot = [math.degrees(a) for a in euler_rotation]
-			loc = obj.location
-			objrow = "{};{:};{:.2f};{:.2f};{:.2f};{:.2f};{:.2f};{:.2f}\n".format(m_name, int(index), loc.x, loc.y, loc.z, rot[0], rot[1], rot[2])
-			csv += objrow
-			text_file.write(objrow)
-			
-			# Export unique object to .obj.
-			if (index != 0) or (not performObjConv):
-				continue
-			excludeObject = False;
-			# Check if name starts with a string to be excluded.
-			for excludeName in excludeNames:
-				if name.startswith(excludeName):
-					print("Ignoring "+name)
-					excludeObject = True
-					break;
-			if excludeObject:
-				continue
-			
-			loc = obj.location
-			e_rot = obj.rotation_euler
-			old_loc = loc.copy()
-			old_e_rot = e_rot.copy()
-			loc.zero()
-			e_rot.zero()
-			
-			obj.select = True
-			scene.objects.active = obj
-			fn = os.path.join(basedir, m_name)
-			bpy.ops.export_scene.obj(filepath=fn + ".obj", use_selection=True)
-			obj.select = False
-		
-			loc.x = old_loc.x
-			loc.y = old_loc.y
-			loc.z = old_loc.z
-			e_rot.x = old_e_rot.x
-			e_rot.y = old_e_rot.y
-			e_rot.z = old_e_rot.z
-
-	text_file.close()
 	
-	if performFbxConv and performObjConv:
-		print("\nConverting .obj and .mtl to .g3db:")
-		for subdir, dirs, files in os.walk(basedir):
-			for filename in files:
-				file_no_ext, file_ext = os.path.splitext(filename)
-				if file_ext == '.obj':
-					objfile_path = os.path.join(basedir, filename)
-					mtlfile_path = os.path.join(basedir, file_no_ext+".mtl")
-					subprocess.call(["fbx-conv", objfile_path])
-					os.remove(objfile_path)
-					os.remove(mtlfile_path)
-					print("\nRemoved:\n{}\n{}\n".format(objfile_path, mtlfile_path))
+	gobj_map = create_game_object_map(filename)
 
-	print("Wrote to to {}.csv".format(fn))
-	print(csv)
-	print("Success.")
+	csv_file_path = os.path.join(basedir, filename + ".csv")
+	write_csv(csv_file_path, gobj_map)
+	print("\nWrote " + csv_file_path)
 	
+	export_objects = get_export_objects(gobj_map);
+	print()
+	obj_file_paths = write_obj(basedir, export_objects)
+	print()
+	g3db_file_paths = convert_to_g3db(obj_file_paths)
+	print("\nFinished.")
+
 if __name__ == "__main__":
 	main()
+
+
+
+
+
+
+
+
+
+
+
+
+
