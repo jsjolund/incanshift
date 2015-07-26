@@ -25,6 +25,7 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 
 public abstract class AbstractScreen implements Screen {
 
+	public static final String tag = "AbstractScreen";
 	protected Viewport viewport;
 	Camera camera;
 
@@ -40,6 +41,8 @@ public abstract class AbstractScreen implements Screen {
 	BitmapFont monoTiny;
 	BitmapFont monoNormal;
 	BitmapFont monoLarge;
+
+	Pixmap cursorPixmap;
 
 	IncanShift game;
 	int reqHeight;
@@ -90,7 +93,8 @@ public abstract class AbstractScreen implements Screen {
 
 	}
 
-	public static Pixmap getScreenshot(int x, int y, int w, int h, boolean yDown) {
+	public static Pixmap getScreenshot(int x, int y, int w, int h,
+			boolean yDown) {
 		final Pixmap pixmap = ScreenUtils.getFrameBufferPixmap(x, y, w, h);
 
 		if (yDown) {
@@ -113,10 +117,10 @@ public abstract class AbstractScreen implements Screen {
 
 	@Override
 	public void dispose() {
+		cursorPixmap.dispose();
 		spriteBatch.dispose();
 		sansTiny.dispose();
 		game.dispose();
-
 	}
 
 	public int getLeftGutterWidth() {

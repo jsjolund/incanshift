@@ -140,7 +140,7 @@ public class GameScreen extends AbstractScreen {
 		return cam.frustum.sphereInFrustum(position, instance.radius);
 	}
 
-//	@SuppressWarnings("deprecation")
+	// @SuppressWarnings("deprecation")
 	@Override
 	public void render(float delta) {
 		delta = Math.min(1f / 30f, Gdx.graphics.getDeltaTime());
@@ -150,19 +150,19 @@ public class GameScreen extends AbstractScreen {
 		Gdx.gl.glClearColor(0, 0, 0, 1);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
 
-//		env.shadowLight.begin(Vector3.Zero, camera.direction);
-//
-//		env.shadowLight.update(world.player.position.cpy(), Vector3.Z);
-//
-//		shadowBatch.begin(env.shadowLight.getCamera());
-//		for (Entry<String, Array<GameObject>> entry : world.instances) {
-//			for (GameObject obj : entry.value) {
-//				shadowBatch.render(obj);
-//			}
-//		}
-//		shadowBatch.end();
-//
-//		env.shadowLight.end();
+		// env.shadowLight.begin(Vector3.Zero, camera.direction);
+		//
+		// env.shadowLight.update(world.player.position.cpy(), Vector3.Z);
+		//
+		// shadowBatch.begin(env.shadowLight.getCamera());
+		// for (Entry<String, Array<GameObject>> entry : world.instances) {
+		// for (GameObject obj : entry.value) {
+		// shadowBatch.render(obj);
+		// }
+		// }
+		// shadowBatch.end();
+		//
+		// env.shadowLight.end();
 
 		// Fog background color
 		shapeRenderer.begin(ShapeType.Filled);
@@ -300,11 +300,9 @@ public class GameScreen extends AbstractScreen {
 
 	@Override
 	public void show() {
-		Gdx.input.setInputProcessor(world.player.controller);
 		Gdx.input.setCursorCatched(true);
-
+		Gdx.input.setInputProcessor(world.player.controller);
 		world.music(true);
-
 	}
 
 	private void updateCrosshair() {

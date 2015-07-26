@@ -80,13 +80,12 @@ public class GameWorld implements Disposable {
 			"model/inside_level1.csv", //
 			"model/inside_level2.csv", //
 			"model/inside_level4_chair.csv", //
-			"model/inside_level6_ziggurat_room.csv", //
+			"model/inside_level8_ant_hive.csv", //
 			"model/inside_level3.csv", //
 			"model/inside_level9_pillars_in_a_hill_of_stairs.csv", //
+			"model/inside_level6_ziggurat_room.csv", //
 			"model/inside_level7_ziggurat_dissolved.csv", //
-			"model/inside_level8_ant_hive.csv", //
 			// "model/inside_level5_l.csv", //
-
 	};
 	public int currentLevel = 0;
 
