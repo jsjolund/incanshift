@@ -1,14 +1,18 @@
 package incanshift.player;
 
+import java.util.Random;
+
 import incanshift.world.GameSettings;
 
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.audio.Sound;
+import com.badlogic.gdx.utils.Array;
 
 public class PlayerSound {
 
-	Sound soundJump;
-	Sound soundShatter;
+	Array<Sound> soundJump = new Array<Sound>();
+	Array<Sound> soundMaskHit = new Array<Sound>();
+	Array<Sound> soundWallHit = new Array<Sound>();
 	Sound soundShoot;
 	Sound soundRun;
 	Sound soundWalk;
@@ -21,8 +25,24 @@ public class PlayerSound {
 	public PlayerSound(AssetManager assets) {
 
 		assets.finishLoading();
-		soundJump = assets.get("sound/jump.wav", Sound.class);
-		soundShatter = assets.get("sound/shatter.wav", Sound.class);
+		soundJump.add(assets.get("sound/jump1.wav", Sound.class));
+		soundJump.add(assets.get("sound/jump2.wav", Sound.class));
+		soundJump.add(assets.get("sound/jump3.wav", Sound.class));
+		soundJump.add(assets.get("sound/jump4.wav", Sound.class));
+
+		soundMaskHit.add(assets.get("sound/mask_hit1.wav", Sound.class));
+		soundMaskHit.add(assets.get("sound/mask_hit2.wav", Sound.class));
+		soundMaskHit.add(assets.get("sound/mask_hit3.wav", Sound.class));
+		soundMaskHit.add(assets.get("sound/mask_hit4.wav", Sound.class));
+
+		soundWallHit.add(assets.get("sound/wall_hit1.wav", Sound.class));
+		soundWallHit.add(assets.get("sound/wall_hit2.wav", Sound.class));
+		soundWallHit.add(assets.get("sound/wall_hit3.wav", Sound.class));
+		soundWallHit.add(assets.get("sound/wall_hit4.wav", Sound.class));
+		soundWallHit.add(assets.get("sound/wall_hit5.wav", Sound.class));
+		soundWallHit.add(assets.get("sound/wall_hit6.wav", Sound.class));
+		soundWallHit.add(assets.get("sound/wall_hit7.wav", Sound.class));
+
 		soundShoot = assets.get("sound/shoot.wav", Sound.class);
 		soundRun = assets.get("sound/run.wav", Sound.class);
 		soundWalk = assets.get("sound/walk.wav", Sound.class);
@@ -31,8 +51,25 @@ public class PlayerSound {
 
 	}
 
-	public void shatter() {
-		soundShatter.play(1.0f * GameSettings.SOUND_VOLUME);
+	private static Random rand = new Random();
+
+	public static int randInt(int min, int max) {
+		return rand.nextInt((max - min) + 1) + min;
+	}
+
+	public void maskHit() {
+		soundMaskHit.get(randInt(0, soundMaskHit.size - 1)).play(
+				1.0f * GameSettings.SOUND_VOLUME);
+	}
+
+	public void wallHit() {
+		soundWallHit.get(randInt(0, soundWallHit.size - 1)).play(
+				1.0f * GameSettings.SOUND_VOLUME);
+	}
+
+	public void jump() {
+		soundJump.get(randInt(0, soundJump.size - 1)).play(
+				1.0f * GameSettings.SOUND_VOLUME);
 	}
 
 	public void halt() {
@@ -42,10 +79,6 @@ public class PlayerSound {
 		soundClimbId = -1;
 	}
 
-	public void jump() {
-		soundJump.play(0.5f * GameSettings.SOUND_VOLUME);
-	}
-
 	public void move(boolean run) {
 		soundMove.stop(soundMoveId);
 		soundMoveId = (run) ? soundRun.loop(4.0f * GameSettings.SOUND_VOLUME)
@@ -53,7 +86,7 @@ public class PlayerSound {
 	}
 
 	public void shoot() {
-		soundShoot.play(0.5f * GameSettings.SOUND_VOLUME);
+		soundShoot.play(0.1f * GameSettings.SOUND_VOLUME);
 	}
 
 	public void climb() {

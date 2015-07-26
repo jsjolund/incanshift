@@ -294,9 +294,11 @@ public class Player implements Disposable {
 
 			if (hitObject != null) {
 				GameObject obj = world.getGameObject(hitObject);
-				if (obj.removable) {
+				if (obj.id.equals("mask")) {
 					world.destroy(obj);
-					sound.shatter();
+					sound.maskHit();
+				} else {
+					sound.wallHit();
 				}
 			}
 		}

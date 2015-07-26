@@ -203,6 +203,7 @@ public class GameScreen extends AbstractScreen {
 		modelBatch.end();
 
 		if (world.xRayMask) {
+			// Draw black overlay
 			Gdx.gl.glEnable(GL20.GL_BLEND);
 			Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
 			shapeRenderer.begin(ShapeType.Filled);
@@ -212,6 +213,7 @@ public class GameScreen extends AbstractScreen {
 			shapeRenderer.end();
 			Gdx.gl.glDisable(GL20.GL_BLEND);
 
+			// Draw markers where masks are
 			spriteBatch.begin();
 			spriteBatch.setProjectionMatrix(uiMatrix);
 			for (Entry<GameObject, BillboardOverlay> entry : world.billboardOverlays) {

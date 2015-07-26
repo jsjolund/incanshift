@@ -113,7 +113,7 @@ public class GameWorld implements Disposable {
 		this.game = game;
 		assets = new AssetManager();
 
-		// Load the 3D models and sounds used by the game
+		// Load the 3D models used by the game
 		assets.load("model/blowpipe.g3db", Model.class);
 		assets.load("model/grappling_hook.g3db", Model.class);
 		assets.load("model/grappling_hook_trail.g3db", Model.class);
@@ -124,8 +124,29 @@ public class GameWorld implements Disposable {
 		assets.load("model/shard.g3db", Model.class);
 		assets.load("model/hook_target.g3db", Model.class);
 
+		// Sounds
 		assets.load("sound/jump.wav", Sound.class);
+		assets.load("sound/jump1.wav", Sound.class);
+		assets.load("sound/jump2.wav", Sound.class);
+		assets.load("sound/jump3.wav", Sound.class);
+		assets.load("sound/jump4.wav", Sound.class);
+
 		assets.load("sound/shatter.wav", Sound.class);
+		assets.load("sound/mask_hit1.wav", Sound.class);
+		assets.load("sound/mask_hit2.wav", Sound.class);
+		assets.load("sound/mask_hit3.wav", Sound.class);
+		assets.load("sound/mask_hit4.wav", Sound.class);
+
+		assets.load("sound/wall_hit1.wav", Sound.class);
+		assets.load("sound/wall_hit2.wav", Sound.class);
+		assets.load("sound/wall_hit3.wav", Sound.class);
+		assets.load("sound/wall_hit4.wav", Sound.class);
+		assets.load("sound/wall_hit5.wav", Sound.class);
+		assets.load("sound/wall_hit6.wav", Sound.class);
+		assets.load("sound/wall_hit7.wav", Sound.class);
+
+		assets.load("sound/mask_pickup.wav", Sound.class);
+
 		assets.load("sound/shoot.wav", Sound.class);
 		assets.load("sound/run.wav", Sound.class);
 		assets.load("sound/walk.wav", Sound.class);
@@ -163,12 +184,24 @@ public class GameWorld implements Disposable {
 				collisionHandler.dynamicsWorld.removeCollisionObject(obj.body);
 			}
 		}
-		if (taskRemoveShards != null) {
+		if (taskRemoveShards != null && taskRemoveShards.isScheduled()) {
 			taskRemoveShards.cancel();
 			Gdx.app.debug(tag, "Canceled remove shards task");
 		}
+		// for (Entry<String, Array<GameObject>> entry : instances) {
+		// for (GameObject obj : entry.value) {
+		// System.out.println("destroy "+obj.id);
+		// destroy(obj);
+		// }
+		// }
 		instances.clear();
+		// for (Entry<GameObject, BillboardOverlay> entry : billboardOverlays) {
+		// entry.value.dispose();
+		// }
 		billboardOverlays.clear();
+		// for (Billboard b : billboards) {
+		// b.dispose();
+		// }
 		billboards.clear();
 		envTags.clear();
 		player.reset();
@@ -609,7 +642,7 @@ public class GameWorld implements Disposable {
 				loadNextLevel();
 			}
 		}
-		obj.dispose();
+		// obj.dispose();
 	}
 
 	public void loadNextLevel() {
