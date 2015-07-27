@@ -22,11 +22,11 @@ public class GameObject extends ModelInstance implements Disposable {
 	 */
 	public static class Constructor implements Disposable {
 
-		public final Model model;
+		private static Vector3 localInertia = new Vector3();
 
+		public final Model model;
 		public final btCollisionShape shape;
 		public final btRigidBody.btRigidBodyConstructionInfo constructionInfo;
-		private static Vector3 localInertia = new Vector3();
 
 		public Constructor(Model model, btCollisionShape shape, float mass) {
 			if (model == null) {
@@ -69,6 +69,9 @@ public class GameObject extends ModelInstance implements Disposable {
 	public final Vector3 dimensions = new Vector3();
 	public final float radius;
 	private final BoundingBox bounds = new BoundingBox();
+
+	public short belongsToFlag;
+	public short collidesWithFlag;
 
 	public GameObject(Model model,
 			btRigidBody.btRigidBodyConstructionInfo constructionInfo) {

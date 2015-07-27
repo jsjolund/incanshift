@@ -96,12 +96,14 @@ public class GameScreen extends AbstractScreen {
 						world.player.position.y
 								- GameSettings.PLAYER_HEIGHT / 2),
 				textX, textY * 2);
-		cache.addText(String.format(
-				"[WHITE]Game:[]    [RED]x=% .2f[]  [GREEN]y=% .2f[]  [BLUE]z=% .2f[]  [WHITE]v=% .2f",
-				world.player.position.x,
-				world.player.position.y - GameSettings.PLAYER_HEIGHT / 2,
-				world.player.position.z,
-				world.player.playerObject.body.getLinearVelocity().len()),
+		cache.addText(
+				String.format(
+						"[WHITE]Game:[]    [RED]x=% .2f[]  [GREEN]y=% .2f[]  [BLUE]z=% .2f[]  [WHITE]v=% .2f",
+						world.player.position.x,
+						world.player.position.y
+								- GameSettings.PLAYER_HEIGHT / 2,
+						world.player.position.z,
+						world.player.body.getLinearVelocity().len()),
 				textX, (textY));
 		monoTiny.getData().markupEnabled = false;
 		return cache;
@@ -114,9 +116,10 @@ public class GameScreen extends AbstractScreen {
 		world.music.pause();
 	}
 
-	@Override
-	public void pause() {
-		// TODO Auto-generated method stub
+	protected boolean isVisible(Camera cam, GameObject instance) {
+		instance.transform.getTranslation(position);
+		position.add(instance.center);
+		return cam.frustum.sphereInFrustum(position, instance.radius);
 	}
 
 	private ShaderProgram loadShader(String vertPath, String fragPath) {
@@ -134,10 +137,9 @@ public class GameScreen extends AbstractScreen {
 		return shader;
 	}
 
-	protected boolean isVisible(Camera cam, GameObject instance) {
-		instance.transform.getTranslation(position);
-		position.add(instance.center);
-		return cam.frustum.sphereInFrustum(position, instance.radius);
+	@Override
+	public void pause() {
+		// TODO Auto-generated method stub
 	}
 
 	// @SuppressWarnings("deprecation")
@@ -192,12 +194,12 @@ public class GameScreen extends AbstractScreen {
 		Gdx.gl.glEnable(GL20.GL_BLEND);
 		Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
 		modelBatch.begin(camera);
-		for (Billboard b : world.billboards) {
+		for (Billboard b : world.getBillboards()) {
 			if (b.modelInstance != null) {
 				modelBatch.render(b.modelInstance);
 			}
 		}
-		for (Entry<String, Array<GameObject>> entry : world.instances) {
+		for (Entry<String, Array<GameObject>> entry : world.getInstances()) {
 			for (GameObject obj : entry.value) {
 				// if (isVisible(camera, obj)) {
 				modelBatch.render(obj, env);
@@ -221,14 +223,19 @@ public class GameScreen extends AbstractScreen {
 			// Draw markers where masks are
 			spriteBatch.begin();
 			spriteBatch.setProjectionMatrix(uiMatrix);
-			for (Entry<GameObject, BillboardOverlay> entry : world.billboardOverlays) {
+			for (Entry<GameObject, BillboardOverlay> entry : world
+					.getBillboardOverlays()) {
 				BillboardOverlay o = entry.value;
-				o.setProjection(viewport);
-				spriteBatch.setShader(o.shader);
-				spriteBatch.draw(o.texture, o.screenPos.x - o.screenWidth / 2,
-						o.screenPos.y - o.screenHeight / 2, o.screenWidth,
-						o.screenHeight);
-				spriteBatch.setShader(null);
+
+				if (camera.frustum.pointInFrustum(o.worldPos)) {
+					o.setProjection(viewport);
+					spriteBatch.setShader(o.shader);
+					spriteBatch.draw(o.texture,
+							o.screenPos.x - o.screenWidth / 2,
+							o.screenPos.y - o.screenHeight / 2, o.screenWidth,
+							o.screenHeight);
+					spriteBatch.setShader(null);
+				}
 			}
 			spriteBatch.end();
 
@@ -269,7 +276,7 @@ public class GameScreen extends AbstractScreen {
 		shapeRenderer.end();
 
 		// Update environment from tags
-		env.update(world.envTags, world.player.position);
+		env.update(world.getEnvTags(), world.player.position);
 		camera.far = env.viewDistance;
 	}
 

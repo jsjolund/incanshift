@@ -24,11 +24,11 @@ class PlayerController implements InputProcessor {
 	private final Vector3 tmp = new Vector3();
 	private final Vector3 xzMouseRotation = new Vector3();
 	Vector3 directionOld = new Vector3();
-	float epsilonY = 0.01f;
+	float epsilonY = 0.008f;
 
 	private PlayerAction move = PlayerAction.WALK;
 
-//	private static final String tag = "PlayerController";
+	// private static final String tag = "PlayerController";
 
 	public PlayerController(Player player) {
 		this.player = player;
@@ -47,7 +47,8 @@ class PlayerController implements InputProcessor {
 	}
 
 	public void centerMouseCursor() {
-		Gdx.input.setCursorPosition((int) player.screenCenter.x, (int) player.screenCenter.y);
+		Gdx.input.setCursorPosition((int) player.screenCenter.x,
+				(int) player.screenCenter.y);
 	}
 
 	public Vector3 getMoveDirection() {
@@ -124,13 +125,16 @@ class PlayerController implements InputProcessor {
 		float mouseDx = screenX - player.screenCenter.x;
 		float mouseDy = screenY - player.screenCenter.y;
 
-		player.direction.rotate(xzMouseRotation.set(player.direction).crs(Vector3.Y), -mouseSens * mouseDy);
+		player.direction.rotate(
+				xzMouseRotation.set(player.direction).crs(Vector3.Y),
+				-mouseSens * mouseDy);
 
 		if (player.direction.isCollinear(Vector3.Y, epsilonY)
 				|| player.direction.isCollinearOpposite(Vector3.Y, epsilonY)) {
 			player.direction.set(directionOld);
 		}
 		player.direction.rotate(Vector3.Y, -mouseSens * mouseDx);
+
 		player.direction.nor();
 		centerMouseCursor();
 		return true;
@@ -143,7 +147,8 @@ class PlayerController implements InputProcessor {
 	}
 
 	@Override
-	public boolean touchDown(int screenX, int screenY, int pointer, int button) {
+	public boolean touchDown(int screenX, int screenY, int pointer,
+			int button) {
 		if (button == GameSettings.SHOOT) {
 			actionQueueAdd(PlayerAction.FIRE);
 		}

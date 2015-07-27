@@ -33,7 +33,7 @@ public class CollisionHandler implements Disposable {
 	private btCollisionConfiguration collisionConfig;
 	private btDispatcher dispatcher;
 
-	btDynamicsWorld dynamicsWorld;
+	private btDynamicsWorld dynamicsWorld;
 	private btConstraintSolver constraintSolver;
 	private btDbvtBroadphase broadphase;
 	private DebugDrawer debugDrawer;
@@ -54,8 +54,16 @@ public class CollisionHandler implements Disposable {
 
 	}
 
-	public void add(GameObject obj, short flag0, short flag1) {
-		dynamicsWorld.addRigidBody(obj.body, flag0, flag1);
+	public void add(GameObject obj) {
+		dynamicsWorld.addRigidBody(obj.body, obj.belongsToFlag, obj.collidesWithFlag);
+	}
+
+	public void remove(GameObject obj) {
+		dynamicsWorld.removeCollisionObject(obj.body);
+	}
+	
+	public void stepSimulation(float delta) {
+		dynamicsWorld.stepSimulation(delta, 5, 1f / 60f);
 	}
 
 	public void debugDrawWorld(Camera camera) {
@@ -74,8 +82,9 @@ public class CollisionHandler implements Disposable {
 	}
 
 	Vector3 tmp = new Vector3();
-	
-	public btRigidBody rayTest(Ray ray, Vector3 point, short mask, float maxDistance) {
+
+	public btRigidBody rayTest(Ray ray, Vector3 point, short mask,
+			float maxDistance) {
 		btRigidBody rb = null;
 
 		Vector3 rayFrom = new Vector3(ray.origin);

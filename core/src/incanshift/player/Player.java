@@ -6,11 +6,14 @@ import incanshift.world.CollisionHandler;
 import incanshift.world.GameSettings;
 import incanshift.world.GameWorld;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Camera;
+import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
+import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody.btRigidBodyConstructionInfo;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ArrayMap;
 import com.badlogic.gdx.utils.Disposable;
@@ -19,7 +22,7 @@ import com.badlogic.gdx.utils.Timer;
 import com.badlogic.gdx.utils.Timer.Task;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
-public class Player implements Disposable {
+public class Player extends GameObject implements Disposable {
 
 	enum PlayerAction {
 		STOP("stop"), WALK("walk"), RUN("run"),
@@ -76,7 +79,7 @@ public class Player implements Disposable {
 	private Viewport viewport;
 	public Vector3 screenCenter;
 
-	public GameObject playerObject;
+	// public GameObject playerObject;
 
 	// private PlayerContactListener contactListener;
 	public PlayerController controller;
@@ -130,7 +133,7 @@ public class Player implements Disposable {
 	Task teleportTask = new Task() {
 		@Override
 		public void run() {
-			playerObject.position(teleportPosition);
+			position(teleportPosition);
 			isGrappling = true;
 			grapplingBlocked = false;
 		}
@@ -144,19 +147,42 @@ public class Player implements Disposable {
 
 	Array<GameObject> hookTrail;
 
-	public Player(IncanShift game, GameObject playerObject,
-			Vector3 screenCenter, Viewport viewport, GameWorld world,
-			PlayerSound sound) {
+	// public Player(IncanShift game, GameObject playerObject,
+	// Vector3 screenCenter, Viewport viewport, GameWorld world,
+	// PlayerSound sound) {
+	// this.viewport = viewport;
+	// this.game = game;
+	// this.world = world;
+	// this.playerObject = playerObject;
+	// this.sound = sound;
+	// this.screenCenter = screenCenter;
+	//
+	// direction = new Vector3(GameSettings.PLAYER_START_DIR);
+	//
+	// playerObject.transform.getTranslation(position);
+	// // contactListener = new PlayerContactListener();
+	// // contactListener.enable();
+	//
+	// controller = new PlayerController(this);
+	// hookTrail = new Array<GameObject>();
+	// hookTrail.ordered = true;
+	// }
+
+	public Player(Model model, btRigidBodyConstructionInfo constructionInfo,
+			IncanShift game, Vector3 screenCenter, Viewport viewport,
+			GameWorld world, PlayerSound sound) {
+
+		super(model, constructionInfo);
+
 		this.viewport = viewport;
 		this.game = game;
 		this.world = world;
-		this.playerObject = playerObject;
 		this.sound = sound;
 		this.screenCenter = screenCenter;
 
 		direction = new Vector3(GameSettings.PLAYER_START_DIR);
 
-		playerObject.transform.getTranslation(position);
+		transform.getTranslation(position);
 		// contactListener = new PlayerContactListener();
 		// contactListener.enable();
 
@@ -167,7 +193,7 @@ public class Player implements Disposable {
 
 	public void reset() {
 		inventory.clear();
-		playerObject.body.setGravity(GameSettings.GRAVITY);
+		body.setGravity(GameSettings.GRAVITY);
 		isJumping = false;
 		isGrappling = false;
 	}
@@ -191,19 +217,17 @@ public class Player implements Disposable {
 
 	private void handleGrappling() {
 		if (controller.actionQueueContains(PlayerAction.HOOK)
-				&& inventory.containsKey("hook") && !teleportTask.isScheduled()
-				&& !grapplingBlocked) {
+				// && inventory.containsKey("hook")
+				&& !teleportTask.isScheduled() && !grapplingBlocked) {
 
 			ray.set(viewport.getCamera().position,
 					viewport.getCamera().direction);
 			float distance = 1000;
 
-			btRigidBody hitObject = world
-					.rayTest(
-							ray,
-							teleportPosition,
-							(short) (CollisionHandler.GROUND_FLAG | CollisionHandler.OBJECT_FLAG),
-							distance);
+			btRigidBody hitObject = world.rayTest(ray, teleportPosition,
+					(short) (CollisionHandler.GROUND_FLAG
+							| CollisionHandler.OBJECT_FLAG),
+					distance);
 
 			if (hitObject != null) {
 				if (!teleportTask.isScheduled()) {
@@ -226,8 +250,8 @@ public class Player implements Disposable {
 				sound.jump();
 
 			} else if (isJumping) {
-				playerObject.body.applyCentralForce(new Vector3(up)
-						.scl(GameSettings.PLAYER_JUMP_FORCE));
+				body.applyCentralForce(
+						new Vector3(up).scl(GameSettings.PLAYER_JUMP_FORCE));
 			}
 		} else {
 			isJumping = false;
@@ -252,7 +276,7 @@ public class Player implements Disposable {
 			moveDirection.y = 0;
 		}
 
-		velocity.set(playerObject.body.getLinearVelocity());
+		velocity.set(body.getLinearVelocity());
 		velocityXZ.set(velocity.x, 0, velocity.z);
 		float currentSpeed = velocityXZ.len();
 
@@ -278,22 +302,23 @@ public class Player implements Disposable {
 
 	private void handleShooting() {
 		if (controller.actionQueueContains(PlayerAction.FIRE) && !gunHidden) {
-
+			Gdx.app.debug(tag, "Shooting");
 			sound.shoot();
 
 			ray.set(viewport.getCamera().position,
 					viewport.getCamera().direction);
 			float distance = 100;
 
-			btRigidBody hitObject = world
-					.rayTest(
-							ray,
-							tmp,
-							(short) (CollisionHandler.GROUND_FLAG | CollisionHandler.OBJECT_FLAG),
-							distance);
+			btRigidBody hitObject = world.rayTest(ray, tmp,
+					(short) (CollisionHandler.GROUND_FLAG
+							| CollisionHandler.OBJECT_FLAG),
+					distance);
+			Gdx.app.debug(tag, "Hit object: " + hitObject);
 
 			if (hitObject != null) {
 				GameObject obj = world.getGameObject(hitObject);
+				Gdx.app.debug(tag, "World object: " + obj);
+
 				if (obj.id.equals("mask")) {
 					world.destroy(obj);
 					sound.maskHit();
@@ -301,11 +326,13 @@ public class Player implements Disposable {
 					sound.wallHit();
 				}
 			}
+			Gdx.app.debug(tag, "Finished shooting");
 		}
 	}
 
 	private void handleUsing() {
-		if (controller.actionQueueContains(PlayerAction.USE) && carried == null) {
+		if (controller.actionQueueContains(PlayerAction.USE)
+				&& carried == null) {
 
 			Ray ray = viewport.getCamera().getPickRay(screenCenter.x,
 					screenCenter.y);
@@ -339,15 +366,15 @@ public class Player implements Disposable {
 			positionCarried.set(direction).nor().scl(2f).add(position);
 			positionCarried.y += 1.5f;
 
-			float forceGrab = positionCarried.dst(carried.body
-					.getCenterOfMassPosition()) * 1000;
+			float forceGrab = positionCarried
+					.dst(carried.body.getCenterOfMassPosition()) * 1000;
 			Vector3 forceGrabVector = positionCarried.cpy()
 					.sub(carried.body.getCenterOfMassPosition()).nor()
 					.scl(forceGrab);
-			carried.body.setLinearVelocity(carried.body.getLinearVelocity()
-					.scl(0.5f));
-			carried.body.setAngularVelocity(carried.body.getAngularVelocity()
-					.scl(0.5f));
+			carried.body.setLinearVelocity(
+					carried.body.getLinearVelocity().scl(0.5f));
+			carried.body.setAngularVelocity(
+					carried.body.getAngularVelocity().scl(0.5f));
 			carried.body.applyCentralForce(forceGrabVector);
 		}
 	}
@@ -358,10 +385,9 @@ public class Player implements Disposable {
 		ray.set(position, up.cpy().scl(-1));
 		float distance = GameSettings.PLAYER_HEIGHT / 2 + 0.5f;
 		return world
-				.rayTest(
-						ray,
-						tmp,
-						(short) (CollisionHandler.GROUND_FLAG | CollisionHandler.OBJECT_FLAG),
+				.rayTest(ray, tmp,
+						(short) (CollisionHandler.GROUND_FLAG
+								| CollisionHandler.OBJECT_FLAG),
 						distance) != null;
 	}
 
@@ -411,17 +437,17 @@ public class Player implements Disposable {
 			// Toggle gravity each time fly button is pressed
 			if (!isFlying) {
 				isFlying = true;
-				playerObject.body.setGravity(Vector3.Zero);
+				body.setGravity(Vector3.Zero);
 			} else {
 				isFlying = false;
-				playerObject.body.setGravity(GameSettings.GRAVITY);
+				body.setGravity(GameSettings.GRAVITY);
 			}
 		} else if (isGrappling) {
-			playerObject.body.setGravity(Vector3.Zero);
-			playerObject.body.setLinearVelocity(Vector3.Zero);
+			body.setGravity(Vector3.Zero);
+			body.setLinearVelocity(Vector3.Zero);
 			if (!moveDirection.isZero()) {
 				isGrappling = false;
-				playerObject.body.setGravity(GameSettings.GRAVITY);
+				body.setGravity(GameSettings.GRAVITY);
 			}
 		}
 
@@ -434,18 +460,17 @@ public class Player implements Disposable {
 
 		// React to input
 		setMoveMode(isOnGround);
-		handleShooting();
 		handleGrappling();
 		handleUsing();
 		handleMoving(true);
 		handleJumping(isOnGround);
 
 		// Set the transforms
-		playerObject.body.setLinearVelocity(velocity);
-		playerObject.body.setAngularVelocity(Vector3.Zero);
-		playerObject.body.getWorldTransform(playerObject.transform);
-		playerObject.transform.getTranslation(position);
-		playerObject.calculateTransforms();
+		body.setLinearVelocity(velocity);
+		body.setAngularVelocity(Vector3.Zero);
+		body.getWorldTransform(transform);
+		transform.getTranslation(position);
+		calculateTransforms();
 
 		// Update camera
 		Camera camera = viewport.getCamera();
@@ -457,6 +482,8 @@ public class Player implements Disposable {
 
 		updateEquip(delta);
 
+		handleShooting();
+
 		controller.actionQueueClear();
 	}
 
@@ -464,7 +491,7 @@ public class Player implements Disposable {
 
 		for (Entry<String, GameObject> entry : inventory) {
 			GameObject obj = entry.value;
-			obj.position(Vector3.Zero);
+			obj.position(position);
 		}
 
 		if (currentEquip == null) {
@@ -481,8 +508,8 @@ public class Player implements Disposable {
 			equipLeftRightPosition.set(direction).crs(Vector3.Y).nor()
 					.scl(0.075f);
 			equipFrontBackPosition.set(direction).nor().scl(0.3f);
-			equipUpDownPosition.set(direction).nor()
-					.crs(equipLeftRightPosition).nor().scl(0.080f);
+			equipUpDownPosition.set(direction).nor().crs(equipLeftRightPosition)
+					.nor().scl(0.080f);
 
 		} else if (currentEquip.id == "hook") {
 			// gunBaseTransform.rotate(Vector3.X, 90);
@@ -490,8 +517,8 @@ public class Player implements Disposable {
 			equipLeftRightPosition.set(direction).crs(Vector3.Y).nor()
 					.scl(0.01f);
 			equipFrontBackPosition.set(direction).nor().scl(0.4f);
-			equipUpDownPosition.set(direction).nor()
-					.crs(equipLeftRightPosition).nor().scl(0.1f);
+			equipUpDownPosition.set(direction).nor().crs(equipLeftRightPosition)
+					.nor().scl(0.1f);
 		} else if (currentEquip.id == "gun") {
 			// gun.body.setWorldTransform(gunBaseTransform);
 			// gunLeftRightPosition.set(direction).crs(Vector3.Y).nor().scl(0.075f);
@@ -505,7 +532,8 @@ public class Player implements Disposable {
 			yOffset = 0;
 
 		} else {
-			float moveSpeed = (moveMode == PlayerAction.RUN) ? GameSettings.PLAYER_RUN_SPEED
+			float moveSpeed = (moveMode == PlayerAction.RUN)
+					? GameSettings.PLAYER_RUN_SPEED
 					: GameSettings.PLAYER_WALK_SPEED;
 			moveSpeed *= 0.0015;
 			double moveLimitY = 0.005;
@@ -527,8 +555,7 @@ public class Player implements Disposable {
 		currentEquip.body.translate(equipLeftRightPosition);
 		currentEquip.body.translate(equipFrontBackPosition);
 		currentEquip.body.translate(equipUpDownPosition);
-		currentEquip.body.setLinearVelocity(playerObject.body
-				.getLinearVelocity());
+		currentEquip.body.setLinearVelocity(body.getLinearVelocity());
 		currentEquip.body.getWorldTransform(currentEquip.transform);
 	}
 }
