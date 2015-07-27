@@ -74,7 +74,7 @@ public class GameObject extends ModelInstance implements Disposable {
 	public short collidesWithFlag;
 
 	public GameObject(Model model,
-			btRigidBody.btRigidBodyConstructionInfo constructionInfo) {
+					  btRigidBody.btRigidBodyConstructionInfo constructionInfo) {
 		super(model);
 		body = new btRigidBody(constructionInfo);
 

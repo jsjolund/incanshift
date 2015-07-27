@@ -30,7 +30,7 @@ public class GameObjectFactory implements Disposable {
 
 	/**
 	 * Create a model of a 3D compass with arrows along the three axis.
-	 * 
+	 *
 	 * @return
 	 */
 	private static Model buildCompassModel() {
@@ -62,12 +62,11 @@ public class GameObjectFactory implements Disposable {
 	}
 
 	/**
-	 * 
 	 * Object factory blueprint for a 3D model along with an appropriate
 	 * collision shape.
 	 */
 	private static void createFactoryDefs(AssetManager assets,
-			ArrayMap<String, GameObject.Constructor> gameObjectMap) {
+										  ArrayMap<String, GameObject.Constructor> gameObjectMap) {
 		Gdx.app.debug(tag, "Building factory def models.");
 
 		Model modelCompass = buildCompassModel();
@@ -184,7 +183,7 @@ public class GameObjectFactory implements Disposable {
 	public boolean containsKey(String name) {
 		return gameObjectMap.containsKey(name);
 	}
-	
+
 	public void remove(String name) {
 		gameObjectMap.removeKey(name);
 	}

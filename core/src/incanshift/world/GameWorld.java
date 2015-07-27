@@ -82,7 +82,7 @@ public class GameWorld implements Disposable {
 	public boolean xRayMask = false;
 
 	public GameWorld(IncanShift game, Viewport viewport, Vector3 screenCenter,
-			BitmapFont font) {
+					 BitmapFont font) {
 		Gdx.app.debug(tag, String.format("Creating game world"));
 		// this.font = font;
 		this.viewport = viewport;
@@ -90,33 +90,7 @@ public class GameWorld implements Disposable {
 
 		// Sounds
 		assets = new AssetManager();
-		assets.load("sound/jump.wav", Sound.class);
-		assets.load("sound/jump1.wav", Sound.class);
-		assets.load("sound/jump2.wav", Sound.class);
-		assets.load("sound/jump3.wav", Sound.class);
-		assets.load("sound/jump4.wav", Sound.class);
-
-		assets.load("sound/shatter.wav", Sound.class);
-		assets.load("sound/mask_hit1.wav", Sound.class);
-		assets.load("sound/mask_hit2.wav", Sound.class);
-		assets.load("sound/mask_hit3.wav", Sound.class);
-		assets.load("sound/mask_hit4.wav", Sound.class);
-
-		assets.load("sound/wall_hit1.wav", Sound.class);
-		assets.load("sound/wall_hit2.wav", Sound.class);
-		assets.load("sound/wall_hit3.wav", Sound.class);
-		assets.load("sound/wall_hit4.wav", Sound.class);
-		assets.load("sound/wall_hit5.wav", Sound.class);
-		assets.load("sound/wall_hit6.wav", Sound.class);
-		assets.load("sound/wall_hit7.wav", Sound.class);
-
-		assets.load("sound/mask_pickup.wav", Sound.class);
-
-		assets.load("sound/shoot.wav", Sound.class);
-		assets.load("sound/run.wav", Sound.class);
-		assets.load("sound/walk.wav", Sound.class);
-		assets.load("sound/climb.wav", Sound.class);
-		assets.load("sound/music_game.ogg", Music.class);
+		assets.load("sound/ambience_music.ogg", Music.class);
 
 		Bullet.init();
 		gameObjectFactory = new GameObjectFactory();
@@ -129,6 +103,8 @@ public class GameWorld implements Disposable {
 			Gdx.app.debug(tag, "Could not load assets, ", e);
 		}
 		Gdx.app.debug(tag, String.format("Assets finished loading."));
+
+		music = assets.get("sound/ambience_music.ogg", Music.class);
 
 		// Create a player, a gun and load the level from CSV
 		player = spawnPlayer(game, viewport, screenCenter);
@@ -268,10 +244,11 @@ public class GameWorld implements Disposable {
 
 	public void music(boolean on) {
 		// Play some music
-		music = assets.get("sound/music_game.ogg", Music.class);
-		music.play();
-		music.setVolume(0.3f * GameSettings.MUSIC_VOLUME);
-		music.setLooping(true);
+		if (music != null) {
+			music.play();
+			music.setVolume(1f * GameSettings.MUSIC_VOLUME);
+			music.setLooping(true);
+		}
 	}
 
 	private Vector3 randAndNor(Vector3 v) {
@@ -288,18 +265,9 @@ public class GameWorld implements Disposable {
 	}
 
 	public btRigidBody rayTest(Ray ray, Vector3 point, short mask,
-			float maxDistance) {
+							   float maxDistance) {
 		return collisionHandler.rayTest(ray, point, mask, maxDistance);
 	}
-
-	// public void destroy(GameObject obj) {
-	// collisionHandler.dynamicsWorld.removeCollisionObject(obj.body);
-	// currentLevel.instances.get(obj.id).removeValue(obj, true);
-	//
-	// Gdx.app.debug(tag, String.format("Destroyed %s, %s remaining.", obj.id,
-	// currentLevel.numberSpawned(obj.id)));
-	// obj.dispose();
-	// }
 
 	public void reloadLevel() {
 		loadLevel(currentLevelIndex);
@@ -335,9 +303,9 @@ public class GameWorld implements Disposable {
 	}
 
 	public Player spawnPlayer(IncanShift game, Viewport viewport,
-			Vector3 screenCenter) {
+							  Vector3 screenCenter) {
 		Gdx.app.debug(tag, "Creating player");
-		PlayerSound sound = new PlayerSound(assets);
+		PlayerSound sound = new PlayerSound();
 
 		Model model = gameObjectFactory.get("player").model;
 
@@ -384,7 +352,6 @@ public class GameWorld implements Disposable {
 		player.update(delta);
 		player.body.getWorldTransform(player.transform);
 
-		System.out.println("Finished update");
 	}
 
 }

@@ -148,7 +148,7 @@ class PlayerController implements InputProcessor {
 
 	@Override
 	public boolean touchDown(int screenX, int screenY, int pointer,
-			int button) {
+							 int button) {
 		if (button == GameSettings.SHOOT) {
 			actionQueueAdd(PlayerAction.FIRE);
 		}

@@ -130,7 +130,7 @@ public class Level implements Disposable {
 
 	/**
 	 * Read a CSV file and create the objects listed in it.
-	 * 
+	 *
 	 * @param csv
 	 */
 	private void loadLevelCSV(String csvPath) {
@@ -213,30 +213,22 @@ public class Level implements Disposable {
 	 * Spawn a game object from the factory and add it to the world. If not
 	 * defined in factory, load the model from file system and generate a static
 	 * collision shape for it.
-	 * 
-	 * @param name
-	 *            Factory name for the object.
-	 * @param pos
-	 *            Object position.
-	 * @param rot
-	 *            Object rotation.
-	 * @param movable
-	 *            True if the player can move this object.
-	 * @param removable
-	 *            True if the player can destroy this object.
-	 * @param noDeactivate
-	 *            True if collision simulation should never be suspended for
-	 *            this object.
-	 * @param belongsToFlag
-	 *            Collision flag/mask for the group this object belongs to.
-	 * @param collidesWithFlag
-	 *            Collision flag/mask for the group this object can collide
-	 *            with.
+	 *
+	 * @param name             Factory name for the object.
+	 * @param pos              Object position.
+	 * @param rot              Object rotation.
+	 * @param movable          True if the player can move this object.
+	 * @param removable        True if the player can destroy this object.
+	 * @param noDeactivate     True if collision simulation should never be suspended for
+	 *                         this object.
+	 * @param belongsToFlag    Collision flag/mask for the group this object belongs to.
+	 * @param collidesWithFlag Collision flag/mask for the group this object can collide
+	 *                         with.
 	 * @return The created game object.
 	 */
 	public GameObject spawn(String name, Vector3 pos, Vector3 rot,
-			boolean movable, boolean removable, boolean noDeactivate,
-			boolean callback, short belongsToFlag, short collidesWithFlag) {
+							boolean movable, boolean removable, boolean noDeactivate,
+							boolean callback, short belongsToFlag, short collidesWithFlag) {
 
 		if (!gameObjectFactory.containsKey(name)) {
 			String filePath = String.format("model/%s.g3db", name);

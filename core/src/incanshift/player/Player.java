@@ -169,8 +169,8 @@ public class Player extends GameObject implements Disposable {
 	// }
 
 	public Player(Model model, btRigidBodyConstructionInfo constructionInfo,
-			IncanShift game, Vector3 screenCenter, Viewport viewport,
-			GameWorld world, PlayerSound sound) {
+				  IncanShift game, Vector3 screenCenter, Viewport viewport,
+				  GameWorld world, PlayerSound sound) {
 
 		super(model, constructionInfo);
 
@@ -230,6 +230,7 @@ public class Player extends GameObject implements Disposable {
 					distance);
 
 			if (hitObject != null) {
+				sound.grapple();
 				if (!teleportTask.isScheduled()) {
 					Timer.schedule(teleportTask,
 							GameSettings.PLAYER_GRAPPLE_TELEPORT_TIME);

@@ -13,7 +13,7 @@ public class EnvTag {
 	public Vector3 position;
 
 	public EnvTag(Vector3 position, float tagFadeDistance,
-			float tagEffectDistance, Color color, float tagMinViewDistance) {
+				  float tagEffectDistance, Color color, float tagMinViewDistance) {
 		this.position = position;
 		this.fadeDistance = tagFadeDistance;
 		this.effectDistance = tagEffectDistance;

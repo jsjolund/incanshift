@@ -1,5 +1,6 @@
 package incanshift.screen;
 
+import com.badlogic.gdx.utils.Array;
 import incanshift.IncanShift;
 import incanshift.screen.menu.Menu;
 import incanshift.screen.menu.MenuItem;
@@ -24,6 +25,8 @@ import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Disposable;
 
+import java.util.Random;
+
 public abstract class AbstractMenuScreen extends AbstractScreen implements Disposable {
 
 	class MenuInputProcessor implements InputProcessor {
@@ -37,11 +40,11 @@ public abstract class AbstractMenuScreen extends AbstractScreen implements Dispo
 			}
 			if ((keycode == GameSettings.FORWARD || keycode == Keys.UP)) {
 				selectedItem = menu.getUp(selectedItem);
-				soundClick.play(GameSettings.SOUND_VOLUME);
+				soundClick();
 			}
 			if ((keycode == GameSettings.BACKWARD || keycode == Keys.DOWN)) {
 				selectedItem = menu.getDown(selectedItem);
-				soundClick.play(GameSettings.SOUND_VOLUME);
+				soundClick();
 			}
 
 			if (keycode == Keys.ENTER
@@ -49,7 +52,7 @@ public abstract class AbstractMenuScreen extends AbstractScreen implements Dispo
 				game.toggleFullscreen();
 
 			} else if (keycode == Keys.SPACE || keycode == Keys.ENTER) {
-				soundEnter.play(GameSettings.SOUND_VOLUME);
+				soundEnter();
 				enterSelected();
 			}
 			if (keycode == Keys.ESCAPE) {
@@ -86,7 +89,7 @@ public abstract class AbstractMenuScreen extends AbstractScreen implements Dispo
 			for (MenuItem item : menu) {
 				if (item.selectable && item.getBounds().contains(vx, vy)) {
 					if (item != selectedItem) {
-						soundClick.play(GameSettings.SOUND_VOLUME);
+						soundClick();
 					}
 					selectedItem = item;
 					break;
@@ -111,7 +114,7 @@ public abstract class AbstractMenuScreen extends AbstractScreen implements Dispo
 
 			for (MenuItem item : menu) {
 				if (item.getBounds().contains(vx, vy)) {
-					soundEnter.play(GameSettings.SOUND_VOLUME);
+					soundEnter();
 					enterSelected();
 					break;
 				}
@@ -147,8 +150,18 @@ public abstract class AbstractMenuScreen extends AbstractScreen implements Dispo
 	boolean itemValueSelected = false;
 	MenuItem backItem;
 
-	Sound soundClick;
-	Sound soundEnter;
+	protected void soundClick() {
+		soundClick.get(randInt(0, soundClick.size - 1)).play(
+				1.0f * GameSettings.SOUND_VOLUME);
+	}
+
+	protected void soundEnter() {
+		soundEnter.get(randInt(0, soundEnter.size - 1)).play(
+				1.0f * GameSettings.SOUND_VOLUME);
+	}
+
+	private Array<Sound> soundClick = new Array<Sound>();
+	private Array<Sound> soundEnter = new Array<Sound>();
 
 	Color valueUnselectedColor = Color.LIGHT_GRAY;
 	Color valueSelectedColor = Color.YELLOW;
@@ -157,9 +170,18 @@ public abstract class AbstractMenuScreen extends AbstractScreen implements Dispo
 
 	FrameBuffer fbo = null;
 
-	public AbstractMenuScreen(IncanShift game, int reqWidth, int reqHeight, String musicFile) {
+	AbstractMenuScreen parentMenu;
+
+	private static Random rand = new Random();
+
+	private static int randInt(int min, int max) {
+		return rand.nextInt((max - min) + 1) + min;
+	}
+
+	public AbstractMenuScreen(IncanShift game, AbstractMenuScreen parentMenu, int reqWidth, int reqHeight, String musicFile) {
 		super(game, reqWidth, reqHeight);
 		this.musicFile = musicFile;
+		this.parentMenu = parentMenu;
 
 		input = new MenuInputProcessor();
 		try {
@@ -168,13 +190,30 @@ public abstract class AbstractMenuScreen extends AbstractScreen implements Dispo
 			Gdx.app.debug(tag, "Cannot set cursor pixmap..", e);
 		}
 		assets = new AssetManager();
-		assets.load(musicFile, Music.class);
-		assets.load("sound/click.wav", Sound.class);
-		assets.load("sound/enter.wav", Sound.class);
 
+		assets.load("sound/menu1.ogg", Sound.class);
+		assets.load("sound/menu2.ogg", Sound.class);
+		assets.load("sound/menu3.ogg", Sound.class);
+		assets.load("sound/menu4.ogg", Sound.class);
+		assets.load("sound/menu5.ogg", Sound.class);
+		assets.load("sound/menu6.ogg", Sound.class);
+		assets.load("sound/menu_long.ogg", Sound.class);
+
+		if (musicFile != null) {
+			assets.load(musicFile, Music.class);
+		}
 		assets.finishLoading();
-		soundClick = assets.get("sound/click.wav", Sound.class);
-		soundEnter = assets.get("sound/enter.wav", Sound.class);
+		soundClick.add(assets.get("sound/menu1.ogg", Sound.class));
+		soundClick.add(assets.get("sound/menu2.ogg", Sound.class));
+		soundClick.add(assets.get("sound/menu3.ogg", Sound.class));
+		soundClick.add(assets.get("sound/menu4.ogg", Sound.class));
+		soundClick.add(assets.get("sound/menu5.ogg", Sound.class));
+
+		soundEnter.add(assets.get("sound/menu6.ogg", Sound.class));
+//        soundEnter.add(assets.get("sound/menu_long.ogg", Sound.class));
+		if (musicFile != null) {
+			music = assets.get(musicFile, Music.class);
+		}
 	}
 
 	public void setBackgroundImage(Pixmap pixmap) {
@@ -282,7 +321,9 @@ public abstract class AbstractMenuScreen extends AbstractScreen implements Dispo
 
 	@Override
 	public void hide() {
-		music.stop();
+		if (music != null) {
+			music.pause();
+		}
 	}
 
 	abstract boolean keyDownCapture(int keycode);
@@ -358,11 +399,12 @@ public abstract class AbstractMenuScreen extends AbstractScreen implements Dispo
 		Gdx.input.setCursorCatched(false);
 		Gdx.input.setInputProcessor(input);
 
-		music = assets.get(musicFile, Music.class);
-		music.play();
-		music.setVolume(1f * GameSettings.MUSIC_VOLUME);
-		music.setLooping(true);
-
+		Music m = (music != null) ? music : parentMenu.music;
+		if (m != null) {
+			m.play();
+			m.setVolume(1f * GameSettings.MUSIC_VOLUME);
+			m.setLooping(true);
+		}
 	}
 
 }

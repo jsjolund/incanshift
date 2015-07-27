@@ -59,9 +59,9 @@ public class WorldEnvironment extends Environment implements Disposable {
 	/**
 	 * Updates the environment, view distance, fog color, sky color based on how
 	 * close the player is to tags in the map.
-	 * 
+	 * <p/>
 	 * Can produce a fog like effect or a bright light effect.
-	 * 
+	 *
 	 * @param envTags
 	 * @param playerPosition
 	 */

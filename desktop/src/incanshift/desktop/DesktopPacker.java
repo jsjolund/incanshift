@@ -17,8 +17,8 @@ public class DesktopPacker {
 		config.jar = "/home/user/inca.jar";
 		config.mainClass = "incanshift/desktop/DesktopLauncher";
 		config.vmArgs = Arrays.asList("-Xmx1G");
-		config.minimizeJre = new String[] { "jre/lib/rt/com/sun/corba",
-				"jre/lib/rt/com/sun/jndi" };
+		config.minimizeJre = new String[]{"jre/lib/rt/com/sun/corba",
+				"jre/lib/rt/com/sun/jndi"};
 		config.outDir = "out-windows";
 
 		try {

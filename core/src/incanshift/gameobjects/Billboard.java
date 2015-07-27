@@ -32,8 +32,8 @@ public class Billboard implements Disposable {
 	public final static String tag = "Billboard";
 
 	private static Model createPlaneModel(final float width,
-			final float height, final Material material, final float u1,
-			final float v1, final float u2, final float v2) {
+										  final float height, final Material material, final float u1,
+										  final float v1, final float u2, final float v2) {
 
 		ModelBuilder modelBuilder = new ModelBuilder();
 		modelBuilder.begin();
@@ -66,7 +66,7 @@ public class Billboard implements Disposable {
 
 	/**
 	 * Draw text on the billboard.
-	 * 
+	 *
 	 * @param worldPos
 	 * @param worldWidth
 	 * @param worldHeight
@@ -77,8 +77,8 @@ public class Billboard implements Disposable {
 	 * @param font
 	 */
 	public Billboard(Vector3 worldPos, float worldWidth, float worldHeight,
-			float viewDistance, String msg, Color textColor, Color bkgColor,
-			BitmapFont font) {
+					 float viewDistance, String msg, Color textColor, Color bkgColor,
+					 BitmapFont font) {
 
 		this.worldPos.set(worldPos);
 		this.worldWidth = worldWidth;

@@ -10,12 +10,12 @@ public class CreditScreen extends AbstractMenuScreen {
 
 	MenuItem back;
 	BitmapFont menuFont;
-	
-	public CreditScreen(IncanShift game, int reqWidth, int reqHeight) {
-		super(game, reqWidth, reqHeight, "sound/music_credits.ogg");
-		
+
+	public CreditScreen(IncanShift game, AbstractMenuScreen parentMenu, int reqWidth, int reqHeight) {
+		super(game, parentMenu, reqWidth, reqHeight, null);
+
 		menuFont = sansLarge;
-		
+
 		back = new MenuItem("Back", null, true);
 
 		Menu menu = new Menu();

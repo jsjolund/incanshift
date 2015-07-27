@@ -1,10 +1,6 @@
 package incanshift;
 
-import incanshift.screen.AbstractScreen;
-import incanshift.screen.CreditScreen;
-import incanshift.screen.GameScreen;
-import incanshift.screen.SettingsScreen;
-import incanshift.screen.StartScreen;
+import incanshift.screen.*;
 import incanshift.world.GameSettings;
 
 import com.badlogic.gdx.Game;
@@ -45,10 +41,10 @@ public class IncanShift extends Game {
 	public void create() {
 		game = this;
 
-		GameSettings.MUSIC_VOLUME = 0;
+		GameSettings.MUSIC_VOLUME = 1;
 		GameSettings.SOUND_VOLUME = 1;
 
-		startScreen = new StartScreen(game, reqWidth, reqHeight);
+		startScreen = new StartScreen(game, null, reqWidth, reqHeight);
 		currentScreen = startScreen;
 		setScreen(startScreen);
 
@@ -65,6 +61,14 @@ public class IncanShift extends Game {
 			startScreen.setBackgroundImage(scrot);
 		}
 		setScreen(startScreen);
+	}
+
+	public void showMenu(AbstractMenuScreen menu) {
+		currentScreen = menu;
+		if (scrot != null) {
+			menu.setBackgroundImage(scrot);
+		}
+		setScreen(menu);
 	}
 
 	public void showStartScreen(Pixmap bkg) {
@@ -84,7 +88,7 @@ public class IncanShift extends Game {
 
 	public void showCreditScreen() {
 		if (creditScreen == null) {
-			creditScreen = new CreditScreen(game, reqWidth, reqHeight);
+			creditScreen = new CreditScreen(game, startScreen, reqWidth, reqHeight);
 		}
 		if (scrot != null) {
 			creditScreen.setBackgroundImage(scrot);
@@ -95,7 +99,7 @@ public class IncanShift extends Game {
 
 	public void showSettingsScreen() {
 		if (settingsScreen == null) {
-			settingsScreen = new SettingsScreen(game, reqWidth, reqHeight);
+			settingsScreen = new SettingsScreen(game, startScreen, reqWidth, reqHeight);
 		}
 		if (scrot != null) {
 			settingsScreen.setBackgroundImage(scrot);

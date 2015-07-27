@@ -33,11 +33,11 @@ public class SettingsScreen extends AbstractMenuScreen {
 
 	ArrayMap<Integer, MenuItem> keycodeUses = new ArrayMap<Integer, MenuItem>();
 
-	public SettingsScreen(IncanShift game, int reqWidth, int reqHeight) {
-		super(game, reqWidth, reqHeight, "sound/music_menu.ogg");
+	public SettingsScreen(IncanShift game, AbstractMenuScreen parentMenu, int reqWidth, int reqHeight) {
+		super(game, parentMenu, reqWidth, reqHeight, null);
 
 		menuFont = sansNormal;
-		
+
 		backItem = new MenuItem("Back", null, true);
 		keyFireItem = new MenuItem("Fire/Throw", "Left Mouse", false);
 		keyGrappleItem = new MenuItem("Grappling Hook", "Right Mouse", false);

@@ -34,7 +34,7 @@ public class BillboardOverlay implements Disposable {
 
 	/**
 	 * Draw a shader on the billboard.
-	 * 
+	 *
 	 * @param worldPos
 	 * @param worldWidth
 	 * @param worldHeight
@@ -43,8 +43,8 @@ public class BillboardOverlay implements Disposable {
 	 * @param fragPath
 	 */
 	public BillboardOverlay(Vector3 worldPos, float worldWidth,
-			float worldHeight, float viewDistance, String vertPath,
-			String fragPath) {
+							float worldHeight, float viewDistance, String vertPath,
+							String fragPath) {
 		this.worldPos.set(worldPos);
 		this.worldWidth = worldWidth;
 		this.worldHeight = worldHeight;

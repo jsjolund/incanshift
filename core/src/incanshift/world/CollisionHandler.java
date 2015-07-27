@@ -61,7 +61,7 @@ public class CollisionHandler implements Disposable {
 	public void remove(GameObject obj) {
 		dynamicsWorld.removeCollisionObject(obj.body);
 	}
-	
+
 	public void stepSimulation(float delta) {
 		dynamicsWorld.stepSimulation(delta, 5, 1f / 60f);
 	}
@@ -84,7 +84,7 @@ public class CollisionHandler implements Disposable {
 	Vector3 tmp = new Vector3();
 
 	public btRigidBody rayTest(Ray ray, Vector3 point, short mask,
-			float maxDistance) {
+							   float maxDistance) {
 		btRigidBody rb = null;
 
 		Vector3 rayFrom = new Vector3(ray.origin);

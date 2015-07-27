@@ -10,51 +10,87 @@ import com.badlogic.gdx.utils.Array;
 
 public class PlayerSound {
 
+	AssetManager assets;
+
 	Array<Sound> soundJump = new Array<Sound>();
 	Array<Sound> soundMaskHit = new Array<Sound>();
 	Array<Sound> soundWallHit = new Array<Sound>();
-	Sound soundShoot;
-	Sound soundRun;
-	Sound soundWalk;
-	Sound soundMove;
-	Sound soundClimb;
 
-	long soundMoveId = -1;
-	long soundClimbId = -1;
+	private Sound soundGrapple;
+	private Sound soundShoot;
+	private Sound soundRun;
+	private Sound soundWalk;
+	private Sound soundMove;
 
-	public PlayerSound(AssetManager assets) {
+	private long soundMoveId = -1;
+	private long soundGrappleId = -1;
+
+	public PlayerSound() {
+		assets = new AssetManager();
+
+		assets.load("sound/jump.ogg", Sound.class);
+		assets.load("sound/jump1.ogg", Sound.class);
+		assets.load("sound/jump2.ogg", Sound.class);
+		assets.load("sound/jump3.ogg", Sound.class);
+		assets.load("sound/jump4.ogg", Sound.class);
+
+		assets.load("sound/mask_hit1.ogg", Sound.class);
+		assets.load("sound/mask_hit2.ogg", Sound.class);
+		assets.load("sound/mask_hit3.ogg", Sound.class);
+		assets.load("sound/mask_hit4.ogg", Sound.class);
+
+		assets.load("sound/wall_hit1.ogg", Sound.class);
+		assets.load("sound/wall_hit2.ogg", Sound.class);
+		assets.load("sound/wall_hit3.ogg", Sound.class);
+		assets.load("sound/wall_hit4.ogg", Sound.class);
+		assets.load("sound/wall_hit5.ogg", Sound.class);
+		assets.load("sound/wall_hit6.ogg", Sound.class);
+		assets.load("sound/wall_hit7.ogg", Sound.class);
+
+		assets.load("sound/mask_pickup.ogg", Sound.class);
+
+		assets.load("sound/shoot.ogg", Sound.class);
+		assets.load("sound/hook.ogg", Sound.class);
+		assets.load("sound/run.ogg", Sound.class);
+		assets.load("sound/walk.ogg", Sound.class);
 
 		assets.finishLoading();
-		soundJump.add(assets.get("sound/jump1.wav", Sound.class));
-		soundJump.add(assets.get("sound/jump2.wav", Sound.class));
-		soundJump.add(assets.get("sound/jump3.wav", Sound.class));
-		soundJump.add(assets.get("sound/jump4.wav", Sound.class));
 
-		soundMaskHit.add(assets.get("sound/mask_hit1.wav", Sound.class));
-		soundMaskHit.add(assets.get("sound/mask_hit2.wav", Sound.class));
-		soundMaskHit.add(assets.get("sound/mask_hit3.wav", Sound.class));
-		soundMaskHit.add(assets.get("sound/mask_hit4.wav", Sound.class));
+		soundJump.add(assets.get("sound/jump1.ogg", Sound.class));
+		soundJump.add(assets.get("sound/jump2.ogg", Sound.class));
+		soundJump.add(assets.get("sound/jump3.ogg", Sound.class));
+		soundJump.add(assets.get("sound/jump4.ogg", Sound.class));
 
-		soundWallHit.add(assets.get("sound/wall_hit1.wav", Sound.class));
-		soundWallHit.add(assets.get("sound/wall_hit2.wav", Sound.class));
-		soundWallHit.add(assets.get("sound/wall_hit3.wav", Sound.class));
-		soundWallHit.add(assets.get("sound/wall_hit4.wav", Sound.class));
-		soundWallHit.add(assets.get("sound/wall_hit5.wav", Sound.class));
-		soundWallHit.add(assets.get("sound/wall_hit6.wav", Sound.class));
-		soundWallHit.add(assets.get("sound/wall_hit7.wav", Sound.class));
+		soundMaskHit.add(assets.get("sound/mask_hit1.ogg", Sound.class));
+		soundMaskHit.add(assets.get("sound/mask_hit2.ogg", Sound.class));
+		soundMaskHit.add(assets.get("sound/mask_hit3.ogg", Sound.class));
+		soundMaskHit.add(assets.get("sound/mask_hit4.ogg", Sound.class));
 
-		soundShoot = assets.get("sound/shoot.wav", Sound.class);
-		soundRun = assets.get("sound/run.wav", Sound.class);
-		soundWalk = assets.get("sound/walk.wav", Sound.class);
-		soundClimb = assets.get("sound/climb.wav", Sound.class);
+		soundWallHit.add(assets.get("sound/wall_hit1.ogg", Sound.class));
+		soundWallHit.add(assets.get("sound/wall_hit2.ogg", Sound.class));
+		soundWallHit.add(assets.get("sound/wall_hit3.ogg", Sound.class));
+		soundWallHit.add(assets.get("sound/wall_hit4.ogg", Sound.class));
+		soundWallHit.add(assets.get("sound/wall_hit5.ogg", Sound.class));
+		soundWallHit.add(assets.get("sound/wall_hit6.ogg", Sound.class));
+		soundWallHit.add(assets.get("sound/wall_hit7.ogg", Sound.class));
+
+		soundShoot = assets.get("sound/shoot.ogg", Sound.class);
+		soundGrapple = assets.get("sound/hook.ogg", Sound.class);
+		soundRun = assets.get("sound/run.ogg", Sound.class);
+		soundWalk = assets.get("sound/walk.ogg", Sound.class);
 		soundMove = soundWalk;
 
 	}
 
 	private static Random rand = new Random();
 
-	public static int randInt(int min, int max) {
+	private static int randInt(int min, int max) {
 		return rand.nextInt((max - min) + 1) + min;
+	}
+
+	public void grapple() {
+		soundGrappleId = soundGrapple.play(0.5f * GameSettings.SOUND_VOLUME);
+		soundGrapple.setPitch(soundGrappleId, 2f);
 	}
 
 	public void maskHit() {
@@ -74,9 +110,7 @@ public class PlayerSound {
 
 	public void halt() {
 		soundMove.stop(soundMoveId);
-		soundClimb.stop(soundClimbId);
 		soundMoveId = -1;
-		soundClimbId = -1;
 	}
 
 	public void move(boolean run) {
@@ -89,10 +123,4 @@ public class PlayerSound {
 		soundShoot.play(0.1f * GameSettings.SOUND_VOLUME);
 	}
 
-	public void climb() {
-		soundMove.stop(soundMoveId);
-		if (soundClimbId == -1) {
-			soundClimbId = soundClimb.loop(1.0f * GameSettings.SOUND_VOLUME);
-		}
-	}
 }

@@ -16,14 +16,14 @@ public class StartScreen extends AbstractMenuScreen {
 	MenuItem credits;
 	MenuItem options;
 	MenuItem start;
-	
+
 	BitmapFont menuFont;
-	
-	public StartScreen(IncanShift game, int reqWidth, int reqHeight) {
-		super(game, reqWidth, reqHeight, "sound/music_menu.ogg");
-		
+
+	public StartScreen(IncanShift game, AbstractMenuScreen parentMenu, int reqWidth, int reqHeight) {
+		super(game, parentMenu, reqWidth, reqHeight, "sound/music_menu.ogg");
+
 		menuFont = sansLarge;
-		
+
 		back = new MenuItem("Exit", null, true);
 		credits = new MenuItem("Credits", null, true);
 		options = new MenuItem("Options", null, true);
