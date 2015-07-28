@@ -42,10 +42,13 @@ public abstract class AbstractMenuScreen extends AbstractScreen implements Dispo
 	MenuItem selectedItem;
 	boolean itemValueSelected = false;
 	MenuItem backItem;
-	Color valueUnselectedColor = Color.LIGHT_GRAY;
+
+//	Color valueUnselectedColor = Color.LIGHT_GRAY;
+	Color valueUnselectedColor = new Color(1,1,1,0.7f);
 	Color valueSelectedColor = Color.YELLOW;
-	Color keyUnselectedColor = Color.LIGHT_GRAY;
+	Color keyUnselectedColor = new Color(1,1,1,0.7f);
 	Color keySelectedColor = Color.WHITE;
+
 	FrameBuffer fbo = null;
 	AbstractMenuScreen parentMenu;
 	private Array<Sound> soundClick;
@@ -128,7 +131,7 @@ public abstract class AbstractMenuScreen extends AbstractScreen implements Dispo
 		}
 
 		fbo.begin();
-		Gdx.graphics.getGL20().glClearColor(1, 1, 1, 0);
+		Gdx.graphics.getGL20().glClearColor(0, 0, 1, 0);
 
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
 
