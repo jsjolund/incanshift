@@ -17,62 +17,17 @@ import com.badlogic.gdx.utils.Disposable;
  */
 public class GameObject extends ModelInstance implements Disposable {
 
-	/**
-	 * Constructor class for game objects
-	 */
-	public static class Constructor implements Disposable {
-
-		private static Vector3 localInertia = new Vector3();
-
-		public final Model model;
-		public final btCollisionShape shape;
-		public final btRigidBody.btRigidBodyConstructionInfo constructionInfo;
-
-		public Constructor(Model model, btCollisionShape shape, float mass) {
-			if (model == null) {
-				this.model = new ModelBuilder().createXYZCoordinates(1,
-						new Material(), Usage.Position | Usage.Normal);
-			} else {
-				this.model = model;
-			}
-			this.shape = shape;
-			if (mass > 0f) {
-				shape.calculateLocalInertia(mass, localInertia);
-			} else {
-				localInertia.set(0, 0, 0);
-			}
-			this.constructionInfo = new btRigidBody.btRigidBodyConstructionInfo(
-					mass, null, shape, localInertia);
-
-		}
-
-		public GameObject construct() {
-			return new GameObject(model, constructionInfo);
-		}
-
-		@Override
-		public void dispose() {
-			shape.dispose();
-			constructionInfo.dispose();
-		}
-
-	}
-
 	final static String tag = "GameObject";
-
 	public final btRigidBody body;
-	public boolean removable = false;
-	public boolean movable = false;
-	public String id;
-
 	public final Vector3 center = new Vector3();
 	public final Vector3 dimensions = new Vector3();
 	public final float radius;
 	private final BoundingBox bounds = new BoundingBox();
-
+	public boolean removable = false;
+	public boolean movable = false;
+	public String id;
 	public short belongsToFlag;
 	public short collidesWithFlag;
-
 	public GameObject(Model model,
 					  btRigidBody.btRigidBodyConstructionInfo constructionInfo) {
 		super(model);
@@ -116,6 +71,47 @@ public class GameObject extends ModelInstance implements Disposable {
 		transform.trn(translation);
 		calculateTransforms();
 		body.setWorldTransform(transform);
+	}
+
+	/**
+	 * Constructor class for game objects
+	 */
+	public static class Constructor implements Disposable {
+
+		private static Vector3 localInertia = new Vector3();
+
+		public final Model model;
+		public final btCollisionShape shape;
+		public final btRigidBody.btRigidBodyConstructionInfo constructionInfo;
+
+		public Constructor(Model model, btCollisionShape shape, float mass) {
+			if (model == null) {
+				this.model = new ModelBuilder().createXYZCoordinates(1,
+						new Material(), Usage.Position | Usage.Normal);
+			} else {
+				this.model = model;
+			}
+			this.shape = shape;
+			if (mass > 0f) {
+				shape.calculateLocalInertia(mass, localInertia);
+			} else {
+				localInertia.set(0, 0, 0);
+			}
+			this.constructionInfo = new btRigidBody.btRigidBodyConstructionInfo(
+					mass, null, shape, localInertia);
+
+		}
+
+		public GameObject construct() {
+			return new GameObject(model, constructionInfo);
+		}
+
+		@Override
+		public void dispose() {
+			shape.dispose();
+			constructionInfo.dispose();
+		}
+
 	}
 
 }

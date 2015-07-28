@@ -1,7 +1,5 @@
 package incanshift.world;
 
-import java.util.Arrays;
-
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.Color;
@@ -14,35 +12,23 @@ import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ArrayMap;
 import com.badlogic.gdx.utils.Disposable;
 import com.badlogic.gdx.utils.ObjectMap.Entry;
-
-import incanshift.gameobjects.Billboard;
-import incanshift.gameobjects.BillboardOverlay;
-import incanshift.gameobjects.EnvTag;
-import incanshift.gameobjects.GameObject;
-import incanshift.gameobjects.GameObjectFactory;
-import incanshift.gameobjects.TextParser;
+import incanshift.gameobjects.*;
 import incanshift.screen.AbstractScreen;
+
+import java.util.Arrays;
 
 public class Level implements Disposable {
 
 	public static final String tag = "Level";
-
-	private static Vector3 blenderToGameCoords(Vector3 v) {
-		return v.set(v.x, v.z, -v.y);
-	}
-
 	public Array<Billboard> billboards;
 	public ArrayMap<GameObject, BillboardOverlay> billboardOverlays;
 	public Array<EnvTag> envTags;
 	public ArrayMap<String, Array<GameObject>> instances;
-
-	private Array<String> nonFactoryDef;
-
 	// public ModelInstance skybox;
 	public Vector3 playerStartPosition = new Vector3();
 	GameObjectFactory gameObjectFactory;
-
 	AssetManager assets = new AssetManager();
+	private Array<String> nonFactoryDef;
 
 	public Level(String csvPath, GameObjectFactory gameObjectFactory) {
 		this.gameObjectFactory = gameObjectFactory;
@@ -56,6 +42,10 @@ public class Level implements Disposable {
 		// skybox = new ModelInstance(
 		// assets.get("model/skybox.g3db", Model.class));
 		Gdx.app.debug(tag, "Finished constructing level from " + csvPath);
+	}
+
+	private static Vector3 blenderToGameCoords(Vector3 v) {
+		return v.set(v.x, v.z, -v.y);
 	}
 
 	private void addInstance(GameObject obj) {
@@ -83,13 +73,6 @@ public class Level implements Disposable {
 			Gdx.app.debug(tag, "Removing custom factory def " + id);
 			gameObjectFactory.remove(id);
 		}
-	}
-
-	private class BlenderTag {
-		String name;
-		int index;
-		Vector3 pos = new Vector3();
-		Vector3 rot = new Vector3();
 	}
 
 	private Array<BlenderTag> readtags(String csvPath) {
@@ -290,6 +273,13 @@ public class Level implements Disposable {
 		billboards.add(new Billboard(pos, 2f, 2f, 20f, text, textColor,
 				bkgColor, AbstractScreen.sansHuge));
 
+	}
+
+	private class BlenderTag {
+		String name;
+		int index;
+		Vector3 pos = new Vector3();
+		Vector3 rot = new Vector3();
 	}
 
 }

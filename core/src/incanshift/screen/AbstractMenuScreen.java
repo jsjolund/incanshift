@@ -1,12 +1,5 @@
 package incanshift.screen;
 
-import com.badlogic.gdx.graphics.glutils.ShaderProgram;
-import com.badlogic.gdx.utils.Array;
-import incanshift.IncanShift;
-import incanshift.screen.menu.Menu;
-import incanshift.screen.menu.MenuItem;
-import incanshift.world.GameSettings;
-
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.InputProcessor;
@@ -24,120 +17,19 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.FrameBuffer;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
+import incanshift.IncanShift;
+import incanshift.screen.menu.Menu;
+import incanshift.screen.menu.MenuItem;
+import incanshift.world.GameSettings;
 
 import java.util.Random;
 
 public abstract class AbstractMenuScreen extends AbstractScreen implements Disposable {
 
-	class MenuInputProcessor implements InputProcessor {
-
-		Vector3 tmp = new Vector3();
-
-		@Override
-		public boolean keyDown(int keycode) {
-			if (keyDownCapture(keycode)) {
-				return true;
-			}
-			if ((keycode == GameSettings.FORWARD || keycode == Keys.UP)) {
-				selectedItem = menu.getUp(selectedItem);
-				soundClick();
-			}
-			if ((keycode == GameSettings.BACKWARD || keycode == Keys.DOWN)) {
-				selectedItem = menu.getDown(selectedItem);
-				soundClick();
-			}
-
-			if (keycode == Keys.ENTER
-					&& (Gdx.input.isKeyPressed(Keys.ALT_LEFT) || Gdx.input.isKeyPressed(Keys.ALT_RIGHT))) {
-				game.toggleFullscreen();
-
-			} else if (keycode == Keys.SPACE || keycode == Keys.ENTER) {
-				soundEnter();
-				enterSelected();
-			}
-			if (keycode == Keys.ESCAPE) {
-				selectedItem = backItem;
-				enterSelected();
-			}
-			lastKeycode = keycode;
-			return true;
-		}
-
-		@Override
-		public boolean keyTyped(char character) {
-			if (keyTypedCapture(character)) {
-				return true;
-			}
-			return false;
-
-		}
-
-		@Override
-		public boolean keyUp(int keycode) {
-			// TODO Auto-generated method stub
-			return true;
-		}
-
-		@Override
-		public boolean mouseMoved(int screenX, int screenY) {
-			if (mouseMovedCapture(screenX, screenY)) {
-				return true;
-			}
-			float vx = screenXtoViewportX(screenX);
-			float vy = screenYtoViewportY(screenY);
-
-			for (MenuItem item : menu) {
-				if (item.selectable && item.getBounds().contains(vx, vy)) {
-					if (item != selectedItem) {
-						soundClick();
-					}
-					selectedItem = item;
-					break;
-				}
-			}
-			return true;
-		}
-
-		@Override
-		public boolean scrolled(int amount) {
-			// TODO Auto-generated method stub
-			return false;
-		}
-
-		@Override
-		public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-			if (touchDownCapture(screenX, screenY)) {
-				return true;
-			}
-			float vx = screenXtoViewportX(screenX);
-			float vy = screenYtoViewportY(screenY);
-
-			for (MenuItem item : menu) {
-				if (item.getBounds().contains(vx, vy)) {
-					soundEnter();
-					enterSelected();
-					break;
-				}
-			}
-			return true;
-		}
-
-		@Override
-		public boolean touchDragged(int screenX, int screenY, int pointer) {
-			// TODO Auto-generated method stub
-			return false;
-		}
-
-		@Override
-		public boolean touchUp(int screenX, int screenY, int pointer, int button) {
-			// TODO Auto-generated method stub
-			return false;
-		}
-	}
-
 	public static final String tag = "AbstractMenuScreen";
-
+	private static Random rand = new Random();
 	AssetManager assets;
 	Music music;
 	String musicFile;
@@ -150,33 +42,14 @@ public abstract class AbstractMenuScreen extends AbstractScreen implements Dispo
 	MenuItem selectedItem;
 	boolean itemValueSelected = false;
 	MenuItem backItem;
-
-	protected void soundClick() {
-		soundClick.get(randInt(0, soundClick.size - 1)).play(
-				1.0f * GameSettings.SOUND_VOLUME);
-	}
-
-	protected void soundEnter() {
-		soundEnter.get(randInt(0, soundEnter.size - 1)).play(
-				1.0f * GameSettings.SOUND_VOLUME);
-	}
-
-	private Array<Sound> soundClick;
-	private Array<Sound> soundEnter;
-
 	Color valueUnselectedColor = Color.LIGHT_GRAY;
 	Color valueSelectedColor = Color.YELLOW;
 	Color keyUnselectedColor = Color.LIGHT_GRAY;
 	Color keySelectedColor = Color.WHITE;
-
 	FrameBuffer fbo = null;
 	AbstractMenuScreen parentMenu;
-
-	private static Random rand = new Random();
-
-	private static int randInt(int min, int max) {
-		return rand.nextInt((max - min) + 1) + min;
-	}
+	private Array<Sound> soundClick;
+	private Array<Sound> soundEnter;
 
 	public AbstractMenuScreen(IncanShift game, AbstractMenuScreen parentMenu, int reqWidth, int reqHeight, String musicFile) {
 		super(game, reqWidth, reqHeight);
@@ -215,6 +88,20 @@ public abstract class AbstractMenuScreen extends AbstractScreen implements Dispo
 			music = assets.get(musicFile, Music.class);
 		}
 
+	}
+
+	private static int randInt(int min, int max) {
+		return rand.nextInt((max - min) + 1) + min;
+	}
+
+	protected void soundClick() {
+		soundClick.get(randInt(0, soundClick.size - 1)).play(
+				1.0f * GameSettings.SOUND_VOLUME);
+	}
+
+	protected void soundEnter() {
+		soundEnter.get(randInt(0, soundEnter.size - 1)).play(
+				1.0f * GameSettings.SOUND_VOLUME);
 	}
 
 	public void setBackgroundImage(Pixmap pixmap) {
@@ -407,6 +294,112 @@ public abstract class AbstractMenuScreen extends AbstractScreen implements Dispo
 			m.play();
 			m.setVolume(1f * GameSettings.MUSIC_VOLUME);
 			m.setLooping(true);
+		}
+	}
+
+	class MenuInputProcessor implements InputProcessor {
+
+		Vector3 tmp = new Vector3();
+
+		@Override
+		public boolean keyDown(int keycode) {
+			if (keyDownCapture(keycode)) {
+				return true;
+			}
+			if ((keycode == GameSettings.FORWARD || keycode == Keys.UP)) {
+				selectedItem = menu.getUp(selectedItem);
+				soundClick();
+			}
+			if ((keycode == GameSettings.BACKWARD || keycode == Keys.DOWN)) {
+				selectedItem = menu.getDown(selectedItem);
+				soundClick();
+			}
+
+			if (keycode == Keys.ENTER
+					&& (Gdx.input.isKeyPressed(Keys.ALT_LEFT) || Gdx.input.isKeyPressed(Keys.ALT_RIGHT))) {
+				game.toggleFullscreen();
+
+			} else if (keycode == Keys.SPACE || keycode == Keys.ENTER) {
+				soundEnter();
+				enterSelected();
+			}
+			if (keycode == Keys.ESCAPE) {
+				selectedItem = backItem;
+				enterSelected();
+			}
+			lastKeycode = keycode;
+			return true;
+		}
+
+		@Override
+		public boolean keyTyped(char character) {
+			if (keyTypedCapture(character)) {
+				return true;
+			}
+			return false;
+
+		}
+
+		@Override
+		public boolean keyUp(int keycode) {
+			// TODO Auto-generated method stub
+			return true;
+		}
+
+		@Override
+		public boolean mouseMoved(int screenX, int screenY) {
+			if (mouseMovedCapture(screenX, screenY)) {
+				return true;
+			}
+			float vx = screenXtoViewportX(screenX);
+			float vy = screenYtoViewportY(screenY);
+
+			for (MenuItem item : menu) {
+				if (item.selectable && item.getBounds().contains(vx, vy)) {
+					if (item != selectedItem) {
+						soundClick();
+					}
+					selectedItem = item;
+					break;
+				}
+			}
+			return true;
+		}
+
+		@Override
+		public boolean scrolled(int amount) {
+			// TODO Auto-generated method stub
+			return false;
+		}
+
+		@Override
+		public boolean touchDown(int screenX, int screenY, int pointer, int button) {
+			if (touchDownCapture(screenX, screenY)) {
+				return true;
+			}
+			float vx = screenXtoViewportX(screenX);
+			float vy = screenYtoViewportY(screenY);
+
+			for (MenuItem item : menu) {
+				if (item.getBounds().contains(vx, vy)) {
+					soundEnter();
+					enterSelected();
+					break;
+				}
+			}
+			return true;
+		}
+
+		@Override
+		public boolean touchDragged(int screenX, int screenY, int pointer) {
+			// TODO Auto-generated method stub
+			return false;
+		}
+
+		@Override
+		public boolean touchUp(int screenX, int screenY, int pointer, int button) {
+			// TODO Auto-generated method stub
+			return false;
 		}
 	}
 

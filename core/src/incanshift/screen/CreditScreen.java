@@ -1,7 +1,6 @@
 package incanshift.screen;
 
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
-
 import incanshift.IncanShift;
 import incanshift.screen.menu.Menu;
 import incanshift.screen.menu.MenuItem;

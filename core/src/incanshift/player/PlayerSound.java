@@ -1,27 +1,24 @@
 package incanshift.player;
 
-import java.util.Random;
-
-import incanshift.world.GameSettings;
-
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.utils.Array;
+import incanshift.world.GameSettings;
+
+import java.util.Random;
 
 public class PlayerSound {
 
+	private static Random rand = new Random();
 	AssetManager assets;
-
 	Array<Sound> soundJump = new Array<Sound>();
 	Array<Sound> soundMaskHit = new Array<Sound>();
 	Array<Sound> soundWallHit = new Array<Sound>();
-
 	private Sound soundGrapple;
 	private Sound soundShoot;
 	private Sound soundRun;
 	private Sound soundWalk;
 	private Sound soundMove;
-
 	private long soundMoveId = -1;
 	private long soundGrappleId = -1;
 
@@ -81,8 +78,6 @@ public class PlayerSound {
 		soundMove = soundWalk;
 
 	}
-
-	private static Random rand = new Random();
 
 	private static int randInt(int min, int max) {
 		return rand.nextInt((max - min) + 1) + min;

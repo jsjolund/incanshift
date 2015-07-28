@@ -1,24 +1,14 @@
 package incanshift.world;
 
-import incanshift.gameobjects.GameObject;
-
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.physics.bullet.DebugDrawer;
-import com.badlogic.gdx.physics.bullet.collision.ClosestRayResultCallback;
-import com.badlogic.gdx.physics.bullet.collision.btCollisionConfiguration;
-import com.badlogic.gdx.physics.bullet.collision.btCollisionDispatcher;
-import com.badlogic.gdx.physics.bullet.collision.btDbvtBroadphase;
-import com.badlogic.gdx.physics.bullet.collision.btDefaultCollisionConfiguration;
-import com.badlogic.gdx.physics.bullet.collision.btDispatcher;
-import com.badlogic.gdx.physics.bullet.dynamics.btConstraintSolver;
-import com.badlogic.gdx.physics.bullet.dynamics.btDiscreteDynamicsWorld;
-import com.badlogic.gdx.physics.bullet.dynamics.btDynamicsWorld;
-import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
-import com.badlogic.gdx.physics.bullet.dynamics.btSequentialImpulseConstraintSolver;
+import com.badlogic.gdx.physics.bullet.collision.*;
+import com.badlogic.gdx.physics.bullet.dynamics.*;
 import com.badlogic.gdx.physics.bullet.linearmath.btIDebugDraw;
 import com.badlogic.gdx.utils.Disposable;
+import incanshift.gameobjects.GameObject;
 
 public class CollisionHandler implements Disposable {
 
@@ -29,10 +19,9 @@ public class CollisionHandler implements Disposable {
 	public final static short GROUND_FLAG = 1 << 8;
 	public final static short OBJECT_FLAG = 1 << 9;
 	public final static short ALL_FLAG = -1;
-
+	Vector3 tmp = new Vector3();
 	private btCollisionConfiguration collisionConfig;
 	private btDispatcher dispatcher;
-
 	private btDynamicsWorld dynamicsWorld;
 	private btConstraintSolver constraintSolver;
 	private btDbvtBroadphase broadphase;
@@ -80,8 +69,6 @@ public class CollisionHandler implements Disposable {
 		broadphase.dispose();
 		constraintSolver.dispose();
 	}
-
-	Vector3 tmp = new Vector3();
 
 	public btRigidBody rayTest(Ray ray, Vector3 point, short mask,
 							   float maxDistance) {

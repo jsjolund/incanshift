@@ -1,10 +1,5 @@
 package incanshift.screen;
 
-import incanshift.IncanShift;
-import incanshift.screen.menu.Menu;
-import incanshift.screen.menu.MenuItem;
-import incanshift.world.GameSettings;
-
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.graphics.Color;
@@ -12,9 +7,19 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.utils.ArrayMap;
 import com.badlogic.gdx.utils.ObjectMap.Entry;
+import incanshift.IncanShift;
+import incanshift.screen.menu.Menu;
+import incanshift.screen.menu.MenuItem;
+import incanshift.world.GameSettings;
 
 public class SettingsScreen extends AbstractMenuScreen {
 
+	boolean capturing = false;
+	BitmapFont menuFont;
+	ArrayMap<Integer, MenuItem> keycodeUses = new ArrayMap<Integer, MenuItem>();
+	float msgXpos = 0;
+	float msgYpos = 30;
+	String msg = null;
 	private MenuItem backItem;
 	private MenuItem fullscreenItem;
 	private MenuItem keyFireItem;
@@ -27,11 +32,6 @@ public class SettingsScreen extends AbstractMenuScreen {
 	private MenuItem keyStrafeRightItem;
 	private MenuItem keyBackwardItem;
 	private MenuItem keyForwardItem;
-
-	boolean capturing = false;
-	BitmapFont menuFont;
-
-	ArrayMap<Integer, MenuItem> keycodeUses = new ArrayMap<Integer, MenuItem>();
 
 	public SettingsScreen(IncanShift game, AbstractMenuScreen parentMenu, int reqWidth, int reqHeight) {
 		super(game, parentMenu, reqWidth, reqHeight, null);
@@ -179,10 +179,6 @@ public class SettingsScreen extends AbstractMenuScreen {
 
 		return true;
 	}
-
-	float msgXpos = 0;
-	float msgYpos = 30;
-	String msg = null;
 
 	@Override
 	public void render(float delta) {

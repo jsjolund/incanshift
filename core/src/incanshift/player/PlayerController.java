@@ -1,31 +1,29 @@
 package incanshift.player;
 
-import incanshift.player.Player.PlayerAction;
-import incanshift.world.GameSettings;
-
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
-import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.Input.Keys;
+import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.IntIntMap;
 import com.badlogic.gdx.utils.Timer;
 import com.badlogic.gdx.utils.Timer.Task;
+import incanshift.player.Player.PlayerAction;
+import incanshift.world.GameSettings;
 
 class PlayerController implements InputProcessor {
 
-	private Player player;
 	private final IntIntMap keys = new IntIntMap();
 	private final IntIntMap actionQueue = new IntIntMap();
-	private boolean jumpKeyReleased = true;
-	private boolean flyKeyReleased = true;
-	private boolean jumpTimerRunning = true;
 	private final Vector3 moveDirection = new Vector3();
 	private final Vector3 tmp = new Vector3();
 	private final Vector3 xzMouseRotation = new Vector3();
 	Vector3 directionOld = new Vector3();
 	float epsilonY = 0.008f;
-
+	private Player player;
+	private boolean jumpKeyReleased = true;
+	private boolean flyKeyReleased = true;
+	private boolean jumpTimerRunning = true;
 	private PlayerAction move = PlayerAction.WALK;
 
 	// private static final String tag = "PlayerController";

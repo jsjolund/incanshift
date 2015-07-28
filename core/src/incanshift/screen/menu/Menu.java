@@ -1,14 +1,13 @@
 package incanshift.screen.menu;
 
-import java.util.Iterator;
-
 import com.badlogic.gdx.utils.Array;
+
+import java.util.Iterator;
 
 public class Menu implements Iterable<MenuItem> {
 
-	private Array<MenuItem> items = new Array<MenuItem>();
-
 	static float textVerticalSpacing = 5;
+	private Array<MenuItem> items = new Array<MenuItem>();
 
 	public void dispose() {
 		items.get(0).texKeySelected.getTexture().dispose();

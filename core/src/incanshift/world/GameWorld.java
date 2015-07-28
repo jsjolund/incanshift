@@ -1,20 +1,8 @@
 package incanshift.world;
 
-import java.util.Random;
-
-import incanshift.IncanShift;
-import incanshift.gameobjects.Billboard;
-import incanshift.gameobjects.BillboardOverlay;
-import incanshift.gameobjects.EnvTag;
-import incanshift.gameobjects.GameObject;
-import incanshift.gameobjects.GameObjectFactory;
-import incanshift.player.Player;
-import incanshift.player.PlayerSound;
-
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.audio.Music;
-import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.math.Vector3;
@@ -23,14 +11,16 @@ import com.badlogic.gdx.physics.bullet.Bullet;
 import com.badlogic.gdx.physics.bullet.collision.Collision;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
-import com.badlogic.gdx.utils.Array;
-import com.badlogic.gdx.utils.ArrayMap;
-import com.badlogic.gdx.utils.Disposable;
-import com.badlogic.gdx.utils.GdxRuntimeException;
+import com.badlogic.gdx.utils.*;
 import com.badlogic.gdx.utils.ObjectMap.Entry;
-import com.badlogic.gdx.utils.Timer;
 import com.badlogic.gdx.utils.Timer.Task;
 import com.badlogic.gdx.utils.viewport.Viewport;
+import incanshift.IncanShift;
+import incanshift.gameobjects.*;
+import incanshift.player.Player;
+import incanshift.player.PlayerSound;
+
+import java.util.Random;
 
 /*
  * Contains 3d model and collision body definitions for the objects
@@ -45,17 +35,8 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 public class GameWorld implements Disposable {
 
 	final static String tag = "GameWorld";
-
-	private AssetManager assets;
 	public CollisionHandler collisionHandler;
-
-	Level currentLevel;
 	public int currentLevelIndex = 0;
-
-	IncanShift game;
-
-	// public ArrayMap<String, Array<GameObject>> instances;
-
 	public GameObjectFactory gameObjectFactory;
 	public String[] levels = { //
 			// "model/outside_level.csv", //
@@ -70,16 +51,16 @@ public class GameWorld implements Disposable {
 			"model/inside_level7_ziggurat_dissolved.csv", //
 			// "model/inside_level5_l.csv", //
 	};
-
 	public Music music;
 
+	// public ArrayMap<String, Array<GameObject>> instances;
 	public Player player;
-
-	private Array<Task> removeShardsTasks = new Array<Timer.Task>();
-
-	Viewport viewport;
-
 	public boolean xRayMask = false;
+	Level currentLevel;
+	IncanShift game;
+	Viewport viewport;
+	private AssetManager assets;
+	private Array<Task> removeShardsTasks = new Array<Timer.Task>();
 
 	public GameWorld(IncanShift game, Viewport viewport, Vector3 screenCenter,
 					 BitmapFont font) {

@@ -1,29 +1,23 @@
 package incanshift;
 
-import incanshift.screen.*;
-import incanshift.world.GameSettings;
-
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Pixmap;
+import incanshift.screen.*;
+import incanshift.world.GameSettings;
 
 public class IncanShift extends Game {
 
 	public static final String tag = "IncanShift";
-
+	public static int reqWidth = 1280;
+	public static int reqHeight = 720;
+	Pixmap menuBackground;
 	private IncanShift game;
-
 	private AbstractScreen currentScreen;
-
 	private StartScreen startScreen;
 	private GameScreen gameScreen;
 	private CreditScreen creditScreen;
 	private SettingsScreen settingsScreen;
-
-	Pixmap menuBackground;
-
-	public static int reqWidth = 1280;
-	public static int reqHeight = 720;
 
 	public void toggleFullscreen() {
 		if (Gdx.graphics.isFullscreen()) {

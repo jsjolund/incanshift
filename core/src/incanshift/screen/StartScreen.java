@@ -1,12 +1,11 @@
 package incanshift.screen;
 
-import incanshift.IncanShift;
-import incanshift.screen.menu.Menu;
-import incanshift.screen.menu.MenuItem;
-
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import incanshift.IncanShift;
+import incanshift.screen.menu.Menu;
+import incanshift.screen.menu.MenuItem;
 
 public class StartScreen extends AbstractMenuScreen {
 

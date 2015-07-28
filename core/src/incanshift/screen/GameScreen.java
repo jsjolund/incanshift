@@ -1,19 +1,7 @@
 package incanshift.screen;
 
-import incanshift.IncanShift;
-import incanshift.gameobjects.Billboard;
-import incanshift.gameobjects.BillboardOverlay;
-import incanshift.gameobjects.GameObject;
-import incanshift.world.GameSettings;
-import incanshift.world.GameWorld;
-import incanshift.world.WorldEnvironment;
-
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.Camera;
-import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.PerspectiveCamera;
-import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.*;
 import com.badlogic.gdx.graphics.Pixmap.Format;
 import com.badlogic.gdx.graphics.g2d.BitmapFontCache;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
@@ -25,36 +13,36 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ObjectMap.Entry;
+import incanshift.IncanShift;
+import incanshift.gameobjects.Billboard;
+import incanshift.gameobjects.BillboardOverlay;
+import incanshift.gameobjects.GameObject;
+import incanshift.world.GameSettings;
+import incanshift.world.GameWorld;
+import incanshift.world.WorldEnvironment;
 
 public class GameScreen extends AbstractScreen {
 
 	final static String tag = "GameScreen";
-
+	ModelBatch shadowBatch;
 	private GameWorld world;
 	private WorldEnvironment env;
-	private ModelBatch modelBatch;
 
 	// Lights and stuff
-
+	private ModelBatch modelBatch;
 	private ShapeRenderer shapeRenderer;
-
 	// Crosshair coordinates
 	private Vector2 chHoriz1 = new Vector2();
 	private Vector2 chHoriz2 = new Vector2();
 	private Vector2 chVert1 = new Vector2();
 	private Vector2 chVert2 = new Vector2();
-
 	private boolean overlayIsOn = false;
 	private Texture overlay;
 	private ShaderProgram overlayShader;
 	private Color overlayColor = Color.BLACK;
 	private float overlayRadius = 0.9f;
 	private float overlaySoftness = 0.5f;
-
 	private Vector3 lastCameraDirection = new Vector3();
-
-	ModelBatch shadowBatch;
-
 	private Vector3 position = new Vector3();
 
 	public GameScreen(IncanShift game, int reqWidth, int reqHeight) {

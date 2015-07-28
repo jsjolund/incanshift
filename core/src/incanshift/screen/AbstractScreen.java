@@ -1,9 +1,5 @@
 package incanshift.screen;
 
-import java.nio.ByteBuffer;
-
-import incanshift.IncanShift;
-
 import com.badlogic.gdx.Application;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
@@ -22,18 +18,13 @@ import com.badlogic.gdx.utils.Scaling;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
+import incanshift.IncanShift;
+
+import java.nio.ByteBuffer;
 
 public abstract class AbstractScreen implements Screen {
 
 	public static final String tag = "AbstractScreen";
-	protected Viewport viewport;
-	Camera camera;
-
-	SpriteBatch spriteBatch;
-
-	Matrix4 uiMatrix;
-	Vector3 screenCenter = new Vector3();
-
 	public static BitmapFont sansTiny;
 	public static BitmapFont sansNormal;
 	public static BitmapFont sansLarge;
@@ -41,7 +32,11 @@ public abstract class AbstractScreen implements Screen {
 	public static BitmapFont monoTiny;
 	public static BitmapFont monoNormal;
 	public static BitmapFont monoLarge;
-
+	protected Viewport viewport;
+	Camera camera;
+	SpriteBatch spriteBatch;
+	Matrix4 uiMatrix;
+	Vector3 screenCenter = new Vector3();
 	IncanShift game;
 	int reqHeight;
 	int reqWidth;

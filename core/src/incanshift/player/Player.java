@@ -1,11 +1,5 @@
 package incanshift.player;
 
-import incanshift.IncanShift;
-import incanshift.gameobjects.GameObject;
-import incanshift.world.CollisionHandler;
-import incanshift.world.GameSettings;
-import incanshift.world.GameWorld;
-
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.g3d.Model;
@@ -20,6 +14,11 @@ import com.badlogic.gdx.utils.ObjectMap.Entry;
 import com.badlogic.gdx.utils.Timer;
 import com.badlogic.gdx.utils.Timer.Task;
 import com.badlogic.gdx.utils.viewport.Viewport;
+import incanshift.IncanShift;
+import incanshift.gameobjects.GameObject;
+import incanshift.world.CollisionHandler;
+import incanshift.world.GameSettings;
+import incanshift.world.GameWorld;
 
 public class Player extends GameObject {
 
@@ -82,13 +81,6 @@ public class Player extends GameObject {
 	private boolean isGrappling = false;
 	private boolean gunHidden = false;
 	private boolean grapplingBlocked = false;
-
-	// Gun positioning
-	private Matrix4 equipTransform = new Matrix4();
-	private Vector3 equipFrontBackPosition = new Vector3();
-	private Vector3 equipLeftRightPosition = new Vector3();
-	private Vector3 equipUpDownPosition = new Vector3();
-
 	Task teleportTask = new Task() {
 		@Override
 		public void run() {
@@ -103,6 +95,11 @@ public class Player extends GameObject {
 			grapplingBlocked = false;
 		}
 	};
+	// Gun positioning
+	private Matrix4 equipTransform = new Matrix4();
+	private Vector3 equipFrontBackPosition = new Vector3();
+	private Vector3 equipLeftRightPosition = new Vector3();
+	private Vector3 equipUpDownPosition = new Vector3();
 
 	public Player(Model model, btRigidBodyConstructionInfo constructionInfo,
 				  IncanShift game, Vector3 screenCenter, Viewport viewport,

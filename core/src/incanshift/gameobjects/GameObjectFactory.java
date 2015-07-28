@@ -20,13 +20,40 @@ import com.badlogic.gdx.physics.bullet.collision.btConeShape;
 import com.badlogic.gdx.utils.ArrayMap;
 import com.badlogic.gdx.utils.Disposable;
 import com.badlogic.gdx.utils.GdxRuntimeException;
-
 import incanshift.gameobjects.GameObject.Constructor;
 import incanshift.world.GameSettings;
 
 public class GameObjectFactory implements Disposable {
 
 	public final static String tag = "GameObjectFactory";
+	AssetManager assets;
+	private ArrayMap<String, GameObject.Constructor> gameObjectMap;
+
+	public GameObjectFactory() {
+		this.assets = new AssetManager();
+
+		assets.load("model/blowpipe.g3db", Model.class);
+		assets.load("model/arrow.g3db", Model.class);
+		assets.load("model/grappling_hook.g3db", Model.class);
+//		assets.load("model/grappling_hook_trail.g3db", Model.class);
+//		assets.load("model/box.g3db", Model.class);
+//		assets.load("model/gun.g3db", Model.class);
+		assets.load("model/mask.g3db", Model.class);
+//		assets.load("model/skybox.g3db", Model.class);
+		assets.load("model/shard.g3db", Model.class);
+//		assets.load("model/hook_target.g3db", Model.class);
+
+		Gdx.app.debug(tag, String.format("Trying to load assets..."));
+		try {
+			assets.finishLoading();
+		} catch (GdxRuntimeException e) {
+			Gdx.app.debug(tag, "Could not load assets, ", e);
+		}
+		Gdx.app.debug(tag, String.format("Assets finished loading."));
+
+		gameObjectMap = new ArrayMap<String, GameObject.Constructor>();
+		createFactoryDefs(assets, gameObjectMap);
+	}
 
 	/**
 	 * Create a model of a 3D compass with arrows along the three axis.
@@ -74,6 +101,11 @@ public class GameObjectFactory implements Disposable {
 		gameObjectMap.put("compass", new GameObject.Constructor(modelCompass,
 				Bullet.obtainStaticNodeShape(modelCompass.nodes), 0));
 		Gdx.app.debug(tag, "Loaded compass model");
+
+		Model modelArrow = assets.get("model/arrow.g3db", Model.class);
+		gameObjectMap.put("blowpipe", new GameObject.Constructor(modelArrow,
+				new btConeShape(0.1f, 1f), 0.1f));
+		Gdx.app.debug(tag, "Loaded arrow model");
 
 		Model modelBlowpipe = assets.get("model/blowpipe.g3db", Model.class);
 		gameObjectMap.put("blowpipe", new GameObject.Constructor(modelBlowpipe,
@@ -145,35 +177,6 @@ public class GameObjectFactory implements Disposable {
 		model.calculateBoundingBox(bBox);
 		bBox.getDimensions(dim);
 		return dim.scl(0.5f);
-	}
-
-	private ArrayMap<String, GameObject.Constructor> gameObjectMap;
-
-	AssetManager assets;
-
-	public GameObjectFactory() {
-		this.assets = new AssetManager();
-
-		assets.load("model/blowpipe.g3db", Model.class);
-		assets.load("model/grappling_hook.g3db", Model.class);
-//		assets.load("model/grappling_hook_trail.g3db", Model.class);
-//		assets.load("model/box.g3db", Model.class);
-//		assets.load("model/gun.g3db", Model.class);
-		assets.load("model/mask.g3db", Model.class);
-//		assets.load("model/skybox.g3db", Model.class);
-		assets.load("model/shard.g3db", Model.class);
-//		assets.load("model/hook_target.g3db", Model.class);
-
-		Gdx.app.debug(tag, String.format("Trying to load assets..."));
-		try {
-			assets.finishLoading();
-		} catch (GdxRuntimeException e) {
-			Gdx.app.debug(tag, "Could not load assets, ", e);
-		}
-		Gdx.app.debug(tag, String.format("Assets finished loading."));
-
-		gameObjectMap = new ArrayMap<String, GameObject.Constructor>();
-		createFactoryDefs(assets, gameObjectMap);
 	}
 
 	public GameObject construct(String name) {
