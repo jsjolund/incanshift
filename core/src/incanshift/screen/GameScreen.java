@@ -43,7 +43,7 @@ public class GameScreen extends AbstractScreen {
 	private float overlayRadius = 0.9f;
 	private float overlaySoftness = 0.5f;
 	private Vector3 lastCameraDirection = new Vector3();
-	private Vector3 position = new Vector3();
+	private Vector3 objPos = new Vector3();
 
 	public GameScreen(IncanShift game, int reqWidth, int reqHeight) {
 		super(game, reqWidth, reqHeight);
@@ -104,10 +104,10 @@ public class GameScreen extends AbstractScreen {
 		world.music.pause();
 	}
 
-	protected boolean isVisible(Camera cam, GameObject instance) {
-		instance.transform.getTranslation(position);
-		position.add(instance.center);
-		return cam.frustum.sphereInFrustum(position, instance.radius);
+	protected boolean isVisible(final Camera cam, final GameObject instance) {
+		instance.transform.getTranslation(objPos);
+		objPos.add(instance.center);
+		return cam.frustum.sphereInFrustum(objPos, instance.radius);
 	}
 
 	private ShaderProgram loadShader(String vertPath, String fragPath) {
@@ -139,6 +139,9 @@ public class GameScreen extends AbstractScreen {
 		// Clear the screen
 		Gdx.gl.glClearColor(0, 0, 0, 1);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
+
+		Gdx.gl.glEnable(GL20.GL_BLEND);
+		Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
 
 		// env.shadowLight.begin(Vector3.Zero, camera.direction);
 		//
@@ -179,8 +182,6 @@ public class GameScreen extends AbstractScreen {
 		spriteBatch.end();
 
 		// Render the game level models
-		Gdx.gl.glEnable(GL20.GL_BLEND);
-		Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
 		modelBatch.begin(camera);
 		for (Billboard b : world.getBillboards()) {
 			if (b.modelInstance != null) {
@@ -189,9 +190,9 @@ public class GameScreen extends AbstractScreen {
 		}
 		for (Entry<String, Array<GameObject>> entry : world.getInstances()) {
 			for (GameObject obj : entry.value) {
-				// if (isVisible(camera, obj)) {
-				modelBatch.render(obj, env);
-				// }
+				if (isVisible(viewport.getCamera(), obj)) {
+					modelBatch.render(obj, env);
+				}
 			}
 		}
 		modelBatch.end();
@@ -199,8 +200,6 @@ public class GameScreen extends AbstractScreen {
 
 		if (world.xRayMask) {
 			// Draw black overlay
-			Gdx.gl.glEnable(GL20.GL_BLEND);
-			Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
 			shapeRenderer.begin(ShapeType.Filled);
 			Color c = Color.BLACK;
 			shapeRenderer.setColor(c.r, c.g, c.b, 0.5f);

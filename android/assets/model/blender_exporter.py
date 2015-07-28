@@ -27,6 +27,9 @@ class GameObject(object):
             return self.get_first_name()
         return self.filename + "_" + self.get_first_name()
 
+    def reset_origin(self):
+        pass
+
     def get_csv_row(self):
         return "{};{:};{:.2f};{:.2f};{:.2f};{:.2f};{:.2f};{:.2f}\n".format(self.get_model_name(), self.get_index(),
                                                                            self.loc.x, self.loc.y, self.loc.z,
@@ -133,9 +136,9 @@ def get_export_objects(gobj_map):
     return export_objects
 
 
-def create_game_object_map(filename):
+def create_game_object_map(filename, objects):
     gobj_map = {}
-    for obj in bpy.data.objects:
+    for obj in objects:
         gobj = GameObject(filename, obj)
 
         # Create map over names and objects with those names.
@@ -149,15 +152,30 @@ def create_game_object_map(filename):
     return gobj_map
 
 
+def reset_origins():
+    # unselect all
+    for item in bpy.context.selectable_objects:
+        item.select = False
+    i = 0
+    for obj in bpy.data.objects:
+        i += 1
+        print("Origin set for object {} out of {}.".format(i, len(bpy.data.objects)))
+        obj.select = True
+        bpy.context.scene.objects.active = obj
+        bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY', center='BOUNDS')
+        obj.select = False
+
+
 def main():
     print("\nStarting level export...")
     basedir = os.path.dirname(bpy.data.filepath)
     filename = bpy.path.basename(bpy.context.blend_data.filepath).split(".")[0]
-    scene = bpy.context.scene
+
     if not basedir:
         raise Exception("Blend file is not saved")
 
-    gobj_map = create_game_object_map(filename)
+    # reset_origins()
+    gobj_map = create_game_object_map(filename, bpy.data.objects)
 
     csv_file_path = os.path.join(basedir, filename + ".csv")
     print("\nWriting to " + csv_file_path)
