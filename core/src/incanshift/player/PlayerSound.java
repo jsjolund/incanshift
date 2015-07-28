@@ -114,9 +114,11 @@ public class PlayerSound {
 	}
 
 	public void move(boolean run) {
-		soundMove.stop(soundMoveId);
-		soundMoveId = (run) ? soundRun.loop(4.0f * GameSettings.SOUND_VOLUME)
-				: soundWalk.loop(4.0f * GameSettings.SOUND_VOLUME);
+		if (soundMoveId == -1) {
+			soundMove.stop(soundMoveId);
+			soundMoveId = (run) ? soundRun.loop(4.0f * GameSettings.SOUND_VOLUME)
+					: soundWalk.loop(4.0f * GameSettings.SOUND_VOLUME);
+		}
 	}
 
 	public void shoot() {

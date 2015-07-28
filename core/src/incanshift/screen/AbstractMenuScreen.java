@@ -160,8 +160,8 @@ public abstract class AbstractMenuScreen extends AbstractScreen implements Dispo
 				1.0f * GameSettings.SOUND_VOLUME);
 	}
 
-	private Array<Sound> soundClick = new Array<Sound>();
-	private Array<Sound> soundEnter = new Array<Sound>();
+	private Array<Sound> soundClick;
+	private Array<Sound> soundEnter;
 
 	Color valueUnselectedColor = Color.LIGHT_GRAY;
 	Color valueSelectedColor = Color.YELLOW;
@@ -203,12 +203,14 @@ public abstract class AbstractMenuScreen extends AbstractScreen implements Dispo
 			assets.load(musicFile, Music.class);
 		}
 		assets.finishLoading();
+		soundClick = new Array<Sound>();
 		soundClick.add(assets.get("sound/menu1.ogg", Sound.class));
 		soundClick.add(assets.get("sound/menu2.ogg", Sound.class));
 		soundClick.add(assets.get("sound/menu3.ogg", Sound.class));
 		soundClick.add(assets.get("sound/menu4.ogg", Sound.class));
 		soundClick.add(assets.get("sound/menu5.ogg", Sound.class));
 
+		soundEnter = new Array<Sound>();
 		soundEnter.add(assets.get("sound/menu6.ogg", Sound.class));
 //        soundEnter.add(assets.get("sound/menu_long.ogg", Sound.class));
 		if (musicFile != null) {

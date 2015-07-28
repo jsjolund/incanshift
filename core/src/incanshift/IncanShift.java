@@ -46,8 +46,8 @@ public class IncanShift extends Game {
 
 		startScreen = new StartScreen(game, null, reqWidth, reqHeight);
 		currentScreen = startScreen;
-		setScreen(startScreen);
-
+//		setScreen(startScreen);
+		showGameScreen();
 	}
 
 	public void getScreenshot() {
