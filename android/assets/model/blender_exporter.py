@@ -102,7 +102,7 @@ def write_obj(obj_dir, export_objects):
 def convert_to_g3db(obj_file_paths):
     g3db_file_paths = []
     for obj_file_path in obj_file_paths:
-        subprocess.call(["fbx-conv", obj_file_path])
+        subprocess.call(["fbx-conv", "-f", obj_file_path])
         file_path_noext, file_ext = os.path.splitext(obj_file_path)
         os.remove(file_path_noext + ".obj")
         os.remove(file_path_noext + ".mtl")
