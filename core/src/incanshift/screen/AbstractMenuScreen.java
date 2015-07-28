@@ -1,5 +1,6 @@
 package incanshift.screen;
 
+import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.utils.Array;
 import incanshift.IncanShift;
 import incanshift.screen.menu.Menu;
@@ -140,7 +141,7 @@ public abstract class AbstractMenuScreen extends AbstractScreen implements Dispo
 	AssetManager assets;
 	Music music;
 	String musicFile;
-	Texture bkgTex;
+	TextureRegion bkgTex;
 
 	MenuInputProcessor input;
 	int lastKeycode;
@@ -169,7 +170,6 @@ public abstract class AbstractMenuScreen extends AbstractScreen implements Dispo
 	Color keySelectedColor = Color.WHITE;
 
 	FrameBuffer fbo = null;
-
 	AbstractMenuScreen parentMenu;
 
 	private static Random rand = new Random();
@@ -184,11 +184,7 @@ public abstract class AbstractMenuScreen extends AbstractScreen implements Dispo
 		this.parentMenu = parentMenu;
 
 		input = new MenuInputProcessor();
-		try {
-			Gdx.input.setCursorImage(new Pixmap(Gdx.files.local("model/cursor.png")), 0, 0);
-		} catch (Exception e) {
-			Gdx.app.debug(tag, "Cannot set cursor pixmap..", e);
-		}
+
 		assets = new AssetManager();
 
 		assets.load("sound/menu1.ogg", Sound.class);
@@ -212,14 +208,18 @@ public abstract class AbstractMenuScreen extends AbstractScreen implements Dispo
 
 		soundEnter = new Array<Sound>();
 		soundEnter.add(assets.get("sound/menu6.ogg", Sound.class));
+
 //        soundEnter.add(assets.get("sound/menu_long.ogg", Sound.class));
+
 		if (musicFile != null) {
 			music = assets.get(musicFile, Music.class);
 		}
+
 	}
 
 	public void setBackgroundImage(Pixmap pixmap) {
-		bkgTex = new Texture(pixmap);
+		Texture tex = new Texture(pixmap);
+		bkgTex = new TextureRegion(tex, pixmap.getWidth(), pixmap.getHeight());
 	}
 
 	/**
@@ -246,6 +246,7 @@ public abstract class AbstractMenuScreen extends AbstractScreen implements Dispo
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
 
 		spriteBatch.getProjectionMatrix().setToOrtho2D(0, 0, texWidth, texHeight);
+		spriteBatch.setShader(null);
 		spriteBatch.begin();
 
 		for (int i = 0; i < menu.size(); i++) {
@@ -350,7 +351,7 @@ public abstract class AbstractMenuScreen extends AbstractScreen implements Dispo
 		spriteBatch.begin();
 
 		if (bkgTex != null) {
-			spriteBatch.draw(bkgTex, 0, 0);
+			spriteBatch.draw(bkgTex, 0, 0, getViewportWidth(), getViewportHeight());
 		}
 
 		if (menu != null) {

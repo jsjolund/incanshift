@@ -85,38 +85,38 @@ public class GameObjectFactory implements Disposable {
 				new btBoxShape(getBoundingBoxHalfExtents(modelHook)), 1f));
 		Gdx.app.debug(tag, "Loaded hook model");
 
-		Model modelHookTrail = assets.get("model/grappling_hook_trail.g3db",
-				Model.class);
-		gameObjectMap.put("hook_trail",
-				new GameObject.Constructor(modelHookTrail,
-						new btBoxShape(
-								getBoundingBoxHalfExtents(modelHookTrail)),
-						5f));
-		Gdx.app.debug(tag, "Loaded hook trail model");
+//		Model modelHookTrail = assets.get("model/grappling_hook_trail.g3db",
+//				Model.class);
+//		gameObjectMap.put("hook_trail",
+//				new GameObject.Constructor(modelHookTrail,
+//						new btBoxShape(
+//								getBoundingBoxHalfExtents(modelHookTrail)),
+//						5f));
+//		Gdx.app.debug(tag, "Loaded hook trail model");
 
-		Model modelBox = assets.get("model/box.g3db", Model.class);
-		gameObjectMap.put("box", new GameObject.Constructor(modelBox,
-				new btBoxShape(getBoundingBoxHalfExtents(modelBox)), 1f));
-		// new btBox2dShape(new Vector3(0.5f, 0.5f, modelBox)), 1f));
-		Gdx.app.debug(tag, "Loaded box model");
+//		Model modelBox = assets.get("model/box.g3db", Model.class);
+//		gameObjectMap.put("box", new GameObject.Constructor(modelBox,
+//				new btBoxShape(getBoundingBoxHalfExtents(modelBox)), 1f));
+//		// new btBox2dShape(new Vector3(0.5f, 0.5f, modelBox)), 1f));
+//		Gdx.app.debug(tag, "Loaded box model");
 
-		Model modelGun = assets.get("model/gun.g3db", Model.class);
-		gameObjectMap.put("gun", new GameObject.Constructor(modelGun,
-				new btBoxShape(getBoundingBoxHalfExtents(modelGun)), 5f));
-		Gdx.app.debug(tag, "Loaded gun model");
+//		Model modelGun = assets.get("model/gun.g3db", Model.class);
+//		gameObjectMap.put("gun", new GameObject.Constructor(modelGun,
+//				new btBoxShape(getBoundingBoxHalfExtents(modelGun)), 5f));
+//		Gdx.app.debug(tag, "Loaded gun model");
 
 		Model modelSphere = assets.get("model/mask.g3db", Model.class);
 		gameObjectMap.put("mask", new GameObject.Constructor(modelSphere,
 				Bullet.obtainStaticNodeShape(modelSphere.nodes), 0));
 		Gdx.app.debug(tag, "Loaded mask model");
 
-		Model modelHookTarget = assets.get("model/hook_target.g3db",
-				Model.class);
-		gameObjectMap.put("hook_target",
-				new GameObject.Constructor(modelHookTarget,
-						Bullet.obtainStaticNodeShape(modelHookTarget.nodes),
-						0));
-		Gdx.app.debug(tag, "Loaded hook target model");
+//		Model modelHookTarget = assets.get("model/hook_target.g3db",
+//				Model.class);
+//		gameObjectMap.put("hook_target",
+//				new GameObject.Constructor(modelHookTarget,
+//						Bullet.obtainStaticNodeShape(modelHookTarget.nodes),
+//						0));
+//		Gdx.app.debug(tag, "Loaded hook target model");
 
 		Model modelPlayer = new ModelBuilder()
 				.createCapsule(GameSettings.PLAYER_RADIUS,
@@ -156,13 +156,13 @@ public class GameObjectFactory implements Disposable {
 
 		assets.load("model/blowpipe.g3db", Model.class);
 		assets.load("model/grappling_hook.g3db", Model.class);
-		assets.load("model/grappling_hook_trail.g3db", Model.class);
-		assets.load("model/box.g3db", Model.class);
-		assets.load("model/gun.g3db", Model.class);
+//		assets.load("model/grappling_hook_trail.g3db", Model.class);
+//		assets.load("model/box.g3db", Model.class);
+//		assets.load("model/gun.g3db", Model.class);
 		assets.load("model/mask.g3db", Model.class);
-		assets.load("model/skybox.g3db", Model.class);
+//		assets.load("model/skybox.g3db", Model.class);
 		assets.load("model/shard.g3db", Model.class);
-		assets.load("model/hook_target.g3db", Model.class);
+//		assets.load("model/hook_target.g3db", Model.class);
 
 		Gdx.app.debug(tag, String.format("Trying to load assets..."));
 		try {

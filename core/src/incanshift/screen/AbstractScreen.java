@@ -95,11 +95,7 @@ public abstract class AbstractScreen implements Screen {
 		uiMatrix = camera.combined.cpy();
 		uiMatrix.setToOrtho2D(0, 0, getViewportWidth(), getViewportHeight());
 
-		try {
-			Gdx.input.setCursorImage(new Pixmap(Gdx.files.local("model/cursor.png")), 0, 0);
-		} catch (Exception e) {
-			Gdx.app.debug(tag, "Cannot set cursor pixmap..", e);
-		}
+
 	}
 
 	public static Pixmap getScreenshot(int x, int y, int w, int h, boolean yDown) {

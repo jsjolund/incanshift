@@ -20,7 +20,7 @@ public class IncanShift extends Game {
 	private CreditScreen creditScreen;
 	private SettingsScreen settingsScreen;
 
-	Pixmap scrot;
+	Pixmap menuBackground;
 
 	public static int reqWidth = 1280;
 	public static int reqHeight = 720;
@@ -37,45 +37,53 @@ public class IncanShift extends Game {
 		}
 	}
 
+
 	@Override
 	public void create() {
 		game = this;
 
+		try {
+			Gdx.input.setCursorImage(new Pixmap(Gdx.files.local("images/cursor.png")), 0, 0);
+		} catch (Exception e) {
+			Gdx.app.debug(tag, "Cannot set cursor pixmap..", e);
+		}
+
+		menuBackground = new Pixmap(Gdx.files.local("images/start_screen.jpg"));
+
 		GameSettings.MUSIC_VOLUME = 1;
 		GameSettings.SOUND_VOLUME = 1;
 
-		startScreen = new StartScreen(game, null, reqWidth, reqHeight);
-		currentScreen = startScreen;
-//		setScreen(startScreen);
-		showGameScreen();
+		showStartScreen(menuBackground);
 	}
 
 	public void getScreenshot() {
-		scrot = AbstractScreen.getScreenshot(currentScreen.getLeftGutterWidth(), currentScreen.getBottomGutterWidth(),
+		menuBackground = AbstractScreen.getScreenshot(currentScreen.getLeftGutterWidth(), currentScreen.getBottomGutterWidth(),
 				currentScreen.getViewportWidth(), currentScreen.getViewportHeight(), true);
 	}
 
 	public void showStartScreen() {
 		currentScreen = startScreen;
-		if (scrot != null) {
-			startScreen.setBackgroundImage(scrot);
+		if (menuBackground != null) {
+			startScreen.setBackgroundImage(menuBackground);
 		}
 		setScreen(startScreen);
 	}
 
 	public void showMenu(AbstractMenuScreen menu) {
 		currentScreen = menu;
-		if (scrot != null) {
-			menu.setBackgroundImage(scrot);
+		if (menuBackground != null) {
+			menu.setBackgroundImage(menuBackground);
 		}
 		setScreen(menu);
 	}
 
 	public void showStartScreen(Pixmap bkg) {
+		if (startScreen == null) {
+			startScreen = new StartScreen(game, null, reqWidth, reqHeight);
+		}
 		currentScreen = startScreen;
 		startScreen.setBackgroundImage(bkg);
 		setScreen(startScreen);
-
 	}
 
 	public void showGameScreen() {
@@ -90,8 +98,8 @@ public class IncanShift extends Game {
 		if (creditScreen == null) {
 			creditScreen = new CreditScreen(game, startScreen, reqWidth, reqHeight);
 		}
-		if (scrot != null) {
-			creditScreen.setBackgroundImage(scrot);
+		if (menuBackground != null) {
+			creditScreen.setBackgroundImage(menuBackground);
 		}
 		currentScreen = creditScreen;
 		setScreen(creditScreen);
@@ -101,8 +109,8 @@ public class IncanShift extends Game {
 		if (settingsScreen == null) {
 			settingsScreen = new SettingsScreen(game, startScreen, reqWidth, reqHeight);
 		}
-		if (scrot != null) {
-			settingsScreen.setBackgroundImage(scrot);
+		if (menuBackground != null) {
+			settingsScreen.setBackgroundImage(menuBackground);
 		}
 		currentScreen = settingsScreen;
 		setScreen(settingsScreen);

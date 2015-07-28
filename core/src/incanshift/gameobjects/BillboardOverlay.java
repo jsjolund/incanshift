@@ -54,8 +54,8 @@ public class BillboardOverlay implements Disposable {
 				Format.RGBA8888));
 
 		String vert = Gdx.files.local(vertPath).readString();
-		String fragSunShader = Gdx.files.local(fragPath).readString();
-		shader = new ShaderProgram(vert, fragSunShader);
+		String frag = Gdx.files.local(fragPath).readString();
+		shader = new ShaderProgram(vert, frag);
 
 		ShaderProgram.pedantic = false;
 

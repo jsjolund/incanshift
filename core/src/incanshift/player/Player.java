@@ -342,7 +342,7 @@ public class Player extends GameObject {
 	}
 
 	public void setMoveSound(boolean isOnGround) {
-		Gdx.app.debug(tag, soundMoveMode.toString());
+
 		if (controller.actionQueueContains(PlayerAction.STOP)
 				&& soundMoveMode != PlayerAction.STOP) {
 			sound.halt();
