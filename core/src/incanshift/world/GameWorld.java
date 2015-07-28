@@ -39,7 +39,7 @@ public class GameWorld implements Disposable {
 	public int currentLevelIndex = 0;
 	public GameObjectFactory gameObjectFactory;
 	public String[] levels = { //
-			// "model/outside_level.csv", //
+			"model/outside_level.csv", //
 			"model/inside_level10_throw_out_the_bodies.csv", //
 			"model/inside_level1.csv", //
 			"model/inside_level2.csv", //

@@ -3,7 +3,10 @@ package incanshift.world;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
+import com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.Bullet;
 import com.badlogic.gdx.physics.bullet.collision.Collision;
@@ -19,6 +22,7 @@ import java.util.Arrays;
 
 public class Level implements Disposable {
 
+	private BlendingAttribute blendingAttribute;
 	public static final String tag = "Level";
 	public Array<Billboard> billboards;
 	public ArrayMap<GameObject, BillboardOverlay> billboardOverlays;
@@ -32,6 +36,8 @@ public class Level implements Disposable {
 
 	public Level(String csvPath, GameObjectFactory gameObjectFactory) {
 		this.gameObjectFactory = gameObjectFactory;
+		blendingAttribute = new BlendingAttribute(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+//		blendingAttribute.opacity = 0.25f;
 		instances = new ArrayMap<String, Array<GameObject>>();
 		billboards = new Array<Billboard>();
 		billboards.ordered = true;
@@ -226,6 +232,10 @@ public class Level implements Disposable {
 			}
 
 			Model model = assets.get(filePath);
+
+			for (Material material : model.materials) {
+				material.set(blendingAttribute);
+			}
 
 			gameObjectFactory.put(name, new GameObject.Constructor(model,
 					Bullet.obtainStaticNodeShape(model.nodes), 0));
