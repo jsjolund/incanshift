@@ -183,16 +183,17 @@ public class GameScreen extends AbstractScreen {
 
 		// Render the game level models
 		modelBatch.begin(camera);
-		for (Billboard b : world.getBillboards()) {
-			if (b.modelInstance != null) {
-				modelBatch.render(b.modelInstance);
-			}
-		}
 		for (Entry<String, Array<GameObject>> entry : world.getInstances()) {
 			for (GameObject obj : entry.value) {
 				if (isVisible(viewport.getCamera(), obj)) {
 					modelBatch.render(obj, env);
 				}
+			}
+		}
+		modelBatch.flush();
+		for (Billboard b : world.getBillboards()) {
+			if (b.modelInstance != null) {
+				modelBatch.render(b.modelInstance);
 			}
 		}
 		modelBatch.end();
