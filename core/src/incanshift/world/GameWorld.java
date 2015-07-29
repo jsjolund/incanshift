@@ -55,7 +55,7 @@ public class GameWorld implements Disposable {
 	public Music music;
 	public Player player;
 	public boolean xRayMask = false;
-	Level currentLevel;
+	GameLevel currentGameLevel;
 	IncanShift game;
 	Viewport viewport;
 	private AssetManager assets;
@@ -112,8 +112,8 @@ public class GameWorld implements Disposable {
 			return;
 		}
 
-		currentLevel.remove(obj);
-		currentLevel.removeOverlay(obj);
+		currentGameLevel.remove(obj);
+		currentGameLevel.removeOverlay(obj);
 		collisionHandler.remove(obj);
 
 		Vector3 pos = new Vector3();
@@ -124,7 +124,7 @@ public class GameWorld implements Disposable {
 
 	@Override
 	public void dispose() {
-		currentLevel.dispose();
+		currentGameLevel.dispose();
 		collisionHandler.dispose();
 		assets.dispose();
 		player.dispose();
@@ -132,15 +132,15 @@ public class GameWorld implements Disposable {
 	}
 
 	public ArrayMap<GameObject, BillboardOverlay> getBillboardOverlays() {
-		return currentLevel.billboardOverlays;
+		return currentGameLevel.billboardOverlays;
 	}
 
 	public Array<Billboard> getBillboards() {
-		return currentLevel.billboards;
+		return currentGameLevel.billboards;
 	}
 
 	public Array<EnvTag> getEnvTags() {
-		return currentLevel.envTags;
+		return currentGameLevel.envTags;
 	}
 
 	public GameObject getGameObject(btCollisionObject co) {
@@ -148,7 +148,7 @@ public class GameWorld implements Disposable {
 			return null;
 		}
 		GameObject go = null;
-		for (Entry<String, Array<GameObject>> entry : currentLevel.instances) {
+		for (Entry<String, Array<GameObject>> entry : currentGameLevel.instances) {
 			for (GameObject obj : entry.value) {
 				btCollisionObject o = (btCollisionObject) obj.body;
 				if (o.equals(co)) {
@@ -163,7 +163,7 @@ public class GameWorld implements Disposable {
 	}
 
 	public ArrayMap<String, Array<GameObject>> getInstances() {
-		return currentLevel.instances;
+		return currentGameLevel.instances;
 	}
 
 	public void loadLevel(int index) {
@@ -178,21 +178,21 @@ public class GameWorld implements Disposable {
 		}
 		removeShardsTasks.clear();
 
-		if (currentLevel != null) {
+		if (currentGameLevel != null) {
 
-			for (Entry<String, Array<GameObject>> entry : currentLevel.instances) {
+			for (Entry<String, Array<GameObject>> entry : currentGameLevel.instances) {
 				for (GameObject obj : entry.value) {
 					collisionHandler.remove(obj);
 				}
 			}
-			currentLevel.dispose();
+			currentGameLevel.dispose();
 		}
 
-		currentLevel = new Level(levels[index], gameObjectFactory);
+		currentGameLevel = new GameLevel(levels[index], gameObjectFactory);
 		player.resetActions();
-		player.position(currentLevel.playerStartPosition);
+		player.position(currentGameLevel.playerStartPosition);
 
-		for (Entry<String, Array<GameObject>> entry : currentLevel.instances) {
+		for (Entry<String, Array<GameObject>> entry : currentGameLevel.instances) {
 			for (GameObject obj : entry.value) {
 				collisionHandler.add(obj);
 			}
@@ -253,7 +253,7 @@ public class GameWorld implements Disposable {
 		Vector3 lin_vel = new Vector3();
 		final Array<GameObject> shards = new Array<GameObject>();
 		for (int i = 0; i < 25; i++) {
-			GameObject obj = currentLevel.spawn("shard", pos, new Vector3(),
+			GameObject obj = currentGameLevel.spawn("shard", pos, new Vector3(),
 					true, false, false, false, CollisionHandler.OBJECT_FLAG,
 					CollisionHandler.ALL_FLAG);
 			collisionHandler.add(obj);
@@ -270,7 +270,7 @@ public class GameWorld implements Disposable {
 					Gdx.app.debug(tag, obj.toString());
 					// destroy(obj);
 					collisionHandler.remove(obj);
-					currentLevel.instances.get(obj.id).removeValue(obj, true);
+					currentGameLevel.instances.get(obj.id).removeValue(obj, true);
 				}
 			}
 		};
@@ -307,22 +307,24 @@ public class GameWorld implements Disposable {
 	}
 
 	public void update(float delta) {
-		if (currentLevel.numberSpawned("mask") == 0) {
+		if (currentGameLevel.numberSpawned("mask") == 0) {
 			loadNextLevel();
 		}
 
-		// Update collisions
 		collisionHandler.stepSimulation(delta);
 
-		// Update player transform from user input
-
-		for (Entry<String, Array<GameObject>> entry : currentLevel.instances) {
+		for (Entry<String, Array<GameObject>> entry : currentGameLevel.instances) {
 			for (GameObject obj : entry.value) {
 				obj.body.getWorldTransform(obj.transform);
 			}
 		}
-		for (Billboard b : currentLevel.billboards) {
-			b.update(viewport.getCamera());
+		for (Billboard board : currentGameLevel.billboards) {
+			board.update(viewport.getCamera());
+		}
+		for (SoundTag tag : currentGameLevel.soundTags) {
+			if (!tag.finishedPlaying && (player.position.dst(tag.position) < tag.distance)) {
+				tag.play();
+			}
 		}
 
 		player.update(delta);
