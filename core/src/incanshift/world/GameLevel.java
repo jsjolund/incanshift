@@ -187,6 +187,9 @@ public class GameLevel implements Disposable {
 	}
 
 	public int numberSpawned(String id) {
+		if (!instances.containsKey(id)) {
+			return 0;
+		}
 		return instances.get(id).size;
 	}
 
