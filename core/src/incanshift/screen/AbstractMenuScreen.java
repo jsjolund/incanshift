@@ -43,11 +43,12 @@ public abstract class AbstractMenuScreen extends AbstractScreen implements Dispo
 	boolean itemValueSelected = false;
 	MenuItem backItem;
 
-//	Color valueUnselectedColor = Color.LIGHT_GRAY;
-	Color valueUnselectedColor = new Color(1,1,1,0.7f);
+	//	Color valueUnselectedColor = Color.LIGHT_GRAY;
+	Color valueUnselectedColor =Color.WHITE;
 	Color valueSelectedColor = Color.YELLOW;
-	Color keyUnselectedColor = new Color(1,1,1,0.7f);
-	Color keySelectedColor = Color.WHITE;
+
+	Color keyUnselectedColor = Color.WHITE;
+	Color keySelectedColor = Color.YELLOW;
 
 	FrameBuffer fbo = null;
 	AbstractMenuScreen parentMenu;
@@ -248,13 +249,14 @@ public abstract class AbstractMenuScreen extends AbstractScreen implements Dispo
 			for (int i = 0; i < menu.size(); i++) {
 				MenuItem item = menu.get(i);
 
-				Rectangle b = item.getBounds();
+				Rectangle b = item.getKeyBounds();
 				TextureRegion texKey = item.getKeyTex(item == selectedItem);
-				spriteBatch.draw(texKey, b.x, b.y);
+				spriteBatch.draw(texKey, b.x, b.y, b.getWidth(), b.getHeight());
 
 				if (item.value != null) {
+					b = item.getValBounds();
 					TextureRegion texValue = item.getValueTex(item == selectedItem && itemValueSelected);
-					spriteBatch.draw(texValue, b.x + b.width + 20, b.y);
+					spriteBatch.draw(texValue, b.x, b.y, b.getWidth(), b.getHeight());
 				}
 			}
 		}
@@ -351,14 +353,14 @@ public abstract class AbstractMenuScreen extends AbstractScreen implements Dispo
 
 		@Override
 		public boolean mouseMoved(int screenX, int screenY) {
+			System.out.println(screenX + " "+screenY);
 			if (mouseMovedCapture(screenX, screenY)) {
 				return true;
 			}
 			float vx = screenXtoViewportX(screenX);
 			float vy = screenYtoViewportY(screenY);
-
 			for (MenuItem item : menu) {
-				if (item.selectable && item.getBounds().contains(vx, vy)) {
+				if (item.selectable && item.getKeyBounds().contains(vx, vy)) {
 					if (item != selectedItem) {
 						soundClick();
 					}
@@ -384,7 +386,7 @@ public abstract class AbstractMenuScreen extends AbstractScreen implements Dispo
 			float vy = screenYtoViewportY(screenY);
 
 			for (MenuItem item : menu) {
-				if (item.getBounds().contains(vx, vy)) {
+				if (item.getKeyBounds().contains(vx, vy)) {
 					soundEnter();
 					enterSelected();
 					break;

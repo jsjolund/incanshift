@@ -95,11 +95,9 @@ public class SettingsScreen extends AbstractMenuScreen {
 			if (selectedItem == fullscreenItem) {
 				game.toggleFullscreen();
 				selectedItem.value = Gdx.graphics.isFullscreen() ? "On" : "Off";
-				keyDownCapture(Keys.ESCAPE);
 				menu.dispose();
 				createMenuTextures(menuFont);
-				Gdx.input.setCursorPosition(Gdx.graphics.getWidth() / 2, Gdx.graphics.getHeight() / 2);
-				game.showSettingsScreen();
+				selectedItem = backItem;
 
 			} else {
 				itemValueSelected = true;
@@ -184,9 +182,6 @@ public class SettingsScreen extends AbstractMenuScreen {
 	public void render(float delta) {
 		super.render(delta);
 
-		if (msg == null) {
-			return;
-		}
 		spriteBatch.setShader(null);
 		spriteBatch.setProjectionMatrix(uiMatrix);
 		spriteBatch.begin();
@@ -198,11 +193,15 @@ public class SettingsScreen extends AbstractMenuScreen {
 		} else {
 			menuFont.setColor(keySelectedColor);
 		}
-		GlyphLayout msgGlyph = menuFont.draw(spriteBatch, msg, msgXpos, msgYpos);
-
-		msgXpos = screenCenter.x - msgGlyph.width / 2;
-
 		spriteBatch.end();
+
+		if (msg != null) {
+			spriteBatch.begin();
+			GlyphLayout msgGlyph = menuFont.draw(spriteBatch, msg, msgXpos, msgYpos);
+			msgXpos = screenCenter.x - msgGlyph.width / 2;
+			spriteBatch.end();
+		}
+
 
 	}
 

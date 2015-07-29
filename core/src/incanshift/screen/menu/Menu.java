@@ -1,6 +1,7 @@
 package incanshift.screen.menu;
 
 import com.badlogic.gdx.utils.Array;
+import incanshift.IncanShift;
 
 import java.util.Iterator;
 
@@ -38,20 +39,31 @@ public class Menu implements Iterable<MenuItem> {
 	}
 
 	public void resize(int width, int height) {
+		float wScl = (float) width / IncanShift.reqWidth;
+		float hScl = (float) height / IncanShift.reqHeight;
 		int xc = width / 2;
 		int yc = height / 2;
 		for (int i = 0; i < size(); i++) {
 			MenuItem item = items.get(i);
-			int tw = item.texKeyUnselected.getRegionWidth();
-			int th = item.texKeyUnselected.getRegionHeight();
-			float yOffset = yc - (textVerticalSpacing + th) * (size() - 1)
+			float kw = item.texKeyUnselected.getRegionWidth() * wScl;
+			float kh = item.texKeyUnselected.getRegionHeight() * hScl;
+			float yOffset = yc - (textVerticalSpacing + kh) * (size() - 1)
 					/ 2;
-			float y = yOffset + (th + textVerticalSpacing) * i;
-			float x = xc - tw;
+			float ky = yOffset + (kh + textVerticalSpacing) * i;
+			float kx = xc - kw;
 			if (item.value == null) {
-				x = xc - tw / 2;
+				kx = xc - kw / 2;
 			}
-			item.bounds.set(x, y, tw, th);
+			item.keyBounds.set(kx, ky, kw, kh);
+
+			if (item.value == null) {
+				continue;
+			}
+			float vw = item.texValueUnselected.getRegionWidth() * wScl;
+			float vh = item.texValueUnselected.getRegionHeight() * hScl;
+			float vx = kx + 20 + kw;
+			float vy = ky;
+			item.valBounds.set(vx, vy, vw, vh);
 		}
 	}
 

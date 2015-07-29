@@ -14,7 +14,8 @@ public class MenuItem {
 	TextureRegion texValueUnselected;
 	TextureRegion texValueSelected;
 
-	Rectangle bounds = new Rectangle();
+	Rectangle keyBounds = new Rectangle();
+	Rectangle valBounds = new Rectangle();
 
 	public MenuItem(String name, String value, boolean selectable) {
 		this.key = name;
@@ -22,8 +23,12 @@ public class MenuItem {
 		this.selectable = selectable;
 	}
 
-	public Rectangle getBounds() {
-		return bounds;
+	public Rectangle getKeyBounds() {
+		return keyBounds;
+	}
+
+	public Rectangle getValBounds() {
+		return valBounds;
 	}
 
 	public TextureRegion getKeyTex(boolean selected) {
