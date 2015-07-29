@@ -3,14 +3,12 @@ package incanshift.player;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.g3d.Model;
-import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
+import com.badlogic.gdx.physics.bullet.collision.ContactListener;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody.btRigidBodyConstructionInfo;
-import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ArrayMap;
-import com.badlogic.gdx.utils.ObjectMap.Entry;
 import com.badlogic.gdx.utils.Timer;
 import com.badlogic.gdx.utils.Timer.Task;
 import com.badlogic.gdx.utils.viewport.Viewport;
@@ -22,11 +20,10 @@ import incanshift.world.GameWorld;
 
 public class Player extends GameObject {
 
-	final static String tag = "Player";
+	public class PlayerContactListener extends ContactListener {
 
-//	public class PlayerContactListener extends ContactListener {
-//		Vector3 equipPos = new Vector3();
-//		Vector3 normal = new Vector3();
+	}
+	//		Vector3 normal = new Vector3();
 //
 //		@Override
 //		public boolean onContactAdded(btManifoldPoint cp,
@@ -36,51 +33,52 @@ public class Player extends GameObject {
 //			normal.scl(-cp.getDistance1());
 //			return true;
 //		}
-//	}
-//
-//	private PlayerContactListener contactListener;
 
-	public PlayerController controller;
+	final static String tag = "Player";
+
 	public IncanShift game;
+	private Viewport viewport;
+	public GameWorld world;
+
+	// Listeners, controllers, handlers
+	private PlayerContactListener contactListener;
+	public PlayerController controller;
+	private FovObject fovObjhandler = new FovObject();
+	private PlayerSound sound;
+
+	// For determining type of action performed
+	private PlayerAction moveMode = PlayerAction.STOP;
+	private boolean isJumping = false;
+	private boolean isFlying = false;
+	private boolean grapplingBlocked = false;
+	private boolean isGrappling = false;
+
+	// Used when calculating movement and camera positioning
 	public Vector3 screenCenter;
 	public Vector3 direction = new Vector3();
 	public Vector3 velocity = new Vector3();
 	public Vector3 position = new Vector3();
 	public Vector3 moveDirection = new Vector3();
 	public Vector3 up = new Vector3(Vector3.Y);
-	public Vector3 positionCarried = new Vector3();
-	GameWorld world;
-	Vector3 teleportPosition = new Vector3();
-	Array<GameObject> hookTrail;
-	Vector3 tmp = new Vector3();
-	PlayerAction soundMoveMode = PlayerAction.STOP;
-	FovPosition gunNormal = new FovPosition(0.075f, 0.75f, 0.15f);
-	FovPosition hookNormal = new FovPosition(0.01f, 0.1f, 0.4f);
-	FovPosition blowpipeNormal = new FovPosition(0.075f, 0.1f, 0.3f);
-	FovPosition blowpipeMove = new FovPosition(0.075f, 0.13f, 0.3f);
-	FovPosition blowpipeFall = new FovPosition(0.075f, 0.06f, 0.3f);
-	FovPosition blowpipeShoot = new FovPosition(-0.001f, 0.15f, 0.25f);
-	FovPosition equipGoalPos = new FovPosition();
-	FovPosition equipPos = new FovPosition();
-	FovPosition equipMoveVel = new FovPosition();
-	float walkAnimTimer = 0;
-	float shootAnimTimer = 10;
-	private PlayerSound sound;
-	private Viewport viewport;
 	private Vector3 velocityXZ = new Vector3();
 	private Vector3 velocityNew = new Vector3();
-	private ArrayMap<String, GameObject> inventory = new ArrayMap<String, GameObject>();
-	private boolean isJumping = false;
-	private boolean isFlying = false;
-	private Ray ray = new Ray();
+
+	// TODO: Refactor to FovObject
+	public Vector3 positionCarried = new Vector3();
 	private GameObject carried;
+	// TODO: Unused, probably refactor to FovObject
+	private boolean gunHidden = false;
+
+	// Used to toggle which sound to play
+	PlayerAction soundMoveMode = PlayerAction.STOP;
+
 	private float cameraOffsetY = GameSettings.PLAYER_EYE_HEIGHT
 			- GameSettings.PLAYER_HEIGHT / 2;
-	private PlayerAction moveMode = PlayerAction.STOP;
-	private GameObject currentEquip;
-	private boolean isGrappling = false;
-	private boolean gunHidden = false;
-	private boolean grapplingBlocked = false;
+
+
+	private ArrayMap<String, GameObject> inventory = new ArrayMap<String, GameObject>();
+
+	Vector3 teleportPosition = new Vector3();
 	Task teleportTask = new Task() {
 		@Override
 		public void run() {
@@ -95,11 +93,9 @@ public class Player extends GameObject {
 			grapplingBlocked = false;
 		}
 	};
-	// Gun positioning
-	private Matrix4 equipTransform = new Matrix4();
-	private Vector3 equipFrontBackPosition = new Vector3();
-	private Vector3 equipLeftRightPosition = new Vector3();
-	private Vector3 equipUpDownPosition = new Vector3();
+
+	private Ray ray = new Ray();
+	Vector3 tmp = new Vector3();
 
 	public Player(Model model, btRigidBodyConstructionInfo constructionInfo,
 				  IncanShift game, Vector3 screenCenter, Viewport viewport,
@@ -116,12 +112,10 @@ public class Player extends GameObject {
 		direction = new Vector3(GameSettings.PLAYER_START_DIR);
 
 		transform.getTranslation(position);
-		// contactListener = new PlayerContactListener();
-		// contactListener.enable();
+		contactListener = new PlayerContactListener();
+		contactListener.enable();
 
 		controller = new PlayerController(this);
-		hookTrail = new Array<GameObject>();
-		hookTrail.ordered = true;
 	}
 
 	public void reset() {
@@ -140,11 +134,7 @@ public class Player extends GameObject {
 		if (!inventory.containsKey(item)) {
 			return;
 		}
-		GameObject obj = inventory.get(item);
-		currentEquip = obj;
-		if (currentEquip.id.equals("blowpipe")) {
-			equipGoalPos.set(blowpipeNormal);
-		}
+		fovObjhandler.setCurrentObj(inventory.get(item));
 	}
 
 	private void handleGrappling() {
@@ -365,13 +355,6 @@ public class Player extends GameObject {
 		}
 	}
 
-	public void unequip() {
-		if (currentEquip == null) {
-			return;
-		}
-		currentEquip.position(position);
-	}
-
 	public void update(float delta) {
 
 		boolean isOnGround = isOnGround();
@@ -424,149 +407,12 @@ public class Player extends GameObject {
 		camera.up.set(Vector3.Y);
 		camera.update();
 
-		updateEquip(delta, isOnGround);
+		fovObjhandler.updateEquip(viewport, controller, soundMoveMode, position, isOnGround, delta);
 
 		handleShooting();
 
 		controller.actionQueueClear();
 	}
 
-	/**
-	 * Update weapon position/rotation relative to camera
-	 *
-	 * @param delta
-	 */
-	private void updateEquip(float delta, boolean isOnGround) {
 
-		for (Entry<String, GameObject> entry : inventory) {
-			GameObject obj = entry.value;
-			obj.position(position);
-		}
-
-		if (currentEquip == null) {
-			return;
-		}
-		if (gunHidden) {
-			equipTransform.set(viewport.getCamera().view);
-		} else {
-			equipTransform.set(viewport.getCamera().view).inv();
-		}
-
-		walkAnimTimer += delta;
-
-		if (shootAnimTimer < 10) {
-			// Prevent timer overflow
-			shootAnimTimer += delta;
-		}
-		float speed = 0;
-
-		if (controller.actionQueueContains(PlayerAction.FIRE) || shootAnimTimer < 0.5f) {
-			speed = 25;
-			equipGoalPos.set(blowpipeShoot);
-			if (controller.actionQueueContains(PlayerAction.FIRE)) {
-				shootAnimTimer = 0;
-			}
-
-		} else if (soundMoveMode == PlayerAction.WALK) {
-			speed = 5;
-			if (walkAnimTimer < 0.2f) {
-				// After how long to move down
-				equipGoalPos.set(blowpipeMove);
-			} else if (walkAnimTimer < 0.6f) {
-				// After how long to move up
-				equipGoalPos.set(blowpipeNormal);
-				speed = 3;
-			} else if (walkAnimTimer < 11f) {
-				// How long to hold in up pos
-				walkAnimTimer = 0;
-			}
-
-		} else if (soundMoveMode == PlayerAction.RUN) {
-			speed = 10;
-			if (walkAnimTimer < 0.1f) {
-				// After how long to move down
-				equipGoalPos.set(blowpipeMove);
-			} else if (walkAnimTimer < 0.3f) {
-				// After how long to move up
-				equipGoalPos.set(blowpipeNormal);
-				speed = 6;
-			} else if (walkAnimTimer < 0.8f) {
-				// How long to hold in up pos
-				walkAnimTimer = 0;
-			}
-
-		} else if (!isOnGround) {
-			speed = 4;
-			equipGoalPos.set(blowpipeFall);
-			walkAnimTimer = 0;
-
-		} else {
-			speed = 3;
-			walkAnimTimer = 0;
-			equipGoalPos.set(blowpipeNormal);
-		}
-
-		if (!equipPos.epsilonEquals(equipGoalPos, 0.01f)) {
-			float dst = equipPos.dst(equipGoalPos);
-			equipMoveVel.set(equipGoalPos).sub(equipPos).nor().scl(speed).scl(dst);
-			equipPos.add(equipMoveVel.scl(delta));
-		}
-
-		currentEquip.body.setWorldTransform(equipTransform);
-
-		equipLeftRightPosition.set(direction).crs(Vector3.Y).nor()
-				.scl(equipPos.leftRight());
-		equipFrontBackPosition.set(direction).nor().scl(equipPos.frontBack());
-		equipUpDownPosition.set(direction).nor().crs(equipLeftRightPosition)
-				.nor().scl(equipPos.upDown());
-
-		currentEquip.body.translate(equipLeftRightPosition);
-		currentEquip.body.translate(equipFrontBackPosition);
-		currentEquip.body.translate(equipUpDownPosition);
-		currentEquip.body.setLinearVelocity(body.getLinearVelocity());
-		currentEquip.body.getWorldTransform(currentEquip.transform);
-	}
-
-	enum PlayerAction {
-		STOP("stop"), WALK("walk"), RUN("run"),
-
-		JUMP("jump"), FIRE("shoot"), USE("use"),
-
-		FLY("fly"), HOOK("hook");
-
-		private String name;
-
-		private PlayerAction(String name) {
-			this.name = name;
-		}
-
-		@Override
-		public String toString() {
-			return name;
-		}
-	}
-
-	private class FovPosition extends Vector3 {
-
-		public FovPosition(float leftRight, float upDown, float frontBack) {
-			super(leftRight, upDown, frontBack);
-		}
-
-		public FovPosition() {
-			super();
-		}
-
-		public float leftRight() {
-			return this.x;
-		}
-
-		public float upDown() {
-			return this.y;
-		}
-
-		public float frontBack() {
-			return this.z;
-		}
-
-	}
 }

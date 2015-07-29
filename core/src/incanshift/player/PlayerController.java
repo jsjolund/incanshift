@@ -8,7 +8,7 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.IntIntMap;
 import com.badlogic.gdx.utils.Timer;
 import com.badlogic.gdx.utils.Timer.Task;
-import incanshift.player.Player.PlayerAction;
+import incanshift.gameobjects.GameObject;
 import incanshift.world.GameSettings;
 
 class PlayerController implements InputProcessor {
