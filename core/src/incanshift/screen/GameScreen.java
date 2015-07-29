@@ -196,11 +196,15 @@ public class GameScreen extends AbstractScreen {
 				modelBatch.render(b.modelInstance);
 			}
 		}
+		for (Entry<String, GameObject> entry : world.player.inventory) {
+			modelBatch.render(entry.value, env);
+		}
 		modelBatch.end();
 		Gdx.gl.glDisable(GL20.GL_BLEND);
 
 		if (world.xRayMask) {
 			// Draw black overlay
+			Gdx.gl.glEnable(GL20.GL_BLEND);
 			shapeRenderer.begin(ShapeType.Filled);
 			Color c = Color.BLACK;
 			shapeRenderer.setColor(c.r, c.g, c.b, 0.5f);

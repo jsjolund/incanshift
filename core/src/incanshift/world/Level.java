@@ -22,7 +22,7 @@ import java.util.Arrays;
 
 public class Level implements Disposable {
 
-	private BlendingAttribute blendingAttribute;
+
 	public static final String tag = "Level";
 	public Array<Billboard> billboards;
 	public ArrayMap<GameObject, BillboardOverlay> billboardOverlays;
@@ -32,18 +32,18 @@ public class Level implements Disposable {
 	public Vector3 playerStartPosition = new Vector3();
 	GameObjectFactory gameObjectFactory;
 	AssetManager assets = new AssetManager();
-	private Array<String> nonFactoryDef;
+
 
 	public Level(String csvPath, GameObjectFactory gameObjectFactory) {
 		this.gameObjectFactory = gameObjectFactory;
-		blendingAttribute = new BlendingAttribute(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+
 //		blendingAttribute.opacity = 0.25f;
 		instances = new ArrayMap<String, Array<GameObject>>();
 		billboards = new Array<Billboard>();
 		billboards.ordered = true;
 		billboardOverlays = new ArrayMap<GameObject, BillboardOverlay>();
 		envTags = new Array<EnvTag>();
-		nonFactoryDef = new Array<String>();
+
 		loadLevelCSV(csvPath);
 		// skybox = new ModelInstance(
 		// assets.get("model/skybox.g3db", Model.class));
@@ -75,10 +75,7 @@ public class Level implements Disposable {
 			b.dispose();
 		}
 		assets.dispose();
-		for (String id : nonFactoryDef) {
-			Gdx.app.debug(tag, "Removing custom factory def " + id);
-			gameObjectFactory.remove(id);
-		}
+		gameObjectFactory.clearNonFactoryDef();
 	}
 
 	private Array<BlenderTag> readtags(String csvPath) {
@@ -120,7 +117,7 @@ public class Level implements Disposable {
 	/**
 	 * Read a CSV file and create the objects listed in it.
 	 *
-	 * @param csv
+	 * @param csvPath
 	 */
 	private void loadLevelCSV(String csvPath) {
 		ArrayMap<String, Array<String>> textMap = TextParser
@@ -205,6 +202,7 @@ public class Level implements Disposable {
 		billboardOverlays.removeKey(obj);
 	}
 
+
 	/**
 	 * Spawn a game object from the factory and add it to the world. If not
 	 * defined in factory, load the model from file system and generate a static
@@ -226,60 +224,8 @@ public class Level implements Disposable {
 	public GameObject spawn(String name, Vector3 pos, Vector3 rot,
 							boolean movable, boolean removable, boolean noDeactivate,
 							boolean callback, short belongsToFlag, short collidesWithFlag) {
-
-		if (!gameObjectFactory.containsKey(name)) {
-			String filePath = String.format("model/%s.g3db", name);
-			Gdx.app.debug(tag,
-					String.format("Creating collision shape for %s", filePath));
-
-			assets.load(filePath, Model.class);
-			try {
-				assets.finishLoading();
-			} catch (Exception e) {
-				Gdx.app.debug(tag, "Could not load assets ", e);
-			}
-
-			Model model = assets.get(filePath);
-
-			for (Material material : model.materials) {
-				material.set(blendingAttribute);
-			}
-
-			gameObjectFactory.put(name, new GameObject.Constructor(model,
-					Bullet.obtainStaticNodeShape(model.nodes), 0));
-			nonFactoryDef.add(name);
-
-		} else {
-			Gdx.app.debug(tag, name + " exists in factory.");
-		}
-
-		GameObject obj = gameObjectFactory.construct(name);
-		obj.id = name;
-		Gdx.app.debug(tag, String.format("Spawning %s at %s", name, pos));
-
-		obj.transform.rotate(Vector3.Y, rot.y);
-		obj.transform.rotate(Vector3.X, rot.x);
-		obj.transform.rotate(Vector3.Z, rot.z);
-		obj.transform.setTranslation(pos);
-		obj.body.setWorldTransform(obj.transform);
-
-		if (callback) {
-			obj.body.setCollisionFlags(obj.body.getCollisionFlags()
-					| btCollisionObject.CollisionFlags.CF_CUSTOM_MATERIAL_CALLBACK);
-		}
-
-		obj.movable = movable;
-		obj.removable = removable;
-		if (noDeactivate) {
-			obj.body.setActivationState(Collision.DISABLE_DEACTIVATION);
-		}
-		obj.body.setContactCallbackFlag(belongsToFlag);
-
-		obj.belongsToFlag = belongsToFlag;
-		obj.collidesWithFlag = collidesWithFlag;
-
+		GameObject obj = gameObjectFactory.build(name, pos, rot, movable, removable, noDeactivate, callback, belongsToFlag, collidesWithFlag);
 		addInstance(obj);
-
 		return obj;
 	}
 

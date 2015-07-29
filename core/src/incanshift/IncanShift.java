@@ -46,6 +46,7 @@ public class IncanShift extends Game {
 		GameSettings.MUSIC_VOLUME = 1;
 		GameSettings.SOUND_VOLUME = 1;
 
+//		showGameScreen();
 		showStartScreen(menuBackground);
 	}
 

@@ -8,15 +8,15 @@ import com.badlogic.gdx.graphics.Mesh;
 import com.badlogic.gdx.graphics.VertexAttributes.Usage;
 import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
+import com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.physics.bullet.Bullet;
-import com.badlogic.gdx.physics.bullet.collision.btBoxShape;
-import com.badlogic.gdx.physics.bullet.collision.btCapsuleShape;
-import com.badlogic.gdx.physics.bullet.collision.btConeShape;
+import com.badlogic.gdx.physics.bullet.collision.*;
+import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ArrayMap;
 import com.badlogic.gdx.utils.Disposable;
 import com.badlogic.gdx.utils.GdxRuntimeException;
@@ -26,8 +26,10 @@ import incanshift.world.GameSettings;
 public class GameObjectFactory implements Disposable {
 
 	public final static String tag = "GameObjectFactory";
+	public Array<String> nonFactoryDef = new Array<String>();
 	AssetManager assets;
 	private ArrayMap<String, GameObject.Constructor> gameObjectMap;
+	private BlendingAttribute blendingAttribute;
 
 	public GameObjectFactory() {
 		this.assets = new AssetManager();
@@ -50,6 +52,8 @@ public class GameObjectFactory implements Disposable {
 			Gdx.app.debug(tag, "Could not load assets, ", e);
 		}
 		Gdx.app.debug(tag, String.format("Assets finished loading."));
+
+		blendingAttribute = new BlendingAttribute(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
 
 		gameObjectMap = new ArrayMap<String, GameObject.Constructor>();
 		createFactoryDefs(assets, gameObjectMap);
@@ -115,6 +119,9 @@ public class GameObjectFactory implements Disposable {
 		Model modelHook = assets.get("model/grappling_hook.g3db", Model.class);
 		gameObjectMap.put("hook", new GameObject.Constructor(modelHook,
 				new btBoxShape(getBoundingBoxHalfExtents(modelHook)), 1f));
+		BlendingAttribute hookBlend = new BlendingAttribute(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+		hookBlend.opacity = 0.7f;
+		modelHook.materials.get(0).set(hookBlend);
 		Gdx.app.debug(tag, "Loaded hook model");
 
 //		Model modelHookTrail = assets.get("model/grappling_hook_trail.g3db",
@@ -179,9 +186,72 @@ public class GameObjectFactory implements Disposable {
 		return dim.scl(0.5f);
 	}
 
-	public GameObject construct(String name) {
-		return gameObjectMap.get(name).construct();
+	public void clearNonFactoryDef() {
+		for (String id : nonFactoryDef) {
+			Gdx.app.debug(tag, "Removing custom factory def " + id);
+			// TODO: get(id).dispose();
+			remove(id);
+		}
+		nonFactoryDef.clear();
 	}
+
+	public GameObject build(String name, Vector3 pos, Vector3 rot,
+							boolean movable, boolean removable, boolean noDeactivate,
+							boolean callback, short belongsToFlag, short collidesWithFlag) {
+		if (!containsKey(name)) {
+			String filePath = String.format("model/%s.g3db", name);
+			Gdx.app.debug(tag,
+					String.format("Creating collision shape for %s", filePath));
+
+			assets.load(filePath, Model.class);
+			try {
+				assets.finishLoading();
+			} catch (Exception e) {
+				Gdx.app.debug(tag, "Could not load assets ", e);
+			}
+
+			Model model = assets.get(filePath);
+
+			for (Material material : model.materials) {
+				material.set(blendingAttribute);
+			}
+
+			put(name, new GameObject.Constructor(model,
+					Bullet.obtainStaticNodeShape(model.nodes), 0));
+			nonFactoryDef.add(name);
+
+		} else {
+			Gdx.app.debug(tag, name + " exists in factory.");
+		}
+
+		GameObject obj = gameObjectMap.get(name).construct();
+		obj.id = name;
+		Gdx.app.debug(tag, String.format("Spawning %s at %s", name, pos));
+
+		obj.transform.rotate(Vector3.Y, rot.y);
+		obj.transform.rotate(Vector3.X, rot.x);
+		obj.transform.rotate(Vector3.Z, rot.z);
+		obj.transform.setTranslation(pos);
+		obj.body.setWorldTransform(obj.transform);
+
+		if (callback) {
+			obj.body.setCollisionFlags(obj.body.getCollisionFlags()
+					| btCollisionObject.CollisionFlags.CF_CUSTOM_MATERIAL_CALLBACK);
+		}
+
+		obj.movable = movable;
+		obj.removable = removable;
+		if (noDeactivate) {
+			obj.body.setActivationState(Collision.DISABLE_DEACTIVATION);
+		}
+		obj.body.setContactCallbackFlag(belongsToFlag);
+
+		obj.belongsToFlag = belongsToFlag;
+		obj.collidesWithFlag = collidesWithFlag;
+
+		return obj;
+	}
+
 
 	public boolean containsKey(String name) {
 		return gameObjectMap.containsKey(name);

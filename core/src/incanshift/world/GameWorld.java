@@ -34,10 +34,6 @@ import java.util.Random;
  */
 public class GameWorld implements Disposable {
 
-	final static String tag = "GameWorld";
-	public CollisionHandler collisionHandler;
-	public int currentLevelIndex = 0;
-	public GameObjectFactory gameObjectFactory;
 	public String[] levels = { //
 			"model/outside_level.csv", //
 			"model/inside_level10_throw_out_the_bodies.csv", //
@@ -51,9 +47,12 @@ public class GameWorld implements Disposable {
 			"model/inside_level7_ziggurat_dissolved.csv", //
 			// "model/inside_level5_l.csv", //
 	};
-	public Music music;
 
-	// public ArrayMap<String, Array<GameObject>> instances;
+	final static String tag = "GameWorld";
+	public CollisionHandler collisionHandler;
+	public int currentLevelIndex = 0;
+	public GameObjectFactory gameObjectFactory;
+	public Music music;
 	public Player player;
 	public boolean xRayMask = false;
 	Level currentLevel;
@@ -87,8 +86,21 @@ public class GameWorld implements Disposable {
 
 		music = assets.get("sound/ambience_music.ogg", Music.class);
 
-		// Create a player, a gun and load the level from CSV
+		// Create a player, weapons, and load the level from CSV
 		player = spawnPlayer(game, viewport, screenCenter);
+		GameObject hook = gameObjectFactory.build("hook", player.position.cpy(), new Vector3(),
+				false, false, true, true, CollisionHandler.OBJECT_FLAG,
+				CollisionHandler.GROUND_FLAG);
+		player.addToInventory(hook);
+
+		GameObject blowpipe = gameObjectFactory.build("blowpipe",
+				player.position.cpy(), new Vector3(), false, false, false,
+				false, CollisionHandler.OBJECT_FLAG,
+				CollisionHandler.GROUND_FLAG);
+		player.addToInventory(blowpipe);
+
+		player.equipFromInventory("blowpipe");
+
 		collisionHandler.add(player);
 		loadLevel(currentLevelIndex);
 		Gdx.app.debug(tag, "GameWorld constructor finished.");
@@ -177,7 +189,7 @@ public class GameWorld implements Disposable {
 		}
 
 		currentLevel = new Level(levels[index], gameObjectFactory);
-		player.reset();
+		player.resetActions();
 		player.position(currentLevel.playerStartPosition);
 
 		for (Entry<String, Array<GameObject>> entry : currentLevel.instances) {
@@ -186,23 +198,6 @@ public class GameWorld implements Disposable {
 			}
 		}
 
-		// GameObject gun = spawn("gun", player.position.cpy(), new Vector3(),
-		// false, false, false, CollisionHandler.OBJECT_FLAG,
-		// CollisionHandler.GROUND_FLAG);
-		// player.setGun(gun);
-
-		GameObject hook = currentLevel.spawn("hook", player.position.cpy(), new Vector3(),
-				false, false, true, true, CollisionHandler.OBJECT_FLAG,
-				CollisionHandler.GROUND_FLAG);
-		player.addToInventory(hook);
-
-		GameObject blowpipe = currentLevel.spawn("blowpipe",
-				player.position.cpy(), new Vector3(), false, false, false,
-				false, CollisionHandler.OBJECT_FLAG,
-				CollisionHandler.GROUND_FLAG);
-		player.addToInventory(blowpipe);
-
-		player.equipFromInventory("blowpipe");
 
 		Gdx.app.debug(tag, "Finished loading level " + currentLevelIndex);
 	}

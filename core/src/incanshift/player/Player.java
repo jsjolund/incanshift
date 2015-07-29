@@ -43,7 +43,7 @@ public class Player extends GameObject {
 	// Listeners, controllers, handlers
 	private PlayerContactListener contactListener;
 	public PlayerController controller;
-	private FovObject fovObjhandler = new FovObject();
+	private FovObjectHandler fovObjhandler = new FovObjectHandler();
 	private PlayerSound sound;
 
 	// For determining type of action performed
@@ -63,20 +63,20 @@ public class Player extends GameObject {
 	private Vector3 velocityXZ = new Vector3();
 	private Vector3 velocityNew = new Vector3();
 
-	// TODO: Refactor to FovObject
+	// TODO: Refactor to FovObjectHandler
 	public Vector3 positionCarried = new Vector3();
 	private GameObject carried;
-	// TODO: Unused, probably refactor to FovObject
+	// TODO: Unused, probably refactor to FovObjectHandler
 	private boolean gunHidden = false;
 
 	// Used to toggle which sound to play
-	PlayerAction soundMoveMode = PlayerAction.STOP;
+	private PlayerAction soundMoveMode = PlayerAction.STOP;
 
 	private float cameraOffsetY = GameSettings.PLAYER_EYE_HEIGHT
 			- GameSettings.PLAYER_HEIGHT / 2;
 
 
-	private ArrayMap<String, GameObject> inventory = new ArrayMap<String, GameObject>();
+	public ArrayMap<String, GameObject> inventory = new ArrayMap<String, GameObject>();
 
 	Vector3 teleportPosition = new Vector3();
 	Task teleportTask = new Task() {
@@ -85,6 +85,7 @@ public class Player extends GameObject {
 			position(teleportPosition);
 			isGrappling = true;
 			grapplingBlocked = false;
+			equipFromInventory("blowpipe");
 		}
 	};
 	Task unblockGrapplingTask = new Task() {
@@ -95,7 +96,7 @@ public class Player extends GameObject {
 	};
 
 	private Ray ray = new Ray();
-	Vector3 tmp = new Vector3();
+	private Vector3 tmp = new Vector3();
 
 	public Player(Model model, btRigidBodyConstructionInfo constructionInfo,
 				  IncanShift game, Vector3 screenCenter, Viewport viewport,
@@ -118,9 +119,9 @@ public class Player extends GameObject {
 		controller = new PlayerController(this);
 	}
 
-	public void reset() {
-		inventory.clear();
-		fovObjhandler.setCurrentObj(null);
+	public void resetActions() {
+//		inventory.clear();
+//		fovObjhandler.setCurrentObj(null);
 		body.setGravity(GameSettings.GRAVITY);
 		isJumping = false;
 		isGrappling = false;
@@ -128,19 +129,21 @@ public class Player extends GameObject {
 
 	public void addToInventory(GameObject item) {
 		inventory.put(item.id, item);
+		fovObjhandler.add(item);
 	}
 
 
 	public void equipFromInventory(String item) {
-		if (!inventory.containsKey(item)) {
-			return;
+		if (inventory.containsKey(item)) {
+			fovObjhandler.setCurrentObj(inventory.get(item));
+		} else {
+			fovObjhandler.setCurrentObj(null);
 		}
-		fovObjhandler.setCurrentObj(inventory.get(item));
 	}
 
 	private void handleGrappling() {
 		if (controller.actionQueueContains(PlayerAction.HOOK)
-				// && inventory.containsKey("hook")
+				&& inventory.containsKey("hook")
 				&& !teleportTask.isScheduled() && !grapplingBlocked) {
 
 			ray.set(viewport.getCamera().position,
@@ -153,6 +156,7 @@ public class Player extends GameObject {
 					distance);
 
 			if (hitObject != null) {
+				equipFromInventory("hook");
 				sound.grapple();
 				if (!teleportTask.isScheduled()) {
 					Timer.schedule(teleportTask,
@@ -241,7 +245,7 @@ public class Player extends GameObject {
 	}
 
 	private void handleShooting() {
-		if (controller.actionQueueContains(PlayerAction.FIRE) && !gunHidden) {
+		if (controller.actionQueueContains(PlayerAction.FIRE) && !gunHidden && !grapplingBlocked) {
 			Gdx.app.debug(tag, "Shooting");
 			sound.shoot();
 
@@ -408,9 +412,9 @@ public class Player extends GameObject {
 		camera.up.set(Vector3.Y);
 		camera.update();
 
-		fovObjhandler.updateEquip(viewport, controller, soundMoveMode, position, isOnGround, delta);
-
 		handleShooting();
+
+		fovObjhandler.update(viewport, controller, soundMoveMode, position, isOnGround, delta);
 
 		controller.actionQueueClear();
 	}
