@@ -38,29 +38,20 @@ public class Menu implements Iterable<MenuItem> {
 	}
 
 	public void resize(int width, int height) {
+		int xc = width / 2;
+		int yc = height / 2;
 		for (int i = 0; i < size(); i++) {
 			MenuItem item = items.get(i);
+			int tw = item.texKeyUnselected.getRegionWidth();
+			int th = item.texKeyUnselected.getRegionHeight();
+			float yOffset = yc - (textVerticalSpacing + th) * (size() - 1)
+					/ 2;
+			float y = yOffset + (th + textVerticalSpacing) * i;
+			float x = xc - tw;
 			if (item.value == null) {
-				int xc = width / 2;
-				int yc = height / 2;
-				int tw = item.texKeyUnselected.getRegionWidth();
-				int th = item.texKeyUnselected.getRegionHeight();
-				float yOffset = yc - (textVerticalSpacing + th) * (size() - 1)
-						/ 2;
-				float x = xc - tw / 2;
-				float y = yOffset + (th + textVerticalSpacing) * i;
-				item.bounds.set(x, y, tw, th);
-			} else {
-				int xc = width / 2;
-				int yc = height / 2;
-				int tw = item.texKeyUnselected.getRegionWidth();
-				int th = item.texKeyUnselected.getRegionHeight();
-				float yOffset = yc - (textVerticalSpacing + th) * (size() - 1)
-						/ 2;
-				float x = xc - tw;
-				float y = yOffset + (th + textVerticalSpacing) * i;
-				item.bounds.set(x, y, tw, th);
+				x = xc - tw / 2;
 			}
+			item.bounds.set(x, y, tw, th);
 		}
 	}
 
