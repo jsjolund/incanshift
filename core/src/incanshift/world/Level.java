@@ -137,16 +137,19 @@ public class Level implements Disposable {
 						CollisionHandler.ALL_FLAG);
 				billboardOverlays.put(mask, new BillboardOverlay(btag.pos, 3f,
 						3f, 0, "shader/common.vert", "shader/sun.frag"));
-
-			} else if (btag.name.equals("box")) {
+				continue;
+			}
+			if (btag.name.equals("box")) {
 				spawn(btag.name, btag.pos, btag.rot, true, false, true, false,
 						CollisionHandler.OBJECT_FLAG,
 						CollisionHandler.ALL_FLAG);
-
-			} else if (btag.name.equals("start_position")) {
+				continue;
+			}
+			if (btag.name.equals("start_position")) {
 				playerStartPosition.set(btag.pos);
-
-			} else if (btag.name.startsWith("text_tag")) {
+				continue;
+			}
+			if (btag.name.startsWith("text_tag")) {
 
 				String textTagName = btag.name.split("_")[2];
 
@@ -160,22 +163,26 @@ public class Level implements Disposable {
 							.get(btag.index);
 					spawnBillboard(btag.pos.sub(0, 1, 0), textTagText);
 				}
-
-			} else if (btag.name.equals("fog_tag")) {
-				envTags.add(new EnvTag(btag.pos, 80, 30, Color.GRAY, 30));
-
-			} else if (btag.name.startsWith("sound_tag")) {
-
-			} else if (btag.name.equals("sun_tag")) {
-				envTags.add(new EnvTag(btag.pos, 100, 20, Color.WHITE, 30));
-
-			} else if (btag.name.equals("empty")) {
-
-			} else {
-				spawn(btag.name, btag.pos, btag.rot, false, false, false, false,
-						CollisionHandler.GROUND_FLAG,
-						CollisionHandler.ALL_FLAG);
+				continue;
 			}
+			if (btag.name.equals("fog_tag")) {
+				envTags.add(new EnvTag(btag.pos, 80, 30, Color.GRAY, 30));
+				continue;
+			}
+			if (btag.name.startsWith("sound_tag")) {
+				continue;
+			}
+			if (btag.name.equals("sun_tag")) {
+				envTags.add(new EnvTag(btag.pos, 100, 20, Color.WHITE, 30));
+				continue;
+			}
+			if (btag.name.equals("empty")) {
+				continue;
+			}
+			// Object not predefined, spawn as ground.
+			spawn(btag.name, btag.pos, btag.rot, false, false, false, false,
+					CollisionHandler.GROUND_FLAG,
+					CollisionHandler.ALL_FLAG);
 		}
 		Gdx.app.debug(tag, "Finished loading CSV.");
 
@@ -210,6 +217,7 @@ public class Level implements Disposable {
 	 * @param removable        True if the player can destroy this object.
 	 * @param noDeactivate     True if collision simulation should never be suspended for
 	 *                         this object.
+	 * @param callback         If true, use a contact contact callback flag for this object.
 	 * @param belongsToFlag    Collision flag/mask for the group this object belongs to.
 	 * @param collidesWithFlag Collision flag/mask for the group this object can collide
 	 *                         with.
