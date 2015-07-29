@@ -27,11 +27,10 @@ public class GameLevel implements Disposable {
 	GameObjectFactory gameObjectFactory;
 	AssetManager assets = new AssetManager();
 
+	public int numberOfMasksAtCreation = 0;
 
 	public GameLevel(String csvPath, GameObjectFactory gameObjectFactory) {
 		this.gameObjectFactory = gameObjectFactory;
-
-//		blendingAttribute.opacity = 0.25f;
 		instances = new ArrayMap<String, Array<GameObject>>();
 		billboards = new Array<Billboard>();
 		billboards.ordered = true;
@@ -131,6 +130,7 @@ public class GameLevel implements Disposable {
 						CollisionHandler.ALL_FLAG);
 				billboardOverlays.put(mask, new BillboardOverlay(btag.pos, 3f,
 						3f, 0, "shader/common.vert", "shader/sun.frag"));
+				numberOfMasksAtCreation++;
 				continue;
 			}
 			if (btag.name.equals("box")) {

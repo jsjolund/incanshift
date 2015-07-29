@@ -54,7 +54,7 @@ public class GameObjectFactory implements Disposable {
 		Gdx.app.debug(tag, String.format("Assets finished loading."));
 
 		blendingAttribute = new BlendingAttribute(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
-
+//		blendingAttribute.opacity = 0.4f;
 		gameObjectMap = new ArrayMap<String, GameObject.Constructor>();
 		createFactoryDefs(assets, gameObjectMap);
 	}

@@ -15,6 +15,7 @@ array_contains () {
 
 excludes=("blowpipe.g3db"\
           "box.g3db"\
+          "arrow.g3db"\
           "mask.g3db"\
           "skybox.g3db"\
           "shard.g3db"\
