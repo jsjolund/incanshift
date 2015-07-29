@@ -191,17 +191,17 @@ public class GameWorld implements Disposable {
 		// CollisionHandler.GROUND_FLAG);
 		// player.setGun(gun);
 
-		// GameObject hook = spawn("hook", player.position.cpy(), new Vector3(),
-		// false, false, true, true, CollisionHandler.OBJECT_FLAG,
-		// CollisionHandler.GROUND_FLAG);
-		// addInstance(hook);
-		// player.addToInventory(hook);
+		GameObject hook = currentLevel.spawn("hook", player.position.cpy(), new Vector3(),
+				false, false, true, true, CollisionHandler.OBJECT_FLAG,
+				CollisionHandler.GROUND_FLAG);
+		player.addToInventory(hook);
 
 		GameObject blowpipe = currentLevel.spawn("blowpipe",
 				player.position.cpy(), new Vector3(), false, false, false,
 				false, CollisionHandler.OBJECT_FLAG,
 				CollisionHandler.GROUND_FLAG);
 		player.addToInventory(blowpipe);
+
 		player.equipFromInventory("blowpipe");
 
 		Gdx.app.debug(tag, "Finished loading level " + currentLevelIndex);

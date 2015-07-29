@@ -120,6 +120,7 @@ public class Player extends GameObject {
 
 	public void reset() {
 		inventory.clear();
+		fovObjhandler.setCurrentObj(null);
 		body.setGravity(GameSettings.GRAVITY);
 		isJumping = false;
 		isGrappling = false;

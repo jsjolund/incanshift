@@ -55,7 +55,7 @@ class FovObject {
 
 	public void setCurrentObj(GameObject obj) {
 		this.obj = obj;
-		if (obj.id.equals("blowpipe")) {
+		if (obj != null && obj.id.equals("blowpipe")) {
 			equipGoalPos.set(blowpipeNormal);
 		}
 	}
