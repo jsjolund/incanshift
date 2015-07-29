@@ -31,11 +31,10 @@ public class IncanShift extends Game {
 		}
 	}
 
-
 	@Override
 	public void create() {
 		game = this;
-
+		Gdx.graphics.setDisplayMode(reqWidth, reqHeight, false);
 		try {
 			Gdx.input.setCursorImage(new Pixmap(Gdx.files.local("images/cursor.png")), 0, 0);
 		} catch (Exception e) {
