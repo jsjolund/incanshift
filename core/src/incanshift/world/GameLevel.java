@@ -37,6 +37,8 @@ public class GameLevel implements Disposable {
 		billboardOverlays = new ArrayMap<GameObject, BillboardOverlay>();
 		envTags = new Array<EnvTag>();
 		soundTags = new Array<SoundTag>();
+
+
 		loadLevelCSV(csvPath);
 		// skybox = new ModelInstance(
 		// assets.get("model/skybox.g3db", Model.class));
@@ -150,7 +152,7 @@ public class GameLevel implements Disposable {
 				if (!textMap.containsKey(textTagName)
 						|| textMap.get(textTagName).size - 1 < btag.index) {
 					Gdx.app.debug(tag,
-							String.format("Could not find text for %s index %s",
+							String.format("Could noNt find text for %s index %s",
 									textTagName, btag.index));
 				} else {
 					String textTagText = textMap.get(textTagName)
@@ -160,7 +162,7 @@ public class GameLevel implements Disposable {
 				continue;
 			}
 			if (btag.name.equals("fog_tag")) {
-				envTags.add(new EnvTag(btag.pos, 80, 30, Color.GRAY, 30));
+				envTags.add(new EnvTag(btag.pos, 130, 30, Color.GRAY, 40));
 				Gdx.app.debug(tag, "Added fog tag at " + btag.pos);
 				continue;
 			}
@@ -171,7 +173,7 @@ public class GameLevel implements Disposable {
 				continue;
 			}
 			if (btag.name.equals("sun_tag")) {
-				envTags.add(new EnvTag(btag.pos, 100, 20, Color.WHITE, 30));
+				envTags.add(new EnvTag(btag.pos, 100, 20, Color.WHITE, 40));
 				continue;
 			}
 			if (btag.name.equals("empty")) {

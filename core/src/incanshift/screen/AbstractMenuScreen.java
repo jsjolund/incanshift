@@ -353,7 +353,6 @@ public abstract class AbstractMenuScreen extends AbstractScreen implements Dispo
 
 		@Override
 		public boolean mouseMoved(int screenX, int screenY) {
-			System.out.println(screenX + " "+screenY);
 			if (mouseMovedCapture(screenX, screenY)) {
 				return true;
 			}

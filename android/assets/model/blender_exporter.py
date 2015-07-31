@@ -72,6 +72,8 @@ def write_csv(csv_file_path, gobj_map):
     print("-" * len(GameObject.csv_header))
     for name, gobj_list in gobj_map.items():
         for gobj in gobj_list:
+            if gobj.is_empty() and not gobj.has_excluded_name():
+                continue
             csv_file.write(gobj.get_csv_row())
             print(str(gobj.get_csv_row()).strip("\r\n"))
     csv_file.close()
@@ -123,6 +125,9 @@ def get_export_objects(gobj_map):
             continue
         if not gobj0.is_mesh():
             print("INFO: {} is not a mesh.".format(name))
+            continue
+        if gobj0.is_empty() and not gobj0.has_excluded_name():
+            print("INFO: {} is an unknown empty.".format(name))
             continue
         gobj0_candidates = []
         for gobj in gobj_list:

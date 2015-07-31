@@ -56,7 +56,7 @@ public abstract class AbstractScreen implements Screen {
 		parameter.size = 12;
 		sansTiny = generator.generateFont(parameter);
 
-		parameter.size = 22;
+		parameter.size = 20;
 		sansNormal = generator.generateFont(parameter);
 
 		parameter.size = 34;

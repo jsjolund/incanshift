@@ -7,7 +7,7 @@ import java.util.Iterator;
 
 public class Menu implements Iterable<MenuItem> {
 
-	static float textVerticalSpacing = 5;
+	static float textVerticalSpacing = 1f;
 	private Array<MenuItem> items = new Array<MenuItem>();
 
 	public void dispose() {
