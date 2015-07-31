@@ -28,6 +28,7 @@ public class GameObject extends ModelInstance implements Disposable {
 	public String id;
 	public short belongsToFlag;
 	public short collidesWithFlag;
+
 	public GameObject(Model model,
 					  btRigidBody.btRigidBodyConstructionInfo constructionInfo) {
 		super(model);
@@ -41,7 +42,6 @@ public class GameObject extends ModelInstance implements Disposable {
 		bounds.getCenter(center);
 		bounds.getDimensions(dimensions);
 		radius = dimensions.len() / 2f;
-
 	}
 
 	@Override

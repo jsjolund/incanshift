@@ -20,10 +20,7 @@ import incanshift.world.GameWorld;
 
 public class Player extends GameObject {
 
-	public class PlayerContactListener extends ContactListener {
-
-	}
-	//		Vector3 normal = new Vector3();
+//	public class PlayerContactListener extends ContactListener {
 //
 //		@Override
 //		public boolean onContactAdded(btManifoldPoint cp,
@@ -33,15 +30,19 @@ public class Player extends GameObject {
 //			normal.scl(-cp.getDistance1());
 //			return true;
 //		}
+//
+//	}
 
 	final static String tag = "Player";
+
+	Vector3 normal = new Vector3();
 
 	public IncanShift game;
 	private Viewport viewport;
 	public GameWorld world;
 
 	// Listeners, controllers, handlers
-	private PlayerContactListener contactListener;
+//	private PlayerContactListener contactListener;
 	public PlayerController controller;
 	private FovObjectHandler fovObjhandler = new FovObjectHandler();
 	private PlayerSound sound;
@@ -113,8 +114,8 @@ public class Player extends GameObject {
 		direction = new Vector3(GameSettings.PLAYER_START_DIR);
 
 		transform.getTranslation(position);
-		contactListener = new PlayerContactListener();
-		contactListener.enable();
+//		contactListener = new PlayerContactListener();
+//		contactListener.enable();
 
 		controller = new PlayerController(this);
 	}
