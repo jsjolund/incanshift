@@ -27,16 +27,16 @@ public class GameWorld implements Disposable {
 	public String[] levels = { //
 			"model/outside_level.csv", //
 			"model/inside_level1_jump_and_shoot.csv", //
-			"model/inside_level2_three_levels.csv", //--
 			"model/inside_level10_throw_out_the_bodies.csv", //
+			"model/inside_level5_krigarnas_tempel.csv", //
+			"model/inside_level2_three_levels.csv", //--
 			"model/inside_level4_chair.csv", //
 			"model/inside_level8_ant_hive.csv", //
 			"model/inside_level3_3d_space.csv", //
 			"model/inside_level9_pillars_in_a_hill_of_stairs.csv", //
 			"model/inside_level6_ziggurat_room.csv", //
 			"model/inside_level7_ziggurat_dissolved.csv", //
-			"model/forest.csv", //
-			// "model/inside_level5_l.csv", //
+//			"model/forest.csv", //
 	};
 
 	final static String tag = "GameWorld";

@@ -3,7 +3,6 @@ package incanshift;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Pixmap;
-import com.badlogic.gdx.utils.Timer;
 import incanshift.screen.*;
 import incanshift.world.GameSettings;
 
@@ -44,7 +43,7 @@ public class IncanShift extends Game {
 
 		menuBackground = new Pixmap(Gdx.files.local("images/start_screen.jpg"));
 
-		GameSettings.MUSIC_VOLUME = 0;
+		GameSettings.MUSIC_VOLUME = 1;
 		GameSettings.SOUND_VOLUME = 1;
 
 //		showGameScreen();
