@@ -73,8 +73,7 @@ public class TextParser {
 
 		for (int i = 0; i < sections.length; i++) {
 			String chapter = sections[i];
-			String[] chapterLines = chapter.split(System
-					.getProperty("line.separator"));
+			String[] chapterLines = chapter.split("\n");
 			String[] nameAndIndex = (chapterLines[0]).split("\\.");
 			if (nameAndIndex.length < 2) {
 				continue;
