@@ -3,6 +3,7 @@ package incanshift;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Pixmap;
+import com.badlogic.gdx.utils.Timer;
 import incanshift.screen.*;
 import incanshift.world.GameSettings;
 
@@ -63,6 +64,7 @@ public class IncanShift extends Game {
 		setScreen(startScreen);
 	}
 
+
 	public void showMenu(AbstractMenuScreen menu) {
 		currentScreen = menu;
 		if (menuBackground != null) {
@@ -90,10 +92,7 @@ public class IncanShift extends Game {
 
 	public void showCreditScreen() {
 		if (creditScreen == null) {
-			creditScreen = new CreditScreen(game, startScreen, reqWidth, reqHeight);
-		}
-		if (menuBackground != null) {
-			creditScreen.setBackgroundImage(menuBackground);
+			creditScreen = new CreditScreen(game, reqWidth, reqHeight);
 		}
 		currentScreen = creditScreen;
 		setScreen(creditScreen);

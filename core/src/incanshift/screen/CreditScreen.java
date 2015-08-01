@@ -1,63 +1,160 @@
 package incanshift.screen;
 
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
+import com.badlogic.gdx.InputProcessor;
+import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.Pixmap;
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.utils.Array;
 import incanshift.IncanShift;
-import incanshift.screen.menu.Menu;
-import incanshift.screen.menu.MenuItem;
 
-public class CreditScreen extends AbstractMenuScreen {
+public class CreditScreen extends AbstractScreen {
 
-	MenuItem back;
-	BitmapFont menuFont;
 
-	public CreditScreen(IncanShift game, AbstractMenuScreen parentMenu, int reqWidth, int reqHeight) {
-		super(game, parentMenu, reqWidth, reqHeight, null);
+	class CreditsInputProcessor implements InputProcessor {
 
-		menuFont = sansLarge;
+		Vector3 tmp = new Vector3();
+		boolean released = true;
 
-		back = new MenuItem("Back", null, true);
+		@Override
+		public boolean keyDown(int keycode) {
+			if (keycode == Input.Keys.ESCAPE) {
+				game.showStartScreen();
+			} else {
+				loadNextImage();
+			}
+			return true;
+		}
 
-		Menu menu = new Menu();
-		menu.add(back);
-		menu.add(new MenuItem("Oscar Lundberg", null, false));
-		menu.add(new MenuItem("Anton Bjuhr", null, false));
-		menu.add(new MenuItem("Joel Sahlin", null, false));
-		menu.add(new MenuItem("Christoffer Lundberg", null, false));
-		menu.add(new MenuItem("Johannes Sjolund", null, false));
-		menu.add(new MenuItem("Created by:", null, false));
+		@Override
+		public boolean keyTyped(char character) {
+			return false;
+		}
 
-		setMenu(menu, back, menuFont);
-	}
+		@Override
+		public boolean keyUp(int keycode) {
+			// TODO Auto-generated method stub
+			return true;
+		}
 
-	@Override
-	public void enterSelected() {
-		if (selectedItem == back) {
-			game.showStartScreen();
+		@Override
+		public boolean mouseMoved(int screenX, int screenY) {
+
+			return true;
+		}
+
+		@Override
+		public boolean scrolled(int amount) {
+			// TODO Auto-generated method stub
+			return false;
+		}
+
+		@Override
+		public boolean touchDown(int screenX, int screenY, int pointer, int button) {
+			if (released) {
+				loadNextImage();
+				released = false;
+			}
+			return true;
+		}
+
+		@Override
+		public boolean touchDragged(int screenX, int screenY, int pointer) {
+			// TODO Auto-generated method stub
+			return false;
+		}
+
+		@Override
+		public boolean touchUp(int screenX, int screenY, int pointer, int button) {
+			// TODO Auto-generated method stub
+			released = true;
+			return false;
 		}
 	}
 
-	@Override
-	boolean keyDownCapture(int keycode) {
-		// TODO Auto-generated method stub
-		return false;
+
+	private void loadNextImage() {
+		if (currentImage == paths.length) {
+			currentImage = 0;
+			game.showStartScreen();
+		} else {
+			setBackgroundImage(textures.get(currentImage));
+		}
+		currentImage++;
+	}
+
+	private CreditsInputProcessor input = new CreditsInputProcessor();
+	TextureRegion bkgTex;
+
+	int currentImage = 0;
+	IncanShift game;
+	String[] paths = {"images/credits01.png",
+			"images/credits02.png",
+			"images/credits03.png",
+			"images/credits04.png",
+			"images/credits05.png",
+			"images/credits06.png",
+			"images/credits07.png",
+			"images/credits08.png",
+	};
+	Array<Texture> textures = new Array<Texture>();
+
+	public CreditScreen(IncanShift game, int reqWidth, int reqHeight) {
+		super(game, reqWidth, reqHeight);
+		this.game = game;
+
+		for (String path : paths) {
+			Texture pTex = new Texture(Gdx.files.internal(path));
+			textures.add(pTex);
+		}
+		input = new CreditsInputProcessor();
+		loadNextImage();
+	}
+
+	public void setBackgroundImage(Texture texture) {
+		bkgTex = new TextureRegion(texture, texture.getWidth(), texture.getHeight());
+	}
+
+	public void setBackgroundImage(Pixmap pixmap) {
+		Texture tex = new Texture(pixmap);
+		bkgTex = new TextureRegion(tex, pixmap.getWidth(), pixmap.getHeight());
 	}
 
 	@Override
-	boolean keyTypedCapture(char character) {
-		// TODO Auto-generated method stub
-		return false;
+	public void show() {
+		currentImage = 0;
+		Gdx.input.setCursorCatched(false);
+		Gdx.input.setInputProcessor(input);
 	}
 
 	@Override
-	boolean mouseMovedCapture(int screenX, int screenY) {
-		// TODO Auto-generated method stub
-		return false;
+	public void pause() {
+
 	}
 
 	@Override
-	boolean touchDownCapture(int screenX, int screenY) {
-		// TODO Auto-generated method stub
-		return false;
+	public void resume() {
+
 	}
 
+	@Override
+	public void hide() {
+
+	}
+
+	@Override
+	public void render(float delta) {
+		Gdx.gl.glClearColor(0, 0, 0, 1);
+		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
+
+		spriteBatch.setProjectionMatrix(uiMatrix);
+		spriteBatch.begin();
+		if (bkgTex != null) {
+			spriteBatch.draw(bkgTex, 0, 0, getViewportWidth(), getViewportHeight());
+		}
+		spriteBatch.end();
+	}
 }
