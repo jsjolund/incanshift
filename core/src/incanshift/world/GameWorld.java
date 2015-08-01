@@ -35,7 +35,7 @@ public class GameWorld implements Disposable {
 			"model/inside_level9_pillars_in_a_hill_of_stairs.csv", //
 			"model/inside_level6_ziggurat_room.csv", //
 			"model/inside_level7_ziggurat_dissolved.csv", //
-			"model/forest.csv", //
+//			"model/forest.csv", //
 			// "model/inside_level5_l.csv", //
 	};
 
@@ -79,7 +79,8 @@ public class GameWorld implements Disposable {
 
 		// Create a player, weapons, and load the level from CSV
 		player = spawnPlayer(game, viewport, screenCenter);
-		GameObject hook = gameObjectFactory.build("hook", player.position.cpy(), new Vector3(),
+
+		hook = gameObjectFactory.build("hook", player.position.cpy(), new Vector3(),
 				false, false, true, true, CollisionHandler.OBJECT_FLAG,
 				CollisionHandler.GROUND_FLAG);
 		player.addToInventory(hook);
@@ -96,6 +97,8 @@ public class GameWorld implements Disposable {
 		loadLevel(currentLevelIndex);
 		Gdx.app.debug(tag, "GameWorld constructor finished.");
 	}
+
+	GameObject hook;
 
 	public void destroy(GameObject obj) {
 
@@ -157,6 +160,9 @@ public class GameWorld implements Disposable {
 		return currentGameLevel.instances;
 	}
 
+
+
+
 	public void loadLevel(int index) {
 		Gdx.app.debug(tag, "Loading level " + index);
 
@@ -180,6 +186,16 @@ public class GameWorld implements Disposable {
 		}
 
 		currentGameLevel = new GameLevel(levels[index], gameObjectFactory);
+
+		if (index == 0) {
+			player.inventory.removeKey(hook.id);
+			player.equipFromInventory("blowpipe");
+		} else {
+			if (!player.inventory.containsKey(hook.id)) {
+				player.addToInventory(hook);
+			}
+		}
+
 		player.resetActions();
 		player.position(currentGameLevel.playerStartPosition);
 
@@ -197,6 +213,7 @@ public class GameWorld implements Disposable {
 		currentLevelIndex++;
 		if (currentLevelIndex == levels.length) {
 			currentLevelIndex = 0;
+			game.showCreditScreen();
 		}
 		loadLevel(currentLevelIndex);
 	}

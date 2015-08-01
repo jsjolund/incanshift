@@ -44,7 +44,7 @@ public class IncanShift extends Game {
 
 		menuBackground = new Pixmap(Gdx.files.local("images/start_screen.jpg"));
 
-		GameSettings.MUSIC_VOLUME = 0;
+		GameSettings.MUSIC_VOLUME = 1;
 		GameSettings.SOUND_VOLUME = 1;
 
 //		showGameScreen();
