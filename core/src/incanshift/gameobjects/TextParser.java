@@ -23,7 +23,7 @@ public class TextParser {
 			"#well.3     \n"+
 			"Jade statue.\n"+
 			"#well.4     \n"+
-			"Everything offers to the gods.\n"+
+			"All these things have been sacrificed to the gods.\n"+
 			"\n"+
 			"#\uFEFFchiuateteo.0\n"+
 			"You are no god, and yet, I recognize your face... Have you been... resurrected?\n"+

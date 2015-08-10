@@ -24,26 +24,51 @@ import java.util.Random;
 
 public class GameWorld implements Disposable {
 
-	public String[] levels = { //
-			"model/outside_level.csv", //
-			"model/inside_level1_jump_and_shoot.csv", //
-			"model/inside_level2_three_levels.csv", //--
-			"model/inside_level10_throw_out_the_bodies.csv", //
-			"model/inside_level4_chair.csv", //
-			"model/inside_level8_ant_hive.csv", //
-			"model/inside_level3_3d_space.csv", //
-			"model/inside_level9_pillars_in_a_hill_of_stairs.csv", //
-			"model/inside_level6_ziggurat_room.csv", //
-			"model/inside_level7_ziggurat_dissolved.csv", //
-			"model/forest.csv", //
-			// "model/inside_level5_l.csv", //
+	public LevelData[] levels;
+
+	private class LevelData {
+		String csvPath;
+		Array<String> musicPaths = new Array<String>();
+		int currentMusicIndex = 0;
+
+		public LevelData(String csvPath, String... musicPaths) {
+			this.csvPath = csvPath;
+			for (String musicPath : musicPaths) {
+				this.musicPaths.add(musicPath);
+			}
+		}
+	}
+
+	private Music.OnCompletionListener onCompletionListener = new Music.OnCompletionListener() {
+		@Override
+		public void onCompletion(Music music) {
+			Gdx.app.debug(tag, "Finished playing " + music.toString());
+			LevelData data = levels[currentLevelIndex];
+
+
+			if (data.musicPaths.size - 1 > data.currentMusicIndex) {
+				// More music available, play next
+				data.currentMusicIndex++;
+				currentMusic = assets.get(data.musicPaths.get(data.currentMusicIndex), Music.class);
+				currentMusic.play();
+				currentMusic.setVolume(1f * GameSettings.MUSIC_VOLUME);
+				onCompletionListener.onCompletion(currentMusic);
+
+
+			} else if (data.musicPaths.size - 1 == data.currentMusicIndex) {
+				// Loop the last music file
+				currentMusic.play();
+				currentMusic.setVolume(1f * GameSettings.MUSIC_VOLUME);
+				currentMusic.setLooping(true);
+			}
+		}
 	};
 
 	final static String tag = "GameWorld";
 	public CollisionHandler collisionHandler;
 	public int currentLevelIndex = 0;
 	public GameObjectFactory gameObjectFactory;
-	public Music music;
+	public Music currentMusic;
 	public Player player;
 	public boolean xRayMask = false;
 	GameLevel currentGameLevel;
@@ -61,7 +86,32 @@ public class GameWorld implements Disposable {
 
 		// Sounds
 		assets = new AssetManager();
-		assets.load("sound/ambience_music.ogg", Music.class);
+
+		levels = new LevelData[]{
+				new LevelData("model/outside_level.csv", "sound/ambience.ogg"),
+				new LevelData("model/inside_level14_one_mask.csv", "sound/roomchange.ogg", "sound/silence.ogg"),
+				new LevelData("model/inside_level1_jump_and_shoot.csv", "sound/roomchange.ogg", "sound/mask_v2.ogg"),
+				new LevelData("model/inside_level11_path_with_masks.csv", "sound/roomchange.ogg", "sound/ambience.ogg"),
+				new LevelData("model/inside_level2_three_levels.csv", "sound/roomchange.ogg", "sound/mask_v2.ogg"),
+				new LevelData("model/inside_level10_throw_out_the_bodies.csv", "sound/roomchange.ogg", "sound/ambience.ogg"),
+				new LevelData("model/inside_level13_village.csv", "sound/roomchange.ogg", "sound/mask_v2.ogg"),
+				new LevelData("model/inside_level5_krigarnas_tempel.csv", "sound/roomchange.ogg", "sound/bossmusic_1.ogg"),
+				new LevelData("model/inside_level4_chair.csv", "sound/roomchange.ogg", "sound/bossmusic_2.ogg"),
+				new LevelData("model/inside_level8_ant_hive.csv", "sound/roomchange.ogg", "sound/bossmusic_2.ogg"),
+				new LevelData("model/inside_level3_3d_space.csv", "sound/roomchange.ogg", "sound/bossmusic_2.ogg"),
+				new LevelData("model/inside_level12_inside_the_temple.csv", "sound/roomchange.ogg", "sound/swamp.ogg"),
+				new LevelData("model/inside_level9_pillars_in_a_hill_of_stairs.csv", "sound/roomchange.ogg", "sound/swamp.ogg"),
+				new LevelData("model/inside_level6_ziggurat_room.csv", "sound/roomchange.ogg", "sound/swamp.ogg"),
+				new LevelData("model/inside_level7_ziggurat_dissolved.csv", "sound/roomchange.ogg", "sound/silence.ogg"),
+		};
+
+		for (LevelData data : levels) {
+			for (String musicPath : data.musicPaths) {
+				if (!assets.isLoaded(musicPath, Music.class)) {
+					assets.load(musicPath, Music.class);
+				}
+			}
+		}
 
 		Bullet.init();
 		gameObjectFactory = new GameObjectFactory();
@@ -75,7 +125,6 @@ public class GameWorld implements Disposable {
 		}
 		Gdx.app.debug(tag, String.format("Assets finished loading."));
 
-		music = assets.get("sound/ambience_music.ogg", Music.class);
 
 		// Create a player, weapons, and load the level from CSV
 		player = spawnPlayer(game, viewport, screenCenter);
@@ -94,6 +143,7 @@ public class GameWorld implements Disposable {
 
 		collisionHandler.add(player);
 		loadLevel(currentLevelIndex);
+
 		Gdx.app.debug(tag, "GameWorld constructor finished.");
 	}
 
@@ -157,6 +207,7 @@ public class GameWorld implements Disposable {
 		return currentGameLevel.instances;
 	}
 
+
 	public void loadLevel(int index) {
 		Gdx.app.debug(tag, "Loading level " + index);
 
@@ -179,7 +230,9 @@ public class GameWorld implements Disposable {
 			currentGameLevel.dispose();
 		}
 
-		currentGameLevel = new GameLevel(levels[index], gameObjectFactory);
+
+		currentGameLevel = new GameLevel(levels[index].csvPath, gameObjectFactory);
+
 		player.resetActions();
 		player.position(currentGameLevel.playerStartPosition);
 
@@ -189,6 +242,12 @@ public class GameWorld implements Disposable {
 			}
 		}
 
+		if (currentMusic != null) {
+			currentMusic.stop();
+		}
+		LevelData data = levels[index];
+		currentMusic = assets.get(data.musicPaths.get(data.currentMusicIndex), Music.class);
+		playMusic();
 
 		Gdx.app.debug(tag, "Finished loading level " + currentLevelIndex);
 	}
@@ -209,12 +268,13 @@ public class GameWorld implements Disposable {
 		loadLevel(currentLevelIndex);
 	}
 
-	public void music(boolean on) {
+	public void playMusic() {
 		// Play some music
-		if (music != null) {
-			music.play();
-			music.setVolume(1f * GameSettings.MUSIC_VOLUME);
-			music.setLooping(true);
+		if (currentMusic != null) {
+			currentMusic.play();
+			currentMusic.setVolume(1f * GameSettings.MUSIC_VOLUME);
+			onCompletionListener.onCompletion(currentMusic);
+//			music.setLooping(true);
 		}
 	}
 
@@ -314,7 +374,7 @@ public class GameWorld implements Disposable {
 		}
 		for (SoundTag tag : currentGameLevel.soundTags) {
 			if (!tag.finishedPlaying && (player.position.dst(tag.position) < tag.distance)) {
-				tag.play();
+				tag.play(GameSettings.SOUND_VOLUME);
 			}
 		}
 

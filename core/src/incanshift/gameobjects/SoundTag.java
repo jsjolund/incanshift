@@ -24,8 +24,8 @@ public class SoundTag {
 
 	}
 
-	public void play() {
-		sound.play();
+	public void play(float v) {
+		sound.play(v);
 		finishedPlaying = true;
 	}
 }

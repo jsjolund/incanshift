@@ -25,7 +25,7 @@ public class StartScreen extends AbstractMenuScreen {
 
 		back = new MenuItem("Exit", null, true);
 		credits = new MenuItem("Credits", null, true);
-		options = new MenuItem("Options", null, true);
+		options = new MenuItem("Controls", null, true);
 		start = new MenuItem("Start", null, true);
 		Menu menu = new Menu();
 		menu.add(back);

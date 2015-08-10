@@ -101,7 +101,7 @@ public class GameScreen extends AbstractScreen {
 	public void hide() {
 		lastCameraDirection.set(camera.direction);
 		Gdx.input.setCursorCatched(false);
-		world.music.pause();
+		world.currentMusic.pause();
 	}
 
 	protected boolean isVisible(final Camera cam, final GameObject instance) {
@@ -301,7 +301,7 @@ public class GameScreen extends AbstractScreen {
 	public void show() {
 		Gdx.input.setCursorCatched(true);
 		Gdx.input.setInputProcessor(world.player.controller);
-		world.music(true);
+		world.playMusic();
 	}
 
 	private void updateCrosshair() {
