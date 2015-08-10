@@ -252,12 +252,12 @@ public class GameScreen extends AbstractScreen {
 
 		}
 
-		// Draw player coordinates
-		spriteBatch.setShader(null);
-		spriteBatch.setProjectionMatrix(uiMatrix);
-		spriteBatch.begin();
-		getPlayerPositionTextCache().draw(spriteBatch);
-		spriteBatch.end();
+//		// Draw player coordinates
+//		spriteBatch.setShader(null);
+//		spriteBatch.setProjectionMatrix(uiMatrix);
+//		spriteBatch.begin();
+//		getPlayerPositionTextCache().draw(spriteBatch);
+//		spriteBatch.end();
 
 		// Crosshair
 		shapeRenderer.setProjectionMatrix(uiMatrix);
