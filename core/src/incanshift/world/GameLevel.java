@@ -167,7 +167,7 @@ public class GameLevel implements Disposable {
 				continue;
 			}
 			if (btag.name.startsWith("sound_tag")) {
-				String name = "test";
+				String name = "eagle";
 				soundTags.add(new SoundTag("sound/" + name + ".ogg", btag.pos, 10));
 				Gdx.app.debug(tag, "Added sound tag at " + btag.pos);
 				continue;
