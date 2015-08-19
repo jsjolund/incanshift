@@ -8,7 +8,6 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.IntIntMap;
 import com.badlogic.gdx.utils.Timer;
 import com.badlogic.gdx.utils.Timer.Task;
-import incanshift.gameobjects.GameObject;
 import incanshift.world.GameSettings;
 
 class PlayerController implements InputProcessor {
@@ -126,12 +125,12 @@ class PlayerController implements InputProcessor {
 		player.direction.rotate(
 				xzMouseRotation.set(player.direction).crs(Vector3.Y),
 				-mouseSens * mouseDy);
+		player.direction.rotate(Vector3.Y, -mouseSens * mouseDx);
 
-		if (player.direction.isCollinear(Vector3.Y, epsilonY)
-				|| player.direction.isCollinearOpposite(Vector3.Y, epsilonY)) {
+		if ((Math.signum(player.direction.x) != Math.signum(directionOld.x))
+				&& Math.signum(player.direction.z) != Math.signum(directionOld.z)) {
 			player.direction.set(directionOld);
 		}
-		player.direction.rotate(Vector3.Y, -mouseSens * mouseDx);
 
 		player.direction.nor();
 		centerMouseCursor();

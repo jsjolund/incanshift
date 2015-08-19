@@ -162,7 +162,7 @@ public class GameLevel implements Disposable {
 				continue;
 			}
 			if (btag.name.equals("fog_tag")) {
-				envTags.add(new EnvTag(btag.pos, 130, 30, Color.GRAY, 40));
+				envTags.add(new EnvTag(btag.pos, 130, 40, new Color(0.12f, 0.18f, 0.28f, 1), 40));
 				Gdx.app.debug(tag, "Added fog tag at " + btag.pos);
 				continue;
 			}
