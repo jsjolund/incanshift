@@ -163,11 +163,6 @@ public class GameScreen extends AbstractScreen {
 		shapeRenderer.rect(0, 0, getViewportWidth(), getViewportHeight());
 		shapeRenderer.end();
 
-		// Render the skybox
-		modelBatch.begin(camera);
-		// modelBatch.render(world.skybox);
-		modelBatch.end();
-
 		// Draw sun billboard
 		spriteBatch.begin();
 		spriteBatch.setProjectionMatrix(uiMatrix);
@@ -185,8 +180,12 @@ public class GameScreen extends AbstractScreen {
 		modelBatch.begin(camera);
 		for (Entry<String, Array<GameObject>> entry : world.getInstances()) {
 			for (GameObject obj : entry.value) {
-				if (isVisible(viewport.getCamera(), obj)) {
-					modelBatch.render(obj, env);
+				if (obj.id.equals("outside_level_mountains")) {
+					modelBatch.render(obj);
+				} else {
+					if (isVisible(viewport.getCamera(), obj)) {
+						modelBatch.render(obj, env);
+					}
 				}
 			}
 		}

@@ -19,7 +19,7 @@ public class WorldEnvironment extends Environment implements Disposable {
 	public Color currentColor;
 
 	public BillboardOverlay sun;
-	public Vector3 sunPosition = new Vector3(500, 800, 700);
+	public Vector3 sunPosition = new Vector3(-500, 800, 700);
 	public Vector3 sunDirection;
 	//	public Color skyColor = new Color(0.28f, 0.56f, 0.83f, 1);
 	public Color skyColor = new Color(0, 0, 0, 1);
@@ -34,7 +34,8 @@ public class WorldEnvironment extends Environment implements Disposable {
 		this.currentColor = skyColor.cpy();
 
 		add(new DirectionalLight().set(Color.WHITE, sunDirection));
-		float a = 0.5f;
+		add(new DirectionalLight().set(Color.WHITE, sunDirection));
+		float a = 0.7f;
 		set(new ColorAttribute(ColorAttribute.AmbientLight, a, a, a,
 				1));
 		set(new ColorAttribute(ColorAttribute.Fog, currentColor.r,
