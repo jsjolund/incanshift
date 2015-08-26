@@ -256,6 +256,8 @@ public class GameWorld implements Disposable {
 		currentLevelIndex++;
 		if (currentLevelIndex == levels.length) {
 			currentLevelIndex = 0;
+            game.showCreditScreen();
+			currentMusic.pause();
 		}
 		loadLevel(currentLevelIndex);
 	}
