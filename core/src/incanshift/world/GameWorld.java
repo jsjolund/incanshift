@@ -103,6 +103,7 @@ public class GameWorld implements Disposable {
 				new LevelData("model/inside_level9_pillars_in_a_hill_of_stairs.csv", "sound/v11_3ed_humans.ogg", "sound/swamp.ogg"),
 				new LevelData("model/inside_level6_ziggurat_room.csv", "sound/roomchange.ogg", "sound/swamp.ogg"),
 				new LevelData("model/inside_level7_ziggurat_dissolved.csv", "sound/roomchange.ogg", "sound/silence.ogg"),
+				new LevelData("model/inside_level15_well.csv", "sound/roomchange.ogg", "sound/silence.ogg"),
 		};
 
 		for (LevelData data : levels) {
