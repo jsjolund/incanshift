@@ -35,7 +35,7 @@ public class GameObjectFactory implements Disposable {
 		this.assets = new AssetManager();
 
 		assets.load("model/blowpipe.g3db", Model.class);
-		assets.load("model/arrow.g3db", Model.class);
+//		assets.load("model/arrow.g3db", Model.class);
 		assets.load("model/grappling_hook.g3db", Model.class);
 //		assets.load("model/grappling_hook_trail.g3db", Model.class);
 //		assets.load("model/box.g3db", Model.class);
@@ -106,10 +106,10 @@ public class GameObjectFactory implements Disposable {
 				Bullet.obtainStaticNodeShape(modelCompass.nodes), 0));
 		Gdx.app.debug(tag, "Loaded compass model");
 
-		Model modelArrow = assets.get("model/arrow.g3db", Model.class);
-		gameObjectMap.put("blowpipe", new GameObject.Constructor(modelArrow,
-				new btConeShape(0.1f, 1f), 0.1f));
-		Gdx.app.debug(tag, "Loaded arrow model");
+//		Model modelArrow = assets.get("model/arrow.g3db", Model.class);
+//		gameObjectMap.put("blowpipe", new GameObject.Constructor(modelArrow,
+//				new btConeShape(0.1f, 1f), 0.1f));
+//		Gdx.app.debug(tag, "Loaded arrow model");
 
 		Model modelBlowpipe = assets.get("model/blowpipe.g3db", Model.class);
 		gameObjectMap.put("blowpipe", new GameObject.Constructor(modelBlowpipe,

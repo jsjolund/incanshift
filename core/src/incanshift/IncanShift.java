@@ -41,7 +41,7 @@ public class IncanShift extends Game {
 			Gdx.app.debug(tag, "Cannot set cursor pixmap..", e);
 		}
 
-		menuBackground = new Pixmap(Gdx.files.local("images/start_screen.jpg"));
+		menuBackground = new Pixmap(Gdx.files.local("images/start_screen.png"));
 
 		GameSettings.MUSIC_VOLUME = 1;
 		GameSettings.SOUND_VOLUME = 1;
