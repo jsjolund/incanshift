@@ -39,7 +39,7 @@ public class GameObjectFactory implements Disposable {
 		param = new ModelLoader.ModelParameters();
 		param.textureParameter.genMipMaps = true;
 		param.textureParameter.minFilter = Texture.TextureFilter.MipMap;
-		param.textureParameter.magFilter = Texture.TextureFilter.Nearest;
+		param.textureParameter.magFilter = Texture.TextureFilter.Linear;
 
 		assets.load("model/blowpipe.g3db", Model.class, param);
 //		assets.load("model/arrow.g3db", Model.class);
