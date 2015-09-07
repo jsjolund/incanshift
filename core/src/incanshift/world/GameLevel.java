@@ -38,7 +38,6 @@ public class GameLevel implements Disposable {
 		envTags = new Array<EnvTag>();
 		soundTags = new Array<SoundTag>();
 
-
 		loadLevelCSV(csvPath);
 		// skybox = new ModelInstance(
 		// assets.get("model/skybox.g3db", Model.class));

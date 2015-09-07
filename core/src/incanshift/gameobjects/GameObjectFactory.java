@@ -2,9 +2,11 @@ package incanshift.gameobjects;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetManager;
+import com.badlogic.gdx.assets.loaders.ModelLoader;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Mesh;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.VertexAttributes.Usage;
 import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
@@ -30,19 +32,24 @@ public class GameObjectFactory implements Disposable {
 	AssetManager assets;
 	private ArrayMap<String, GameObject.Constructor> gameObjectMap;
 	private BlendingAttribute blendingAttribute;
+	ModelLoader.ModelParameters param;
 
 	public GameObjectFactory() {
 		this.assets = new AssetManager();
+		param = new ModelLoader.ModelParameters();
+		param.textureParameter.genMipMaps = true;
+		param.textureParameter.minFilter = Texture.TextureFilter.MipMap;
+		param.textureParameter.magFilter = Texture.TextureFilter.Nearest;
 
-		assets.load("model/blowpipe.g3db", Model.class);
+		assets.load("model/blowpipe.g3db", Model.class, param);
 //		assets.load("model/arrow.g3db", Model.class);
-		assets.load("model/grappling_hook.g3db", Model.class);
+		assets.load("model/grappling_hook.g3db", Model.class, param);
 //		assets.load("model/grappling_hook_trail.g3db", Model.class);
 //		assets.load("model/box.g3db", Model.class);
 //		assets.load("model/gun.g3db", Model.class);
-		assets.load("model/mask.g3db", Model.class);
+		assets.load("model/mask.g3db", Model.class, param);
 //		assets.load("model/skybox.g3db", Model.class);
-		assets.load("model/shard.g3db", Model.class);
+		assets.load("model/shard.g3db", Model.class, param);
 //		assets.load("model/hook_target.g3db", Model.class);
 
 		Gdx.app.debug(tag, String.format("Trying to load assets..."));
@@ -203,7 +210,7 @@ public class GameObjectFactory implements Disposable {
 			Gdx.app.debug(tag,
 					String.format("Creating collision shape for %s", filePath));
 
-			assets.load(filePath, Model.class);
+			assets.load(filePath, Model.class, param);
 			try {
 				assets.finishLoading();
 			} catch (Exception e) {
