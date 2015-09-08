@@ -1,5 +1,4 @@
-inside_level15_well_stair;0;4.00;18.00;1.00;90.00;-0.00;0.00
-mask;0;-1.82;2.83;1.23;90.00;-0.00;0.00
+start_position;0;7.32;-5.48;42.75;0.00;0.00;0.00
 inside_level15_well_teleporter_b;0;14.15;18.45;1.13;90.00;-0.00;90.00
 inside_level15_well_block;0;0.00;18.00;1.00;90.00;-0.00;0.00
 inside_level15_well_block;1;-4.00;-14.00;2.00;90.00;-0.00;0.00
@@ -18,13 +17,6 @@ inside_level15_well_block;13;-10.00;-14.00;8.00;90.00;-0.00;0.00
 inside_level15_well_block;14;-8.00;-14.00;8.00;90.00;-0.00;0.00
 inside_level15_well_block;15;-6.00;-14.00;8.00;90.00;-0.00;0.00
 inside_level15_well_block;16;-4.00;-14.00;8.00;90.00;-0.00;0.00
-inside_level15_well_skybox;0;-2.00;2.00;35.00;90.00;-0.00;0.00
-inside_level15_well_pillar2;0;-9.00;18.00;1.00;90.00;-0.00;0.00
-inside_level15_well_pillar2;1;-13.00;61.00;31.00;90.00;-0.00;0.00
-start_position;0;7.32;-5.48;42.75;0.00;0.00;0.00
-inside_level15_well_man;0;-9.77;10.59;41.85;90.00;-0.00;35.21
-fog_tag;0;-0.22;0.87;17.64;90.00;-0.00;0.00
-inside_level15_well_grounda_Cube;14;8.00;3.00;11.00;90.00;-0.00;0.00
 inside_level15_well_bar_cross;0;-5.21;78.61;39.79;0.00;0.00;0.00
 inside_level15_well_bar_cross;1;-27.09;83.52;29.79;0.00;0.00;0.00
 inside_level15_well_bar_cross;27;-13.71;75.63;39.79;0.00;0.00;0.00
@@ -679,4 +671,12 @@ inside_level15_well_bar_cross;756;-7.40;14.36;46.68;-40.00;58.43;-90.00
 inside_level15_well_bar_cross;757;-8.55;12.76;45.91;-40.00;58.43;-90.00
 inside_level15_well_bar_cross;758;-7.79;12.78;44.72;-40.00;58.43;-90.00
 inside_level15_well_bar_cross;759;-7.77;14.10;46.84;-40.00;58.43;-90.00
+inside_level15_well_pillar2;0;-9.00;18.00;1.00;90.00;-0.00;0.00
+inside_level15_well_pillar2;1;-13.00;61.00;31.00;90.00;-0.00;0.00
 inside_level15_well_pillar;0;-6.00;18.00;1.00;90.00;-0.00;0.00
+inside_level15_well_skybox;0;-2.00;2.00;35.00;90.00;-0.00;0.00
+inside_level15_well_grounda_Cube;14;8.00;3.00;11.00;90.00;-0.00;0.00
+inside_level15_well_stair;0;4.00;18.00;1.00;90.00;-0.00;0.00
+inside_level15_well_man;0;-9.77;10.59;41.85;90.00;-0.00;35.21
+mask;0;-1.82;2.83;1.23;90.00;-0.00;0.00
+fog_tag;0;-0.22;0.87;17.64;90.00;-0.00;0.00
