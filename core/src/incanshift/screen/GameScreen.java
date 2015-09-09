@@ -11,6 +11,7 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ObjectMap.Entry;
 import incanshift.IncanShift;
@@ -44,10 +45,14 @@ public class GameScreen extends AbstractScreen {
 	private float overlaySoftness = 0.5f;
 	private Vector3 lastCameraDirection = new Vector3();
 	private Vector3 objPos = new Vector3();
+	
+	private Texture blackFade = new Texture(Gdx.files.internal("images/black_fade_overlay.png"));
 
+	
+	
 	public GameScreen(IncanShift game, int reqWidth, int reqHeight) {
 		super(game, reqWidth, reqHeight);
-
+		
 		world = new GameWorld(game, viewport, screenCenter, sansHuge);
 
 		shapeRenderer = new ShapeRenderer();
@@ -58,6 +63,7 @@ public class GameScreen extends AbstractScreen {
 				"shader/vignette.frag");
 
 		shadowBatch = new ModelBatch(new DepthShaderProvider());
+		
 	}
 
 	@Override
@@ -174,6 +180,8 @@ public class GameScreen extends AbstractScreen {
 				env.sun.screenWidth, env.sun.screenHeight);
 
 		spriteBatch.setShader(null);
+		
+		
 		spriteBatch.end();
 
 		// Render the game level models
@@ -266,6 +274,11 @@ public class GameScreen extends AbstractScreen {
 		//shapeRenderer.line(chVert1, chVert2);
 		shapeRenderer.end();
 
+		//black faded overlay
+		spriteBatch.begin();
+		spriteBatch.draw(blackFade, 0, 0, getViewportWidth(),getViewportHeight());
+		spriteBatch.end();
+
 		// Update environment from tags
 		env.update(world.getEnvTags(), world.player.position);
 		camera.far = env.viewDistance;
@@ -310,6 +323,22 @@ public class GameScreen extends AbstractScreen {
 		chHoriz2.set(xc, yc + GameSettings.CROSSHAIR);
 		chVert1.set(xc - GameSettings.CROSSHAIR, yc);
 		chVert2.set(xc + GameSettings.CROSSHAIR, yc);
+	}
+	
+	public void introFade(){
+		
+		float i=100;
+		 float alpha=1;
+		
+		 for(i=100;i>0;i--){
+			 alpha=i/100;
+		spriteBatch.setColor(1, 1, 1, alpha);
+		spriteBatch.begin();
+		spriteBatch.draw(blackFade, 0, 0, getViewportWidth(),getViewportHeight());
+		
+		spriteBatch.end();
+		}
+		
 	}
 
 }

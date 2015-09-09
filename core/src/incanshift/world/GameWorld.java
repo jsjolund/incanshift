@@ -19,6 +19,7 @@ import incanshift.IncanShift;
 import incanshift.gameobjects.*;
 import incanshift.player.Player;
 import incanshift.player.PlayerSound;
+import incanshift.screen.GameScreen;
 
 import java.util.Random;
 
@@ -128,6 +129,8 @@ public class GameWorld implements Disposable {
 		Gdx.app.debug(tag, String.format("Assets finished loading."));
 
 
+		
+		
 		// Create a player, weapons, and load the level from CSV
 		player = spawnPlayer(game, viewport, screenCenter);
 		GameObject hook = gameObjectFactory.build("hook", player.position.cpy(), new Vector3(),
@@ -145,6 +148,7 @@ public class GameWorld implements Disposable {
 
 		collisionHandler.add(player);
 		loadLevel(currentLevelIndex);
+		
 
 		Gdx.app.debug(tag, "GameWorld constructor finished.");
 	}

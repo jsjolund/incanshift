@@ -10,6 +10,7 @@ import com.badlogic.gdx.utils.Disposable;
 import com.badlogic.gdx.utils.ObjectMap.Entry;
 import incanshift.gameobjects.*;
 import incanshift.screen.AbstractScreen;
+import incanshift.screen.GameScreen;
 
 import java.util.Arrays;
 
@@ -41,6 +42,8 @@ public class GameLevel implements Disposable {
 		loadLevelCSV(csvPath);
 		// skybox = new ModelInstance(
 		// assets.get("model/skybox.g3db", Model.class));
+		
+		
 		Gdx.app.debug(tag, "Finished constructing level from " + csvPath);
 	}
 
@@ -173,8 +176,15 @@ public class GameLevel implements Disposable {
 			}
 			if (btag.name.equals("sun_tag")) {
 				envTags.add(new EnvTag(btag.pos, 100, 20, Color.WHITE, 40));
+				Gdx.app.debug(tag, "Added sun tag at " + btag.pos);
 				continue;
 			}
+			if (btag.name.equals("shadow_tag")) {
+				envTags.add(new EnvTag(btag.pos, 100, 20, Color.BLACK, 40));
+				Gdx.app.debug(tag, "Added shadow tag at " + btag.pos);
+				continue;
+			}
+			
 			if (btag.name.equals("empty")) {
 				continue;
 			}
@@ -250,5 +260,7 @@ public class GameLevel implements Disposable {
 		Vector3 pos = new Vector3();
 		Vector3 rot = new Vector3();
 	}
+	
+
 
 }
