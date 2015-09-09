@@ -262,8 +262,8 @@ public class GameScreen extends AbstractScreen {
 		shapeRenderer.setProjectionMatrix(uiMatrix);
 		shapeRenderer.begin(ShapeType.Line);
 		shapeRenderer.setColor(Color.WHITE);
-		shapeRenderer.line(chHoriz1, chHoriz2);
-		shapeRenderer.line(chVert1, chVert2);
+		//shapeRenderer.line(chHoriz1, chHoriz2);
+		//shapeRenderer.line(chVert1, chVert2);
 		shapeRenderer.end();
 
 		// Update environment from tags
