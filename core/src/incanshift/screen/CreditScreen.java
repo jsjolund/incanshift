@@ -98,6 +98,8 @@ public class CreditScreen extends AbstractScreen {
 			"images/credits05.png",
 			"images/credits06.png",
 			"images/credits07.png",
+			"images/credits08.png",
+			"images/credits09.png",	
 	};
 	Array<Texture> textures = new Array<Texture>();
 
