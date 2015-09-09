@@ -25,21 +25,21 @@ public class TextParser {
 			"#well.4     \n"+
 			"All these things have been sacrificed to the gods.\n"+
 			"\n"+
-			"#\uFEFFchiuateteo.0\n"+
+			"#chiuateteo.0\n"+
 			"You are no god, and yet, I recognize your face... Have you been... resurrected?\n"+
-			"#\uFEFFchiuateteo.1\n"+
+			"#chiuateteo.1\n"+
 			"You, who used to be of such great service to the jaguar god... what could possibly have killed you?\n"+
-			"#\uFEFFchiuateteo.2\n"+
+			"#chiuateteo.2\n"+
 			"We, the Chiuateteo, are messengers from the kingdom of death, and servants of Tetzcatlipoca, the Jaguar god, to whom this holy site is dedicated.\n"+
-			"#\uFEFFchiuateteo.3\n"+
+			"#chiuateteo.3\n"+
 			"Why did you return here?\n"+
-			"#\uFEFFchiuateteo.4\n"+
-			"A man that have resurrected must be a powerful man. Tetzcatlipoca might give you a second chance.\n"+
-			"#\uFEFFchiuateteo.5\n"+
+			"#chiuateteo.4\n"+
+			"A resurrected human must be powerful. In the Red Temple, the Feathered Serpent might give you a second chance.\n"+
+			"#chiuateteo.5\n"+
 			"All the people have disappeared. Poof! Gone! Just like that! And without man, there is no one to speak the names of the gods.\n"+
-			"#\uFEFFchiuateteo.6\n"+
+			"#chiuateteo.6\n"+
 			"You appear to be lost.\n"+
-			"#\uFEFFchiuateteo.7\n"+
+			"#chiuateteo.7\n"+
 			"The rivalry between Tetzcatlipoca and Quetzcoatl is finally at its end.\n"+
 			"\n"+
 			"#player.0\n"+
