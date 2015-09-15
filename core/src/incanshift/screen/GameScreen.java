@@ -47,6 +47,10 @@ public class GameScreen extends AbstractScreen {
 	private Vector3 objPos = new Vector3();
 	
 	private Texture blackFade = new Texture(Gdx.files.internal("images/black_fade_overlay.png"));
+	public static boolean levelFadeIn = false;
+	public static boolean levelFadeOut = false;
+	private float levelFadeAlpha=1;
+	private float levelFadeAlphaOut=0;
 
 	
 	
@@ -282,6 +286,46 @@ public class GameScreen extends AbstractScreen {
 		// Update environment from tags
 		env.update(world.getEnvTags(), world.player.position);
 		camera.far = env.viewDistance;
+		
+		//System.out.println(levelFadeIn);
+		//black fade for intro of level
+		if(levelFadeIn==true){
+			
+			 Gdx.gl.glEnable(GL20.GL_BLEND);
+     
+			 levelFadeAlpha=levelFadeAlpha-delta/2;
+
+			 shapeRenderer.begin(ShapeType.Filled);
+			 Color c = Color.BLACK;
+			 shapeRenderer.setColor(c.r, c.g, c.b, levelFadeAlpha);
+			 shapeRenderer.rect(0, 0, getViewportWidth(), getViewportHeight());
+			 shapeRenderer.end();
+			
+			 if(levelFadeAlpha<=0){
+				 levelFadeAlpha=1;
+				 levelFadeIn=false;}
+			 
+		}
+		
+		//System.out.println(levelFadeIn);
+				//black fade for intro of level
+				if(levelFadeOut==true){
+					
+					 Gdx.gl.glEnable(GL20.GL_BLEND);
+		     
+					 levelFadeAlphaOut=levelFadeAlphaOut+delta;
+
+					 shapeRenderer.begin(ShapeType.Filled);
+					 Color c = Color.BLACK;
+					 shapeRenderer.setColor(c.r, c.g, c.b, levelFadeAlphaOut);
+					 shapeRenderer.rect(0, 0, getViewportWidth(), getViewportHeight());
+					 shapeRenderer.end();
+					
+					 if(levelFadeAlphaOut>=1){
+						 levelFadeAlphaOut=0;
+						 levelFadeOut=false;}
+					 
+				} 
 	}
 
 	@Override
@@ -325,6 +369,8 @@ public class GameScreen extends AbstractScreen {
 		chVert2.set(xc + GameSettings.CROSSHAIR, yc);
 	}
 	
+	
+	//Test to render a black fabe between level loading
 	public void introFade(){
 		
 		float i=100;

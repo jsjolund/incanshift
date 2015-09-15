@@ -26,7 +26,9 @@ import java.util.Random;
 public class GameWorld implements Disposable {
 
 	public LevelData[] levels;
-
+	private boolean loadingNextLevel=true;
+	private PlayerSound sound;
+	
 	private class LevelData {
 		String csvPath;
 		Array<String> musicPaths = new Array<String>();
@@ -265,6 +267,7 @@ public class GameWorld implements Disposable {
             game.showCreditScreen();
 			currentMusic.pause();
 		}
+		
 		loadLevel(currentLevelIndex);
 	}
 
@@ -366,8 +369,38 @@ public class GameWorld implements Disposable {
 	}
 
 	public void update(float delta) {
-		if (currentGameLevel.numberOfMasksAtCreation != 0 && currentGameLevel.numberSpawned("mask") == 0) {
-			loadNextLevel();
+		if (loadingNextLevel&&currentGameLevel.numberOfMasksAtCreation != 0 && currentGameLevel.numberSpawned("mask") == 0) {
+			
+			//regulate so the level is not loaded multiple times.
+			loadingNextLevel=false;
+			
+			//Starts level fading outro animation. 
+			GameScreen.levelFadeOut = true;
+			
+			//sound.levelShift();
+			
+			//waits 1 second before the next level is loaded
+			Task removeTask = new Task() {
+			
+				
+				
+				@Override
+				public void run() {
+					
+					
+					
+					loadNextLevel();
+					
+					//Starts fading level introduction animation. 
+					GameScreen.levelFadeIn = true;
+					
+					loadingNextLevel=true;
+				}
+			};
+			
+			Timer.schedule(removeTask, 1);
+			
+			
 		}
 
 		collisionHandler.stepSimulation(delta);
