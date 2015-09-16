@@ -19,6 +19,7 @@ public class PlayerSound {
 	private Sound soundRun;
 	private Sound soundWalk;
 	private Sound soundMove;
+	private Sound soundLevelShift;
 	private long soundMoveId = -1;
 	private long soundGrappleId = -1;
 
@@ -50,7 +51,8 @@ public class PlayerSound {
 		assets.load("sound/hook.ogg", Sound.class);
 		assets.load("sound/run.ogg", Sound.class);
 		assets.load("sound/walk.ogg", Sound.class);
-
+		assets.load("sound/roomchange.ogg", Sound.class);
+		
 		assets.finishLoading();
 
 		soundJump.add(assets.get("sound/jump1.ogg", Sound.class));
@@ -76,6 +78,9 @@ public class PlayerSound {
 		soundRun = assets.get("sound/run.ogg", Sound.class);
 		soundWalk = assets.get("sound/walk.ogg", Sound.class);
 		soundMove = soundWalk;
+		
+		soundLevelShift= assets.get("sound/roomchange.ogg",Sound.class);
+		
 
 	}
 
@@ -118,6 +123,13 @@ public class PlayerSound {
 
 	public void shoot() {
 		soundShoot.play(0.1f * GameSettings.SOUND_VOLUME);
+	}
+	
+	public void levelShift() {
+		soundShoot.play(0.1f * GameSettings.SOUND_VOLUME);
+		
+		
+		//soundLevelShift.play(0.1f * GameSettings.SOUND_VOLUME);
 	}
 
 }

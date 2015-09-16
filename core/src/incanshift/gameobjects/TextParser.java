@@ -61,7 +61,17 @@ public class TextParser {
 			"#glyphs.2\n"+
 			"To enter his sanctuary, Kukulcan requires a sacrifice of blood. We praise him with our blood. We honor him with our blood. We give thanks to him with our blood! To him, the feathered serpent, Quetzcoatl, Kukulcan, to our master we willingly give our blood!\n"+
 			"\n"+
-			"#gods.0\n"+
+			"#gods.0\n"+			
+			"#hint.0\n"+
+			"The Mask[TAB] reveal the Truth. The Truth reveals the masks.\n"+
+			"#hint.1\n"+
+			"When you wear that Mask[TAB], I can almost see the gods through your eyes.\n"+
+			"#hint.2\n"+
+			"You have a MASK[TAB]...\n"+
+			"#hint.3\n"+
+			"One Mask a day keeps the other masks away. [TAB]\n"+	
+			"#hint.4\n"+
+			"If you wear a Mask[TAB] you can enter the invisible portals of blood. \n"+			
 			"\n"+
 			"#temp.0\n"+
 			"Learn to see the differance between the masks, and you may change the destiny of all mankind for eternity.";
