@@ -92,22 +92,22 @@ public class GameWorld implements Disposable {
 
 		levels = new LevelData[]{
 				new LevelData("model/outside_level.csv", "sound/ambience.ogg"),
-				new LevelData("model/inside_level14_one_mask.csv", "sound/roomchange.ogg", "sound/silence.ogg"),
-				new LevelData("model/inside_level1_jump_and_shoot.csv", "sound/v02_why_did_you_return.ogg",
+				new LevelData("model/inside_level1_one_mask.csv", "sound/roomchange.ogg", "sound/silence.ogg"),
+				new LevelData("model/inside_level2_jump_and_shoot.csv", "sound/v02_why_did_you_return.ogg",
 						"sound/mask_v2.ogg"),
-				new LevelData("model/inside_level11_path_with_masks.csv", "sound/v03_1st_humans.ogg", "sound/mask_v2.ogg"),
-				new LevelData("model/inside_level10_throw_out_the_bodies.csv", "sound/v04_what_god.ogg", "sound/mask_v2.ogg"),
+				new LevelData("model/inside_level3_path_with_masks.csv", "sound/v03_1st_humans.ogg", "sound/mask_v2.ogg"),
+				new LevelData("model/inside_level4_throw_out_the_bodies.csv", "sound/v04_what_god.ogg", "sound/mask_v2.ogg"),
 				new LevelData("model/inside_level5_krigarnas_tempel.csv", "sound/roomchange.ogg", "sound/bossmusic_1.ogg"),
-				new LevelData("model/inside_level4_chair.csv", "sound/roomchange.ogg", "sound/bossmusic_2.ogg"),
+				new LevelData("model/inside_level6_chair.csv", "sound/roomchange.ogg", "sound/bossmusic_2.ogg"),
 				
-				new LevelData("model/inside_level2_three_levels.csv", "sound/v08_all_of_the_people.ogg", "sound/bossmusic_2.ogg"),
-				new LevelData("model/inside_level3_3d_space.csv", "sound/v09_2on_humans.ogg", "sound/bossmusic_2.ogg"),
-				new LevelData("model/inside_level8_ant_hive.csv", "sound/v07_you_apper_to_be_lost.ogg", "sound/bossmusic_2.ogg"),				
-				new LevelData("model/inside_level12_inside_the_temple.csv", "sound/v10_rivalry_at_its_end.ogg", "sound/swamp.ogg"),
-				new LevelData("model/inside_level9_pillars_in_a_hill_of_stairs.csv", "sound/v11_3ed_humans.ogg", "sound/swamp.ogg"),
-				new LevelData("model/inside_level6_ziggurat_room.csv", "sound/roomchange.ogg", "sound/swamp.ogg"),
-				new LevelData("model/inside_level7_ziggurat_dissolved.csv", "sound/roomchange.ogg", "sound/silence.ogg"),
-				new LevelData("model/inside_level15_well.csv", "sound/roomchange.ogg", "sound/silence.ogg"),
+				new LevelData("model/inside_level7_three_levels.csv", "sound/v08_all_of_the_people.ogg", "sound/bossmusic_2.ogg"),
+				new LevelData("model/inside_level8_3d_space.csv", "sound/v09_2on_humans.ogg", "sound/bossmusic_2.ogg"),
+				new LevelData("model/inside_level9_ant_hive.csv", "sound/v07_you_apper_to_be_lost.ogg", "sound/bossmusic_2.ogg"),				
+				new LevelData("model/inside_level10_inside_the_temple.csv", "sound/v10_rivalry_at_its_end.ogg", "sound/swamp.ogg"),
+				new LevelData("model/inside_level11_pillars_in_a_hill_of_stairs.csv", "sound/v11_3ed_humans.ogg", "sound/swamp.ogg"),
+				new LevelData("model/inside_level12_ziggurat_room.csv", "sound/roomchange.ogg", "sound/swamp.ogg"),
+				new LevelData("model/inside_level13_ziggurat_dissolved.csv", "sound/roomchange.ogg", "sound/silence.ogg"),
+				new LevelData("model/inside_level14_well.csv", "sound/roomchange.ogg", "sound/silence.ogg"),
 		};
 
 		for (LevelData data : levels) {
