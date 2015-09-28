@@ -91,7 +91,7 @@ public class GameWorld implements Disposable {
 		assets = new AssetManager();
 
 		levels = new LevelData[]{
-				//new LevelData("model/outside_level.csv", "sound/ambience.ogg"),
+				new LevelData("model/outside_level.csv", "sound/ambience.ogg"),
 				new LevelData("model/inside_level1_one_mask.csv", "sound/roomchange.ogg", "sound/silence.ogg"),
 				new LevelData("model/inside_level2_jump_and_shoot.csv", "sound/v02_why_did_you_return.ogg",
 						"sound/mask_v2.ogg"),

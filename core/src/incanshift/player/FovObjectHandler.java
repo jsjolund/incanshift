@@ -1,6 +1,7 @@
 package incanshift.player;
 
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
@@ -162,7 +163,12 @@ class FovObjectHandler {
 				state.goalPos.set(state.constants.hide);
 			}
 			Camera cam = viewport.getCamera();
-			objTransform.set(cam.view).inv();
+			try {
+				objTransform.set(cam.view).inv();
+			} catch (RuntimeException e) {
+				Gdx.app.debug(tag, "Warning: Camera view matrix not invertible!");
+				return;
+			}
 			obj.position(playerPosition);
 			obj.body.setWorldTransform(objTransform);
 

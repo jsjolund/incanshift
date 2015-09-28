@@ -5,7 +5,6 @@ import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
-import com.badlogic.gdx.physics.bullet.collision.ContactListener;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody.btRigidBodyConstructionInfo;
 import com.badlogic.gdx.utils.ArrayMap;
@@ -165,8 +164,10 @@ public class Player extends GameObject {
 				}
 			} else {
 				grapplingBlocked = true;
-				Timer.schedule(unblockGrapplingTask,
-						GameSettings.PLAYER_GRAPPLE_MISS_TIME);
+				if (!unblockGrapplingTask.isScheduled()) {
+					Timer.schedule(unblockGrapplingTask,
+							GameSettings.PLAYER_GRAPPLE_MISS_TIME);
+				}
 			}
 		}
 	}
