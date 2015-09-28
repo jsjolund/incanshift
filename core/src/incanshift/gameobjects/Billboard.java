@@ -130,7 +130,11 @@ public class Billboard implements Disposable {
 	}
 
 	public void update(Camera camera) {
-		modelInstance.transform.set(camera.view).inv();
+		try {
+			modelInstance.transform.set(camera.view).inv();
+		} catch (RuntimeException e) {
+			return;
+		}
 		modelInstance.transform.setTranslation(worldPos);
 		modelInstance.calculateTransforms();
 
