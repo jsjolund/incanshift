@@ -26,16 +26,18 @@ import java.util.Random;
 public class GameWorld implements Disposable {
 
 	public LevelData[] levels;
-	private boolean loadingNextLevel=true;
+	private boolean loadingNextLevel = true;
 	private PlayerSound sound;
-	
-	private class LevelData {
+
+	public class LevelData {
 		String csvPath;
 		Array<String> musicPaths = new Array<String>();
 		int currentMusicIndex = 0;
+		public boolean hasGrapplingHook = false;
 
-		public LevelData(String csvPath, String... musicPaths) {
+		public LevelData(boolean hasGrapplingHook, String csvPath, String... musicPaths) {
 			this.csvPath = csvPath;
+			this.hasGrapplingHook = hasGrapplingHook;
 			for (String musicPath : musicPaths) {
 				this.musicPaths.add(musicPath);
 			}
@@ -74,7 +76,7 @@ public class GameWorld implements Disposable {
 	public Music currentMusic;
 	public Player player;
 	public boolean xRayMask = false;
-	GameLevel currentGameLevel;
+	public GameLevel currentGameLevel;
 	IncanShift game;
 	Viewport viewport;
 	private AssetManager assets;
@@ -91,23 +93,23 @@ public class GameWorld implements Disposable {
 		assets = new AssetManager();
 
 		levels = new LevelData[]{
-				new LevelData("model/outside_level.csv", "sound/ambience.ogg"),
-				new LevelData("model/inside_level1_one_mask.csv", "sound/roomchange.ogg", "sound/silence.ogg"),
-				new LevelData("model/inside_level2_jump_and_shoot.csv", "sound/v02_why_did_you_return.ogg",
+				new LevelData(false, "model/outside_level.csv", "sound/ambience.ogg"),
+				new LevelData(false, "model/inside_level1_one_mask.csv", "sound/roomchange.ogg", "sound/silence.ogg"),
+				new LevelData(true, "model/inside_level2_jump_and_shoot.csv", "sound/v02_why_did_you_return.ogg",
 						"sound/mask_v2.ogg"),
-				new LevelData("model/inside_level3_path_with_masks.csv", "sound/v03_1st_humans.ogg", "sound/mask_v2.ogg"),
-				new LevelData("model/inside_level4_throw_out_the_bodies.csv", "sound/v04_what_god.ogg", "sound/mask_v2.ogg"),
-				new LevelData("model/inside_level5_krigarnas_tempel.csv", "sound/roomchange.ogg", "sound/bossmusic_1.ogg"),
-				new LevelData("model/inside_level6_chair.csv", "sound/roomchange.ogg", "sound/bossmusic_2.ogg"),
-				
-				new LevelData("model/inside_level7_three_levels.csv", "sound/v08_all_of_the_people.ogg", "sound/bossmusic_2.ogg"),
-				new LevelData("model/inside_level8_3d_space.csv", "sound/v09_2on_humans.ogg", "sound/bossmusic_2.ogg"),
-				new LevelData("model/inside_level9_ant_hive.csv", "sound/v07_you_apper_to_be_lost.ogg", "sound/bossmusic_2.ogg"),				
-				new LevelData("model/inside_level10_inside_the_temple.csv", "sound/v10_rivalry_at_its_end.ogg", "sound/swamp.ogg"),
-				new LevelData("model/inside_level11_pillars_in_a_hill_of_stairs.csv", "sound/v11_3ed_humans.ogg", "sound/swamp.ogg"),
-				new LevelData("model/inside_level12_ziggurat_room.csv", "sound/roomchange.ogg", "sound/swamp.ogg"),
-				new LevelData("model/inside_level13_ziggurat_dissolved.csv", "sound/roomchange.ogg", "sound/silence.ogg"),
-				new LevelData("model/inside_level14_well.csv", "sound/roomchange.ogg", "sound/silence.ogg"),
+				new LevelData(true, "model/inside_level3_path_with_masks.csv", "sound/v03_1st_humans.ogg", "sound/mask_v2.ogg"),
+				new LevelData(true, "model/inside_level4_throw_out_the_bodies.csv", "sound/v04_what_god.ogg", "sound/mask_v2.ogg"),
+				new LevelData(true, "model/inside_level5_krigarnas_tempel.csv", "sound/roomchange.ogg", "sound/bossmusic_1.ogg"),
+				new LevelData(true, "model/inside_level6_chair.csv", "sound/roomchange.ogg", "sound/bossmusic_2.ogg"),
+
+				new LevelData(true, "model/inside_level7_three_levels.csv", "sound/v08_all_of_the_people.ogg", "sound/bossmusic_2.ogg"),
+				new LevelData(true, "model/inside_level8_3d_space.csv", "sound/v09_2on_humans.ogg", "sound/bossmusic_2.ogg"),
+				new LevelData(true, "model/inside_level9_ant_hive.csv", "sound/v07_you_apper_to_be_lost.ogg", "sound/bossmusic_2.ogg"),
+				new LevelData(true, "model/inside_level10_inside_the_temple.csv", "sound/v10_rivalry_at_its_end.ogg", "sound/swamp.ogg"),
+				new LevelData(true, "model/inside_level11_pillars_in_a_hill_of_stairs.csv", "sound/v11_3ed_humans.ogg", "sound/swamp.ogg"),
+				new LevelData(true, "model/inside_level12_ziggurat_room.csv", "sound/roomchange.ogg", "sound/swamp.ogg"),
+				new LevelData(true, "model/inside_level13_ziggurat_dissolved.csv", "sound/roomchange.ogg", "sound/silence.ogg"),
+				new LevelData(true, "model/inside_level14_well.csv", "sound/roomchange.ogg", "sound/silence.ogg"),
 		};
 
 		for (LevelData data : levels) {
@@ -131,8 +133,6 @@ public class GameWorld implements Disposable {
 		Gdx.app.debug(tag, String.format("Assets finished loading."));
 
 
-		
-		
 		// Create a player, weapons, and load the level from CSV
 		player = spawnPlayer(game, viewport, screenCenter);
 		GameObject hook = gameObjectFactory.build("hook", player.position.cpy(), new Vector3(),
@@ -150,7 +150,7 @@ public class GameWorld implements Disposable {
 
 		collisionHandler.add(player);
 		loadLevel(currentLevelIndex);
-		
+
 
 		Gdx.app.debug(tag, "GameWorld constructor finished.");
 	}
@@ -264,10 +264,10 @@ public class GameWorld implements Disposable {
 		currentLevelIndex++;
 		if (currentLevelIndex == levels.length) {
 			currentLevelIndex = 0;
-            game.showCreditScreen();
+			game.showCreditScreen();
 			currentMusic.pause();
 		}
-		
+
 		loadLevel(currentLevelIndex);
 	}
 
@@ -366,42 +366,40 @@ public class GameWorld implements Disposable {
 
 		Gdx.app.debug(tag, "Finished creating player");
 		return obj;
-		
+
 	}
 
 	public void update(float delta) {
-		if (loadingNextLevel&&currentGameLevel.numberOfMasksAtCreation != 0 && currentGameLevel.numberSpawned("mask") == 0) {
-			
+		if (loadingNextLevel && currentGameLevel.numberOfMasksAtCreation != 0 && currentGameLevel.numberSpawned("mask") == 0) {
+
 			//regulate so the level is not loaded multiple times.
-			loadingNextLevel=false;
-			
+			loadingNextLevel = false;
+
 			//Starts level fading outro animation. 
 			GameScreen.levelFadeOut = true;
-			
+
 			//sound.levelShift();
-			
+
 			//waits 1 second before the next level is loaded
 			Task removeTask = new Task() {
-			
-				
-				
+
+
 				@Override
 				public void run() {
-					
-					
-					
+
+
 					loadNextLevel();
-					
+
 					//Starts fading level introduction animation. 
 					GameScreen.levelFadeIn = true;
-					
-					loadingNextLevel=true;
+
+					loadingNextLevel = true;
 				}
 			};
-			
+
 			Timer.schedule(removeTask, 1);
-			
-			
+
+
 		}
 
 		collisionHandler.stepSimulation(delta);

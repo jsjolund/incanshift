@@ -142,6 +142,11 @@ public class Player extends GameObject {
 	}
 
 	private void handleGrappling() {
+
+		if (!world.levels[world.currentLevelIndex].hasGrapplingHook) {
+			return;
+		}
+
 		if (controller.actionQueueContains(PlayerAction.HOOK)
 				&& inventory.containsKey("hook")
 				&& !teleportTask.isScheduled() && !grapplingBlocked) {
