@@ -49,9 +49,11 @@ public class TextParser {
 			"#player.2\n"+
 			"This whole place feels strangely familiar. Yet... so different.\n"+
 			"#player.3\n"+
-			"That mask... I feel like I have used it before. In some kind of ritual or maybe... was it a different mask?\n"+
+			"(press right mousebutton)With THE MASK the snake gods powers infuse you. \n"+			
 			"#player.4\n"+
 			"Was I... a servant of the jaguar god?\n"+
+			"#player.5\n"+
+			"That mask... I feel like I have used it before. In some kind of ritual or maybe... was it a different mask?\n"+
 			"\n"+
 			"#glyphs.0\n"+
 			"Ever since the creation of the worlds, a persistent rivalry between Quetzcoatl and Tezcatlipoca has layed as the foundation for many conflicts of man.\n"+
@@ -64,14 +66,19 @@ public class TextParser {
 			"#gods.0\n"+			
 			"#hint.0\n"+
 			"The Mask[TAB] reveal the Truth. The Truth reveals the masks.\n"+
-			"#hint.1\n"+
-			"When you wear that Mask[TAB], I can almost see the gods through your eyes.\n"+
 			"#hint.2\n"+
+			"I can hear the snake inside of you(right mousebutton).\n"+
+			"#hint.1\n"+
 			"You have a MASK[TAB]...\n"+
 			"#hint.3\n"+
 			"One Mask a day keeps the other masks away. [TAB]\n"+	
 			"#hint.4\n"+
 			"If you wear a Mask[TAB] you can enter the invisible portals of blood. \n"+			
+			"#hint.5\n"+
+			"When you wear that Mask[TAB], I can almost see the gods through your eyes.\n"+
+			"\n"+
+			"#hint.5\n"+
+			"With THE MASK the snake gods powers infuse you(press right mousebutton). \n"+			
 			"\n"+
 			"#temp.0\n"+
 			"Learn to see the differance between the masks, and you may change the destiny of all mankind for eternity.";
